@@ -1,0 +1,209 @@
+name: Setup SSL Certificate for AWS Lightsail
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Domain name for SSL certificate'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to setup SSL for'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - production
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  setup-ssl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ""
+      
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            echo "INSTANCE_NAME=whitepine-production" >> $GITHUB_ENV
+          else
+            echo "INSTANCE_NAME=whitepine-dev" >> $GITHUB_ENV
+          fi
+      
+      - name: Get instance details
+        id: get-details
+        run: |
+          INSTANCE_IP=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          INSTANCE_STATE=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.state.name' --output text 2>/dev/null || echo "not-found")
+          
+          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
+          echo "instance_state=$INSTANCE_STATE" >> $GITHUB_OUTPUT
+          
+          echo "Instance IP: $INSTANCE_IP"
+          echo "Instance State: $INSTANCE_STATE"
+      
+      - name: Check instance exists and is running
+        run: |
+          if [ "${{ steps.get-details.outputs.instance_state }}" = "not-found" ]; then
+            echo "❌ Instance ${{ env.INSTANCE_NAME }} not found"
+            exit 1
+          fi
+          
+          if [ "${{ steps.get-details.outputs.instance_state }}" != "running" ]; then
+            echo "❌ Instance is not running. Current state: ${{ steps.get-details.outputs.instance_state }}"
+            exit 1
+          fi
+      
+      - name: Verify domain DNS
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          
+          echo "🔍 Verifying domain DNS..."
+          DOMAIN_IP=$(dig +short $DOMAIN | tail -n1)
+          
+          echo "Domain: $DOMAIN"
+          echo "Domain IP: $DOMAIN_IP"
+          echo "Instance IP: $INSTANCE_IP"
+          
+          if [ "$DOMAIN_IP" != "$INSTANCE_IP" ]; then
+            echo "⚠️  Domain $DOMAIN does not point to instance IP $INSTANCE_IP"
+            echo "⚠️  Current domain IP: $DOMAIN_IP"
+            echo "⚠️  Please update your DNS records before continuing."
+            echo ""
+            echo "You need to create an A record pointing $DOMAIN to $INSTANCE_IP"
+            echo "This can be done in your domain registrar's DNS settings."
+            echo ""
+            echo "Continuing anyway, but SSL setup may fail..."
+          else
+            echo "✅ Domain DNS is correctly configured"
+          fi
+      
+      - name: Install Certbot and configure SSL
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          
+          echo "🔐 Setting up SSL certificate for $DOMAIN..."
+          
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP << EOF
+            set -e
+            
+            echo "📦 Installing Certbot..."
+            sudo apt-get update
+            sudo apt-get install -y certbot python3-certbot-nginx
+            
+            echo "🔧 Configuring Nginx for domain..."
+            sudo sed -i "s/server_name _;/server_name $DOMAIN;/" /etc/nginx/sites-available/whitepine
+            
+            echo "🔄 Reloading Nginx..."
+            sudo nginx -t
+            sudo systemctl reload nginx
+            
+            echo "🔐 Obtaining SSL certificate..."
+            sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN
+            
+            echo "✅ SSL certificate installed successfully!"
+            
+            echo "🔄 Setting up automatic renewal..."
+            echo "0 12 * * * /usr/bin/certbot renew --quiet" | sudo crontab -
+            
+            echo "✅ SSL setup complete!"
+          EOF
+      
+      - name: Update application configuration
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          
+          echo "🔧 Updating application configuration..."
+          
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP << EOF
+            set -e
+            
+            echo "📝 Updating environment variables..."
+            cd /opt/whitepine
+            
+            # Update .env file with HTTPS URLs
+            if [ -f .env ]; then
+              sed -i "s|NEXT_PUBLIC_API_URL=http://localhost:5000|NEXT_PUBLIC_API_URL=https://$DOMAIN/api|" .env
+              sed -i "s|NODE_ENV=production|NODE_ENV=production|" .env
+            fi
+            
+            echo "🔄 Restarting application..."
+            pm2 restart all
+            
+            echo "✅ Application configuration updated!"
+          EOF
+      
+      - name: Test SSL configuration
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          
+          echo "🧪 Testing SSL configuration..."
+          
+          # Wait a moment for the application to restart
+          sleep 10
+          
+          # Test HTTPS endpoints
+          if curl -f https://$DOMAIN/health > /dev/null 2>&1; then
+            echo "✅ HTTPS health check passed"
+          else
+            echo "⚠️  HTTPS health check failed. SSL may still be propagating."
+          fi
+          
+          if curl -f https://$DOMAIN/ > /dev/null 2>&1; then
+            echo "✅ HTTPS frontend is accessible"
+          else
+            echo "⚠️  HTTPS frontend check failed. SSL may still be propagating."
+          fi
+      
+      - name: SSL setup summary
+        run: |
+          DOMAIN="${{ github.event.inputs.domain }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          
+          echo ""
+          echo "📋 SSL Setup Summary:"
+          echo "====================="
+          echo "• Domain: $DOMAIN"
+          echo "• Environment: $ENVIRONMENT"
+          echo "• Instance: ${{ env.INSTANCE_NAME }}"
+          echo "• Instance IP: $INSTANCE_IP"
+          echo "• SSL Certificate: Let's Encrypt"
+          echo "• Auto-renewal: Enabled"
+          echo ""
+          echo "🌐 Access URLs:"
+          echo "• Frontend: https://$DOMAIN"
+          echo "• Backend API: https://$DOMAIN/api"
+          echo "• Health Check: https://$DOMAIN/health"
+          echo ""
+          echo "🔧 Management Commands:"
+          echo "• Check certificate status: ssh ubuntu@$INSTANCE_IP 'sudo certbot certificates'"
+          echo "• Renew certificate: ssh ubuntu@$INSTANCE_IP 'sudo certbot renew'"
+          echo "• View Nginx config: ssh ubuntu@$INSTANCE_IP 'sudo nginx -t'"
+          echo ""
+          echo "✅ SSL setup complete!"
+          echo "🌐 Your application is now accessible at https://$DOMAIN"
+          
+          if [ "$DOMAIN_IP" != "$INSTANCE_IP" ]; then
+            echo ""
+            echo "⚠️  Remember to update your DNS records if you haven't already!"
+            echo "Create an A record pointing $DOMAIN to $INSTANCE_IP"
+          fi

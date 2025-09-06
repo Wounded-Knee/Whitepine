@@ -11,7 +11,7 @@ export default function GovernmentBrowserPage() {
 
   useEffect(() => {
     // Check if user has admin or developer privileges for editing
-    const canEdit = isAdmin(user) || hasRole(user, 'Moderator')
+    const canEdit = isAdmin(user) || hasRole(user, 'moderator')
     setIsAuthorized(canEdit)
   }, [user])
 

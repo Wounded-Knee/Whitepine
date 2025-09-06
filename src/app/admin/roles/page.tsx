@@ -5,17 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { isAdmin } from '../../utils/roleUtils';
 import UserRoles from '../../components/UserRoles';
 import axios from 'axios';
-
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  roles: string[];
-  isActive: boolean;
-  createdAt: string;
-}
+import { User, UserRole } from '../../types';
 
 const RoleManagementPage: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -57,7 +47,7 @@ const RoleManagementPage: React.FC = () => {
     }
   };
 
-  const handleRolesUpdate = (userId: string, newRoles: string[]) => {
+  const handleRolesUpdate = (userId: string, newRoles: UserRole[]) => {
     setUsers(prevUsers => 
       prevUsers.map(user => 
         user._id === userId ? { ...user, roles: newRoles } : user

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The User Role System provides role-based access control (RBAC) for the USA application. It allows administrators to assign specific roles to users, which determine their permissions and access levels throughout the application.
+The User Role System provides role-based access control (RBAC) for the Whitepine application. It allows administrators to assign specific roles to users, which determine their permissions and access levels throughout the application.
 
 ## Roles
 

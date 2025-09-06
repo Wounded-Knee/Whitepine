@@ -1,5 +1,5 @@
 const express = require('express');
-const Government = require('../../models/Government');
+const { Jurisdiction, GoverningBody, Office, Position, Election, Legislation } = require('../../models/Government');
 const { verifyToken, requireScope, optionalAuth } = require('../../middleware/authorization');
 const { generalLimiter, securityHeaders } = require('../../middleware/security');
 const { success, error, notFound } = require('../../utils/response');
@@ -19,7 +19,7 @@ router.get('/jurisdictions',
       const { page = 1, page_size = 50, filter, sort, fields, level, parentId } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'jurisdiction' });
+      let query = Jurisdiction.find({});
       
       // Apply filters
       if (filter) {
@@ -46,7 +46,7 @@ router.get('/jurisdictions',
       
       // Execute query
       const jurisdictions = await paginatedQuery;
-      const total = await Government.countDocuments({ type: 'jurisdiction' });
+      const total = await Jurisdiction.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(jurisdictions, total, pagination);
@@ -75,7 +75,7 @@ router.get('/jurisdictions/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'jurisdiction' });
+      let query = Jurisdiction.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);
@@ -102,7 +102,7 @@ router.get('/jurisdictions/:id',
         });
         
         if (current.parent) {
-          current = await Government.findById(current.parent);
+          current = await Jurisdiction.findById(current.parent);
         } else {
           current = null;
         }
@@ -134,7 +134,7 @@ router.get('/governing-bodies',
       const { page = 1, page_size = 50, filter, sort, fields, jurisdictionId, branch, entity_type } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'governing_body' });
+      let query = GoverningBody.find({});
       
       // Apply filters
       if (filter) {
@@ -165,7 +165,7 @@ router.get('/governing-bodies',
       
       // Execute query
       const governingBodies = await populatedQuery;
-      const total = await Government.countDocuments({ type: 'governing_body' });
+      const total = await GoverningBody.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(governingBodies, total, pagination);
@@ -194,7 +194,7 @@ router.get('/governing-bodies/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'governing_body' });
+      let query = GoverningBody.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);
@@ -234,7 +234,7 @@ router.get('/offices',
       const { page = 1, page_size = 50, filter, sort, fields, governingBodyId } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'office' });
+      let query = Office.find({});
       
       // Apply filters
       if (filter) {
@@ -263,7 +263,7 @@ router.get('/offices',
       
       // Execute query
       const offices = await populatedQuery;
-      const total = await Government.countDocuments({ type: 'office' });
+      const total = await Office.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(offices, total, pagination);
@@ -292,7 +292,7 @@ router.get('/offices/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'office' });
+      let query = Office.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);
@@ -332,7 +332,7 @@ router.get('/positions',
       const { page = 1, page_size = 50, filter, sort, fields, officeId, isCurrent } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'position' });
+      let query = Position.find({});
       
       // Apply filters
       if (filter) {
@@ -364,7 +364,7 @@ router.get('/positions',
       
       // Execute query
       const positions = await populatedQuery;
-      const total = await Government.countDocuments({ type: 'position' });
+      const total = await Position.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(positions, total, pagination);
@@ -393,7 +393,7 @@ router.get('/positions/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'position' });
+      let query = Position.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);
@@ -435,7 +435,7 @@ router.get('/elections',
       const { page = 1, page_size = 50, filter, sort, fields, jurisdictionId, status } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'election' });
+      let query = Election.find({});
       
       // Apply filters
       if (filter) {
@@ -465,7 +465,7 @@ router.get('/elections',
       
       // Execute query
       const elections = await populatedQuery;
-      const total = await Government.countDocuments({ type: 'election' });
+      const total = await Election.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(elections, total, pagination);
@@ -494,7 +494,7 @@ router.get('/elections/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'election' });
+      let query = Election.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);
@@ -534,7 +534,7 @@ router.get('/legislation',
       const { page = 1, page_size = 50, filter, sort, fields, governingBodyId, status, bill_number } = req.query;
       
       // Build query
-      let query = Government.find({ type: 'legislation' });
+      let query = Legislation.find({});
       
       // Apply filters
       if (filter) {
@@ -565,7 +565,7 @@ router.get('/legislation',
       
       // Execute query
       const legislation = await populatedQuery;
-      const total = await Government.countDocuments({ type: 'legislation' });
+      const total = await Legislation.countDocuments({});
       
       // Build response
       const meta = buildPaginationMeta(legislation, total, pagination);
@@ -594,7 +594,7 @@ router.get('/legislation/:id',
       const { fields } = req.query;
       
       // Build query
-      let query = Government.findOne({ _id: id, type: 'legislation' });
+      let query = Legislation.findById(id);
       
       // Apply field selection
       const projection = selectFields(fields);

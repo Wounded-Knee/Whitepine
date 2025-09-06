@@ -1,7 +1,7 @@
 # Identity Chips System
 
 ## Overview
-The Identity Chips system provides a comprehensive set of React components for displaying various types of identity data in the USA application. Each chip represents a specific identity category with unique styling and data visualization capabilities.
+The Identity Chips system provides a comprehensive set of React components for displaying various types of identity data in the Whitepine application. Each chip represents a specific identity category with unique styling and data visualization capabilities.
 
 ## Architecture
 
@@ -183,7 +183,7 @@ import { EconomicIdentityChip } from '@/components/Chips'
 - Sample data for testing and development
 - Click interactions with visual feedback
 - Comprehensive documentation and examples
-- Federal-themed design consistent with USA application
+- Federal-themed design consistent with Whitepine application
 
 ### Navigation
 Accessible from the main laboratory page (`/lab`) with a dedicated card and description.

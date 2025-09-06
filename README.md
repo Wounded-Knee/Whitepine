@@ -17,7 +17,7 @@ Built in 2025 with Next.js 15, Express.js, and MongoDB Atlas.
 1. **Clone and install dependencies:**
    ```bash
    git clone <repository-url>
-   cd usa
+   cd whitepine
    npm install
    ```
 
@@ -182,7 +182,7 @@ Create a `.env` file with:
 
 ```env
 # Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/usa
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/whitepine
 
 # JWT Secrets
 JWT_SECRET=your-jwt-secret

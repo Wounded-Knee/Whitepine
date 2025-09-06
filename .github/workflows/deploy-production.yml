@@ -1,0 +1,178 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ENVIRONMENT: production
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY: usa-production-app
+  S3_BUCKET: usa-production-frontend
+  CF_DIST_ID: ${{ secrets.CF_DIST_ID_PRODUCTION }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+      
+      - name: Run tests
+        run: npm test --if-present
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Security scan
+        run: |
+          npm audit --audit-level high
+          # Add additional security scanning tools here
+      
+      - name: Performance test
+        run: |
+          # Add performance testing here
+          echo "Performance tests would run here"
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-production
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      
+      - name: Deploy to ECS (Blue/Green)
+        env:
+          ECS_SERVICE: usa-production-service
+          ECS_CLUSTER: usa-production-cluster
+          ECS_TASK_DEFINITION: usa-production-app
+        run: |
+          # Update ECS service with new image
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE
+      
+      - name: Health check
+        run: |
+          # Wait for health check to pass
+          sleep 30
+          curl -f https://api.usa-app.com/health || exit 1
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.usa-app.com
+      
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy-production
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Sync static assets to S3
+        run: |
+          aws s3 sync out s3://$S3_BUCKET/ \
+            --delete \
+            --exclude "*.html" \
+            --cache-control "public,max-age=31536000,immutable"
+      
+      - name: Upload HTML files to S3
+        run: |
+          find out -name "*.html" -exec sh -c '
+            key="${1#out/}"
+            aws s3 cp "$1" "s3://$S3_BUCKET/$key" \
+              --cache-control "no-cache" \
+              --content-type "text/html; charset=utf-8"
+          ' _ {} \;
+      
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id $CF_DIST_ID \
+            --paths "/*"
+      
+      - name: Wait for CloudFront invalidation
+        run: |
+          # Wait for invalidation to complete
+          sleep 60
+
+  notify:
+    needs: [deploy-backend, deploy-frontend]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify deployment status
+        run: |
+          if [ "${{ needs.deploy-backend.result }}" == "success" ] && [ "${{ needs.deploy-frontend.result }}" == "success" ]; then
+            echo "✅ Production deployment successful!"
+            echo "🌐 Frontend: https://usa-app.com"
+            echo "🔗 API: https://api.usa-app.com"
+            # Add Slack/email notifications here
+          else
+            echo "❌ Production deployment failed!"
+            # Add alert notifications here
+            exit 1
+          fi

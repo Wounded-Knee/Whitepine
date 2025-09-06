@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `BaseModal` component is a reusable, accessible modal dialog component that provides consistent styling and behavior across the USA application. It abstracts common modal functionality and normalizes backdrop styles using `backdrop-blur-sm`.
+The `BaseModal` component is a reusable, accessible modal dialog component that provides consistent styling and behavior across the Whitepine application. It abstracts common modal functionality and normalizes backdrop styles using `backdrop-blur-sm`.
 
 ## Features
 

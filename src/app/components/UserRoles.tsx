@@ -3,13 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
-
-interface Role {
-  _id: string;
-  name: string;
-  description: string;
-  scopes: string[];
-}
+import { Role } from '../types';
 
 interface UserRolesProps {
   userId: string;

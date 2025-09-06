@@ -18,7 +18,7 @@ const UserIdentity = new Schema({
     index: true
   },
   identityId: {
-    type: Number,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Identity',
     required: true,
     index: true
@@ -54,7 +54,7 @@ UserIdentity.index(
 UserIdentity.virtual('identity', {
   ref: 'Identity',
   localField: 'identityId',
-  foreignField: 'id',
+  foreignField: '_id',
   justOne: true
 });
 

@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
-  title: USA Application API
-  description: API for the USA (United States Application) - a full-stack web application with a California democracy theme
+  title: Whitepine Application API
+  description: API for the Whitepine (Civic Platform) - a full-stack web application with a California democracy theme
   version: 1.0.0
   contact:
     name: USA Development Team
-    email: dev@usa-app.com
+    email: dev@whitepine.com
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -13,7 +13,7 @@ info:
 servers:
   - url: http://localhost:5000
     description: Development server
-  - url: https://api.usa-app.com
+  - url: https://api.whitepine.com
     description: Production server
 
 tags:

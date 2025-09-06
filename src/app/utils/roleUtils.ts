@@ -1,22 +1,6 @@
 // Role-based access control utilities
 
-export type UserRole = 'Developer' | 'Admin' | 'Moderator' | 'User';
-
-export interface User {
-  _id: string;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  roles: UserRole[];
-  avatar?: string;
-  authMethod: 'local' | 'google';
-  emailVerified: boolean;
-  isActive: boolean;
-  lastLogin: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { User, UserRole } from '../types';
 
 // Check if user has a specific role
 export const hasRole = (user: User | null, role: UserRole): boolean => {
@@ -41,10 +25,10 @@ export const getHighestRole = (user: User | null): UserRole | null => {
   if (!user || !user.roles || user.roles.length === 0) return null;
   
   const rolePriority: Record<UserRole, number> = {
-    'Developer': 4,
-    'Admin': 3,
-    'Moderator': 2,
-    'User': 1
+    'developer': 4,
+    'admin': 3,
+    'moderator': 2,
+    'user': 1
   };
 
   return user.roles.reduce((highest, current) => {
@@ -54,17 +38,17 @@ export const getHighestRole = (user: User | null): UserRole | null => {
 
 // Check if user has admin or developer privileges
 export const isAdmin = (user: User | null): boolean => {
-  return hasAnyRole(user, ['Developer', 'Admin']);
+  return hasAnyRole(user, ['developer', 'admin']);
 };
 
 // Check if user has developer privileges
 export const isDeveloper = (user: User | null): boolean => {
-  return hasRole(user, 'Developer');
+  return hasRole(user, 'developer');
 };
 
 // Check if user has moderator or higher privileges
 export const isModerator = (user: User | null): boolean => {
-  return hasAnyRole(user, ['Developer', 'Admin', 'Moderator']);
+  return hasAnyRole(user, ['developer', 'admin', 'moderator']);
 };
 
 // Get role display name with proper formatting
@@ -75,12 +59,12 @@ export const getRoleDisplayName = (role: UserRole): string => {
 // Get role color for UI display
 export const getRoleColor = (role: UserRole): string => {
   const colors = {
-    'Developer': 'text-purple-600 bg-purple-100',
-    'Admin': 'text-red-600 bg-red-100',
-    'Moderator': 'text-orange-600 bg-orange-100',
-    'User': 'text-gray-600 bg-gray-100'
+    'developer': 'text-purple-600 bg-purple-100',
+    'admin': 'text-red-600 bg-red-100',
+    'moderator': 'text-orange-600 bg-orange-100',
+    'user': 'text-gray-600 bg-gray-100'
   };
-  return colors[role] || colors['User'];
+  return colors[role] || colors['user'];
 };
 
 // Get role badge styling

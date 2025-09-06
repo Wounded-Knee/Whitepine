@@ -1,7 +1,7 @@
 # API Documentation Summary
 
 ## Overview
-This document provides a comprehensive overview of the API documentation and integration resources for the USA Full-Stack Application.
+This document provides a comprehensive overview of the API documentation and integration resources for the Whitepine Full-Stack Application.
 
 ## Documentation Structure
 

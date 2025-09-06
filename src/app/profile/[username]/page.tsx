@@ -5,27 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
 import Link from 'next/link'
-
-interface User {
-  _id: string
-  username: string
-  firstName: string
-  lastName: string
-  email: string
-  bio?: string
-  location?: string
-  website?: string
-  birthdate?: string
-  race?: string
-  gender?: string
-  income?: string
-  religion?: string
-  politicalPriorities?: string[]
-  roles: string[]
-  isActive: boolean
-  createdAt: string
-  lastLogin?: string
-}
+import { User } from '../../types'
 
 interface Position {
   _id: string
@@ -80,23 +60,20 @@ const ProfilePage: React.FC = () => {
         // Use current user data
         if (currentUser) {
           setUser({
-            _id: currentUser.id,
+            _id: currentUser._id,
             username: currentUser.username,
             firstName: currentUser.firstName,
             lastName: currentUser.lastName,
             email: currentUser.email,
-            bio: currentUser.profile?.bio,
-            location: currentUser.profile?.location,
-            website: currentUser.profile?.website,
-            birthdate: currentUser.birthdate,
-            race: currentUser.race,
-            gender: currentUser.gender,
-            income: currentUser.income,
-            religion: currentUser.religion,
-            politicalPriorities: currentUser.politicalPriorities,
+            profile: {
+              bio: currentUser.profile?.bio,
+              location: currentUser.profile?.location
+            },
             roles: currentUser.roles || [],
             isActive: true,
-            createdAt: currentUser.createdAt || new Date().toISOString()
+            authProviders: currentUser.authProviders || [],
+            createdAt: currentUser.createdAt || new Date(),
+            updatedAt: currentUser.updatedAt || new Date()
           })
           setLoading(false)
         } else {
@@ -276,8 +253,8 @@ const ProfilePage: React.FC = () => {
                     {isOwnProfile ? 'My Profile' : `${user.firstName} ${user.lastName}`}
                   </h1>
                   <p className="text-white/80 text-lg mb-2">@{user.username}</p>
-                  {user.bio && (
-                    <p className="text-white/70">{user.bio}</p>
+                  {user.profile?.bio && (
+                    <p className="text-white/70">{user.profile.bio}</p>
                   )}
                   <div className="flex items-center space-x-4 mt-4">
                     {user.roles && user.roles.length > 0 && (
@@ -286,7 +263,7 @@ const ProfilePage: React.FC = () => {
                       </span>
                     )}
                     <span className="text-sm opacity-90">
-                      Member since {formatDate(user.createdAt)}
+                      Member since {formatDate(user.createdAt.toString())}
                     </span>
                     {isOwnProfile && (
                       <Link
@@ -407,107 +384,26 @@ const ProfilePage: React.FC = () => {
                       </a>
                     </div>
                   )}
-                  {user.location && (
+                  {user.profile?.location && (
                     <div className="flex items-center space-x-3">
                       <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <span className="text-neutral">{user.location}</span>
+                      <span className="text-neutral">{user.profile.location}</span>
                     </div>
                   )}
-                  {user.website && (
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
-                      <a 
-                        href={user.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary-dark transition-colors"
-                      >
-                        {user.website}
-                      </a>
-                    </div>
-                  )}
+                  {/* Website field not available in current UserProfile schema */}
                   <div className="flex items-center space-x-3">
                     <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-neutral">Member since {formatDate(user.createdAt)}</span>
+                    <span className="text-neutral">Member since {formatDate(user.createdAt.toString())}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Demographics */}
-              {(user.birthdate || user.race || user.gender || user.income || user.religion || user.politicalPriorities) && (
-                <div className="bg-surface rounded-lg shadow-lg border border-neutral-light p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Demographics</h3>
-                  <div className="space-y-3">
-                    {user.birthdate && (
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-neutral">Born {formatDate(user.birthdate)}</span>
-                      </div>
-                    )}
-                    {user.race && (
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span className="text-neutral">{user.race}</span>
-                      </div>
-                    )}
-                    {user.gender && (
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span className="text-neutral">{user.gender}</span>
-                      </div>
-                    )}
-                    {user.income && user.income !== 'prefer_not_to_say' && (
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                        </svg>
-                        <span className="text-neutral">{user.income.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                      </div>
-                    )}
-                    {user.religion && (
-                      <div className="flex items-center space-x-3">
-                        <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                        <span className="text-neutral">{user.religion}</span>
-                      </div>
-                    )}
-                    {user.politicalPriorities && user.politicalPriorities.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-3">
-                          <svg className="w-5 h-5 text-neutral-light" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span className="text-neutral font-medium">Political Priorities</span>
-                        </div>
-                        <div className="ml-8 space-y-1">
-                          {user.politicalPriorities.map((priority, index) => (
-                            <div key={index} className="flex items-center space-x-2">
-                              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                                {index + 1}
-                              </span>
-                              <span className="text-neutral text-sm">{priority}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Demographics section removed - fields not available in current User schema */}
 
               {/* Quick Stats */}
               <div className="bg-surface rounded-lg shadow-lg border border-neutral-light p-6">

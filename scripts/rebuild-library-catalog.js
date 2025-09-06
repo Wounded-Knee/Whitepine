@@ -62,7 +62,7 @@ function extractExcerpt(content) {
     }
   }
   
-  return 'Technical documentation for the USA Full-Stack Application.';
+  return 'Technical documentation for the Whitepine Full-Stack Application.';
 }
 
 // Function to determine category from filename and content

@@ -93,13 +93,15 @@ export default function RepresentativesAndJurisdictions({ representatives }: Rep
   // Group representatives by jurisdiction
   const representativesByJurisdiction = representatives.reduce((acc, rep) => {
     const jurisdictionId = rep.office.jurisdiction?._id || rep.office.governing_body?._id
-    if (!acc[jurisdictionId]) {
-      acc[jurisdictionId] = {
-        jurisdiction: rep.office.jurisdiction || rep.office.governing_body,
-        representatives: []
+    if (jurisdictionId) {
+      if (!acc[jurisdictionId]) {
+        acc[jurisdictionId] = {
+          jurisdiction: rep.office.jurisdiction || rep.office.governing_body,
+          representatives: []
+        }
       }
+      acc[jurisdictionId].representatives.push(rep)
     }
-    acc[jurisdictionId].representatives.push(rep)
     return acc
   }, {} as Record<string, { jurisdiction: any; representatives: Representative[] }>)
 

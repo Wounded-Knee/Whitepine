@@ -3,21 +3,10 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import { User } from '../types';
 
 interface ProfileHeaderProps {
-  user: {
-    _id: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    profile?: {
-      bio?: string;
-      location?: string;
-      website?: string;
-      avatar?: string;
-      banner?: string;
-    };
-  };
+  user: User;
   onProfileUpdate?: () => void;
 }
 
@@ -38,9 +27,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onProfileUpdate }) 
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('entityType', 'user');
+    formData.append('entityType', 'User');
     formData.append('entityId', user._id);
-    formData.append('mediaType', type);
+    formData.append('description', `${type} for ${user.firstName} ${user.lastName}`);
     formData.append('isPrimary', 'true');
 
     try {
@@ -57,7 +46,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onProfileUpdate }) 
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
             'Content-Type': 'multipart/form-data',
           },
         }
@@ -117,20 +106,12 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onProfileUpdate }) 
   };
 
   const getBannerUrl = () => {
-    if (user.profile?.banner) {
-      return user.profile.banner.startsWith('http') 
-        ? user.profile.banner 
-        : `${process.env.NEXT_PUBLIC_API_URL}${user.profile.banner}`;
-    }
+    // Banner functionality not available in current UserProfile schema
     return '/api/placeholder/1200/300';
   };
 
   const getAvatarUrl = () => {
-    if (user.profile?.avatar) {
-      return user.profile.avatar.startsWith('http') 
-        ? user.profile.avatar 
-        : `${process.env.NEXT_PUBLIC_API_URL}${user.profile.avatar}`;
-    }
+    // Avatar functionality not available in current UserProfile schema
     return '/api/placeholder/150/150';
   };
 
@@ -154,16 +135,10 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onProfileUpdate }) 
 
       {/* Banner Image */}
       <div className="relative h-48 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
-        {user.profile?.banner && (
-          <img
-            src={getBannerUrl()}
-            alt={`${user.firstName} ${user.lastName}'s banner`}
-            className="w-full h-full object-cover"
-          />
-        )}
+        {/* Banner functionality not available in current UserProfile schema */}
         
-        {/* Banner Upload Overlay */}
-        {isOwnProfile && (
+        {/* Banner Upload Overlay - Disabled due to schema limitations */}
+        {false && isOwnProfile && (
           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
             <button
               onClick={() => triggerFileInput('banner')}
@@ -251,21 +226,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onProfileUpdate }) 
               {user.profile.location}
             </div>
           )}
-          {user.profile?.website && (
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-              </svg>
-              <a 
-                href={user.profile.website} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] hover:underline"
-              >
-                {user.profile.website}
-              </a>
-            </div>
-          )}
+          {/* Website field not available in current UserProfile schema */}
         </div>
       </div>
 

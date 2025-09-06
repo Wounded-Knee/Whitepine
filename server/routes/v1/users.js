@@ -17,8 +17,8 @@ const router = express.Router();
 async function getPoliticalIdentityIds() {
   try {
     const PoliticalIdentity = require('../../models/Identity/PoliticalIdentity');
-    const politicalIdentities = await PoliticalIdentity.find({ isActive: true }).select('id');
-    return politicalIdentities.map(pi => pi.id);
+    const politicalIdentities = await PoliticalIdentity.find({ isActive: true }).select('_id');
+    return politicalIdentities.map(pi => pi._id);
   } catch (error) {
     console.error('Error getting political identity IDs:', error);
     return [];
@@ -496,13 +496,13 @@ router.post('/:userId/media',
       
       // Create media record
       const media = new Media({
-        entityType: 'user',
+        entityType: 'User',
         entityId: userId,
         filename: req.file.filename,
         originalName: req.file.originalname,
         mediaType: kind,
-        fileSize: req.file.size,
-        mimeType: req.file.mimetype,
+        bytes: req.file.size,
+        mime: req.file.mimetype,
         url: `/uploads/users/${req.file.filename}`,
         isPrimary: true,
         uploadedBy: req.user.id,
@@ -513,7 +513,7 @@ router.post('/:userId/media',
       // Set as primary for this user and kind
       await Media.updateMany(
         {
-          entityType: 'user',
+          entityType: 'User',
           entityId: userId,
           mediaType: kind,
           _id: { $ne: media._id }
@@ -526,8 +526,8 @@ router.post('/:userId/media',
         filename: media.filename,
         originalName: media.originalName,
         mediaType: media.mediaType,
-        fileSize: media.fileSize,
-        mimeType: media.mimeType,
+        bytes: media.bytes,
+        mime: media.mime,
         url: media.url,
         isPrimary: media.isPrimary,
         createdAt: media.createdAt,
@@ -557,7 +557,7 @@ router.get('/:userId/media',
       
       // Build query
       let query = Media.find({
-        entityType: 'user',
+        entityType: 'User',
         entityId: userId
       });
       
@@ -571,7 +571,7 @@ router.get('/:userId/media',
       // Execute query
       const media = await paginatedQuery.sort({ createdAt: -1 });
       const total = await Media.countDocuments({
-        entityType: 'user',
+        entityType: 'User',
         entityId: userId,
         ...(mediaType && { mediaType })
       });

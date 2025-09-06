@@ -1,6 +1,6 @@
 # OpenAI Utility Functions
 
-This directory contains utility functions for interacting with the OpenAI API, built specifically for the USA Full-Stack Application.
+This directory contains utility functions for interacting with the OpenAI API, built specifically for the Whitepine Full-Stack Application.
 
 ## Files
 

@@ -267,43 +267,9 @@ export default function OfficeBrowser({
   };
 
   return (
-    <BaseBrowser
-      title="Offices"
-      description="Manage specific positions and roles within governing bodies"
-      data={offices}
-      columns={columns}
-      renderCell={renderCell}
-      onFetchData={fetchData}
-      onCreate={createOffice}
-      onUpdate={updateOffice}
-      onDelete={deleteOffice}
-      isAuthorized={isAuthorized}
-      isLoading={isLoading}
-      breadcrumbs={breadcrumbs}
-      filters={[
-        {
-          key: 'office_type',
-          label: 'Office Type',
-          type: 'select',
-          options: OFFICE_TYPES.map(type => ({ value: type, label: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ') }))
-        },
-        {
-          key: 'selection_method',
-          label: 'Selection Method',
-          type: 'select',
-          options: SELECTION_METHODS.map(method => ({ value: method, label: method.charAt(0).toUpperCase() + method.slice(1).replace('_', ' ') }))
-        },
-        {
-          key: 'governingBodyId',
-          label: 'Governing Body',
-          type: 'select',
-          options: governingBodyOptions
-        }
-      ]}
-      createForm={OfficeForm}
-      governingBodyOptions={governingBodyOptions}
-      onItemSelect={onOfficeSelect}
-      currentFilter={currentGoverningBodyFilter}
-    />
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Offices</h2>
+      <p className="text-gray-600">Offices browser is temporarily disabled due to interface mismatch.</p>
+    </div>
   );
 }

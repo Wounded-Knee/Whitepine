@@ -3,7 +3,7 @@
 # S3 + CloudFront Deployment Setup Script
 # This script helps configure the deployment environment
 
-echo "🚀 Setting up S3 + CloudFront deployment for USA Full-Stack Application"
+echo "🚀 Setting up S3 + CloudFront deployment for Whitepine Full-Stack Application"
 
 # Check if required tools are installed
 echo "📋 Checking prerequisites..."
@@ -44,11 +44,11 @@ echo "• Next.js Config: output='export', trailingSlash=true"
 echo "• Build Output: out/ directory"
 echo "• GitHub Actions: .github/workflows/deploy.yml"
 echo "• AWS Region: us-east-2 (configurable)"
-echo "• S3 Bucket: usa-fullstack-app (configurable)"
+echo "• S3 Bucket: whitepine-fullstack-app (configurable)"
 echo ""
 
 echo "🔧 Next Steps:"
-echo "1. Create S3 bucket: usa-fullstack-app"
+echo "1. Create S3 bucket: whitepine-fullstack-app"
 echo "2. Create CloudFront distribution pointing to S3 bucket"
 echo "3. Create IAM role: github-actions-deploy-s3-cloudfront"
 echo "4. Configure GitHub repository secrets:"

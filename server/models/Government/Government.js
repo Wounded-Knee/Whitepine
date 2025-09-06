@@ -135,7 +135,7 @@ OfficeSchema.index({ jurisdiction: 1, office_type: 1 });
 // ------------------------------
 const PositionSchema = new Schema({
   office: { type: Types.ObjectId, ref: 'Office', required: true },
-  person: { type: Types.ObjectId, ref: 'Person', required: true },
+  person: { type: Types.ObjectId, ref: 'User', required: true },
   
   start_date: { type: Date, required: true },
   end_date: { type: Date },
@@ -213,27 +213,6 @@ LegislationSchema.index({ governing_body: 1, bill_number: 1 }, { unique: true })
 LegislationSchema.index({ jurisdiction: 1, status: 1 });
 LegislationSchema.index({ introduced_date: 1 });
 
-// ------------------------------
-// 10) Person model
-// Represents individuals who hold or have held positions.
-// ------------------------------
-const PersonSchema = new Schema({
-  name: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, lowercase: true, match: /^[a-z0-9-]+$/ },
-  
-  party: { type: String, trim: true },
-  bio: { type: String, trim: true, maxlength: 2000 },
-  
-  // Media references (now using unified Media model)
-  media: [{ type: Types.ObjectId, ref: 'Media' }],
-  primary_media: { type: Types.ObjectId, ref: 'Media' },
-
-  identifiers: { type: IdentifierSchema, default: {} },
-  metadata: { type: Map, of: Schema.Types.Mixed }
-}, { timestamps: true });
-
-PersonSchema.index({ slug: 1 }, { unique: true });
-PersonSchema.index({ party: 1 });
 
 // ------------------------------
 // 11) Government Vote model
@@ -241,7 +220,7 @@ PersonSchema.index({ party: 1 });
 // ------------------------------
 const GovernmentVoteSchema = new Schema({
   legislation: { type: Types.ObjectId, ref: 'Legislation', required: true },
-  person: { type: Types.ObjectId, ref: 'Person', required: true },
+  person: { type: Types.ObjectId, ref: 'User', required: true },
   position: { type: Types.ObjectId, ref: 'Position', required: true },
   
   vote_date: { type: Date, required: true },
@@ -336,7 +315,6 @@ module.exports = {
   GovernmentVote: mongoose.model('GovernmentVote', GovernmentVoteSchema),
   Committee: mongoose.model('Committee', CommitteeSchema),
   ContactInfo: mongoose.model('ContactInfo', ContactInfoSchema),
-  Person: mongoose.model('Person', PersonSchema),
   
   // Constants for use in other parts of the application
   CONSTANTS: {

@@ -1,7 +1,7 @@
-# USA Full-Stack Application - Library Index
+# Whitepine Full-Stack Application - Library Index
 
 ## Overview
-This index provides comprehensive documentation for the USA Full-Stack Application deployment architecture, setup procedures, and operational guidelines.
+This index provides comprehensive documentation for the Whitepine Full-Stack Application deployment architecture, setup procedures, and operational guidelines.
 
 ## Quick Navigation
 

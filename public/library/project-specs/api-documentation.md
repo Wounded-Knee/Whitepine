@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the v1 API for the USA application, which has been completely refactored for better data consistency, performance, and maintainability.
+This document describes the v1 API for the Whitepine application, which has been completely refactored for better data consistency, performance, and maintainability.
 
 ## Base URL
 

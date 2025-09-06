@@ -108,7 +108,7 @@ The app is going to deliver a unique first-of-its-kind digital contract between 
 
     When the people see a democratic lever that WORKS, they immediately try to gain control of it. It's ugly, but it's true, and in this case we'll use it in favor of the platform. They will be trying to game it and flood it with influence. But they'll be blocked by the one user, one vote policy. They might cast votes but until they're validated we can't count them. So they'll have only one option left - the right way - getting their friends involved.
 
-
+    
 
     
 

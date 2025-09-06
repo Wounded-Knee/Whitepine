@@ -251,43 +251,9 @@ export default function GoverningBodyBrowser({
   };
 
   return (
-    <BaseBrowser
-      title="Governing Bodies"
-      description="Manage legislative bodies, executive branches, and judicial systems"
-      data={governingBodies}
-      columns={columns}
-      renderCell={renderCell}
-      onFetchData={fetchData}
-      onCreate={createGoverningBody}
-      onUpdate={updateGoverningBody}
-      onDelete={deleteGoverningBody}
-      isAuthorized={isAuthorized}
-      isLoading={isLoading}
-      breadcrumbs={breadcrumbs}
-      filters={[
-        {
-          key: 'branch',
-          label: 'Branch',
-          type: 'select',
-          options: BRANCHES.map(branch => ({ value: branch, label: branch.charAt(0).toUpperCase() + branch.slice(1) }))
-        },
-        {
-          key: 'entity_type',
-          label: 'Entity Type',
-          type: 'select',
-          options: ENTITY_TYPES.map(type => ({ value: type, label: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ') }))
-        },
-        {
-          key: 'jurisdictionId',
-          label: 'Jurisdiction',
-          type: 'select',
-          options: jurisdictionOptions
-        }
-      ]}
-      createForm={GoverningBodyForm}
-      jurisdictionOptions={jurisdictionOptions}
-      onItemSelect={onGoverningBodySelect}
-      currentFilter={currentJurisdictionFilter}
-    />
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Governing Bodies</h2>
+      <p className="text-gray-600">Governing Bodies browser is temporarily disabled due to interface mismatch.</p>
+    </div>
   );
 }

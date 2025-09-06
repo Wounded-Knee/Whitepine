@@ -1,7 +1,7 @@
 # AWS S3 Bucket Setup Guide
 
 ## Overview
-This guide walks through creating and configuring an S3 bucket for hosting the static files of the USA Full-Stack Application.
+This guide walks through creating and configuring an S3 bucket for hosting the static files of the Whitepine Full-Stack Application.
 
 ## Prerequisites
 - AWS account with appropriate permissions
@@ -16,7 +16,7 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
 
 2. **Configure Bucket Settings**
    ```
-   Bucket name: usa-fullstack-app
+   Bucket name: whitepine-fullstack-app
    Region: us-east-2 (or your preferred region)
    ```
 
@@ -34,7 +34,7 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
    Value: Production
    
    Key: Project
-   Value: USA-FullStack-App
+   Value: Whitepine-FullStack-App
    ```
 
 6. **Create Bucket**
@@ -43,7 +43,7 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
 ## Step 2: Configure Static Website Hosting
 
 1. **Select Your Bucket**
-   - Click on the bucket name: `usa-fullstack-app`
+   - Click on the bucket name: `whitepine-fullstack-app`
 
 2. **Enable Static Website Hosting**
    - Go to "Properties" tab
@@ -78,7 +78,7 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
          "Effect": "Allow",
          "Principal": "*",
          "Action": "s3:GetObject",
-         "Resource": "arn:aws:s3:::usa-fullstack-app/*"
+         "Resource": "arn:aws:s3:::whitepine-fullstack-app/*"
        }
      ]
    }
@@ -134,7 +134,7 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
 2. **Configure Logging**
    ```
    Enable logging: Yes
-   Target bucket: usa-fullstack-app-logs (create new bucket)
+   Target bucket: whitepine-fullstack-app-logs (create new bucket)
    Target prefix: logs/
    ```
 
@@ -156,14 +156,14 @@ This guide walks through creating and configuring an S3 bucket for hosting the s
 ### Via AWS CLI
 ```bash
 # Test bucket access
-aws s3 ls s3://usa-fullstack-app
+aws s3 ls s3://whitepine-fullstack-app
 
 # Upload test file
 echo "<html><body><h1>Test</h1></body></html>" > test.html
-aws s3 cp test.html s3://usa-fullstack-app/
+aws s3 cp test.html s3://whitepine-fullstack-app/
 
 # Access via website endpoint
-curl http://usa-fullstack-app.s3-website-us-east-2.amazonaws.com/test.html
+curl http://whitepine-fullstack-app.s3-website-us-east-2.amazonaws.com/test.html
 ```
 
 ### Via Browser
@@ -174,7 +174,7 @@ curl http://usa-fullstack-app.s3-website-us-east-2.amazonaws.com/test.html
 
 1. **Add S3 Bucket Name**
    - Go to GitHub repository → Settings → Secrets and variables → Actions
-   - Add secret: `S3_BUCKET` = `usa-fullstack-app`
+   - Add secret: `S3_BUCKET` = `whitepine-fullstack-app`
 
 ## Troubleshooting
 
@@ -198,13 +198,13 @@ curl http://usa-fullstack-app.s3-website-us-east-2.amazonaws.com/test.html
 
 ```bash
 # Check bucket policy
-aws s3api get-bucket-policy --bucket usa-fullstack-app
+aws s3api get-bucket-policy --bucket whitepine-fullstack-app
 
 # Check website configuration
-aws s3api get-bucket-website --bucket usa-fullstack-app
+aws s3api get-bucket-website --bucket whitepine-fullstack-app
 
 # List bucket contents
-aws s3 ls s3://usa-fullstack-app --recursive
+aws s3 ls s3://whitepine-fullstack-app --recursive
 ```
 
 ## Security Considerations

@@ -1,0 +1,244 @@
+name: Manage AWS Lightsail Instance
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        type: choice
+        options:
+        - status
+        - logs
+        - restart
+        - stop
+        - start
+        - monitor
+        - backup
+        - update
+        - destroy
+      environment:
+        description: 'Environment to manage'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - production
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  manage-instance:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ""
+      
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            echo "INSTANCE_NAME=whitepine-production" >> $GITHUB_ENV
+          else
+            echo "INSTANCE_NAME=whitepine-dev" >> $GITHUB_ENV
+          fi
+      
+      - name: Get instance details
+        id: get-details
+        run: |
+          INSTANCE_IP=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          INSTANCE_STATE=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.state.name' --output text 2>/dev/null || echo "not-found")
+          
+          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
+          echo "instance_state=$INSTANCE_STATE" >> $GITHUB_OUTPUT
+          
+          echo "Instance IP: $INSTANCE_IP"
+          echo "Instance State: $INSTANCE_STATE"
+      
+      - name: Check instance exists
+        run: |
+          if [ "${{ steps.get-details.outputs.instance_state }}" = "not-found" ]; then
+            echo "❌ Instance ${{ env.INSTANCE_NAME }} not found"
+            exit 1
+          fi
+          
+          if [ "${{ steps.get-details.outputs.instance_state }}" != "running" ]; then
+            echo "⚠️  Instance is not running. Current state: ${{ steps.get-details.outputs.instance_state }}"
+            if [ "${{ github.event.inputs.action }}" != "start" ]; then
+              echo "❌ Cannot perform action '${{ github.event.inputs.action }}' on non-running instance"
+              exit 1
+            fi
+          fi
+      
+      - name: Perform action
+        run: |
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          ACTION="${{ github.event.inputs.action }}"
+          
+          case $ACTION in
+            status)
+              echo "📊 Instance Status:"
+              aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.{Name:name,State:state.name,IP:publicIpAddress,Type:bundleId}' --output table
+              
+              echo ""
+              echo "📊 Application Status:"
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP "pm2 status"
+              ;;
+            
+            logs)
+              echo "📋 Application Logs:"
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP "pm2 logs --lines 50"
+              ;;
+            
+            restart)
+              echo "🔄 Restarting application..."
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP "pm2 restart all"
+              echo "✅ Application restarted"
+              ;;
+            
+            stop)
+              echo "⏹️ Stopping application..."
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP "pm2 stop all"
+              echo "✅ Application stopped"
+              ;;
+            
+            start)
+              echo "▶️ Starting application..."
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP "pm2 start all"
+              echo "✅ Application started"
+              ;;
+            
+            monitor)
+              echo "📊 System Monitoring:"
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP << 'EOF'
+                echo "=== Whitepine System Status ==="
+                echo "Date: $(date)"
+                echo "Uptime: $(uptime)"
+                echo "Disk Usage: $(df -h /)"
+                echo "Memory Usage: $(free -h)"
+                echo "PM2 Status:"
+                pm2 status
+                echo "Nginx Status:"
+                systemctl status nginx --no-pager -l
+              EOF
+              ;;
+            
+            backup)
+              echo "💾 Creating backup..."
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP << 'EOF'
+                BACKUP_DIR="/opt/whitepine/backups"
+                DATE=$(date +%Y%m%d_%H%M%S)
+                
+                mkdir -p $BACKUP_DIR
+                
+                # Backup application files
+                tar -czf $BACKUP_DIR/whitepine_$DATE.tar.gz \
+                    --exclude=node_modules \
+                    --exclude=.next \
+                    --exclude=out \
+                    --exclude=backups \
+                    /opt/whitepine
+                
+                # Keep only last 7 backups
+                find $BACKUP_DIR -name "whitepine_*.tar.gz" -mtime +7 -delete
+                
+                echo "✅ Backup completed: whitepine_$DATE.tar.gz"
+              EOF
+              echo "✅ Backup created"
+              ;;
+            
+            update)
+              echo "🔄 Updating application..."
+              
+              # Create new deployment package
+              echo "📦 Creating deployment package..."
+              tar -czf whitepine-deployment.tar.gz \
+                  --exclude=node_modules \
+                  --exclude=.git \
+                  --exclude=.next \
+                  --exclude=out \
+                  --exclude=infrastructure \
+                  --exclude=scripts \
+                  --exclude=*.log \
+                  --exclude=.github \
+                  .
+              
+              # Upload and deploy
+              echo "📤 Uploading deployment package..."
+              scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null whitepine-deployment.tar.gz ubuntu@$INSTANCE_IP:/tmp/
+              
+              echo "🚀 Deploying update..."
+              ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$INSTANCE_IP << 'EOF'
+                set -e
+                
+                echo "📁 Extracting deployment package..."
+                cd /opt/whitepine
+                tar -xzf /tmp/whitepine-deployment.tar.gz
+                
+                echo "📦 Installing dependencies..."
+                npm ci --production
+                
+                echo "🏗️ Building application..."
+                npm run build
+                
+                echo "🔄 Restarting application..."
+                pm2 restart all
+                
+                echo "✅ Application updated successfully!"
+              EOF
+              
+              echo "✅ Application updated"
+              ;;
+            
+            destroy)
+              echo "⚠️  This will permanently destroy the Lightsail instance and all data!"
+              echo "Instance: ${{ env.INSTANCE_NAME }}"
+              echo "IP: $INSTANCE_IP"
+              echo ""
+              echo "To confirm destruction, please run this workflow again with action 'destroy'"
+              echo "and add 'CONFIRM_DESTROY=true' to the workflow inputs."
+              ;;
+            
+            *)
+              echo "❌ Invalid action: $ACTION"
+              exit 1
+              ;;
+          esac
+      
+      - name: Action summary
+        run: |
+          INSTANCE_IP="${{ steps.get-details.outputs.instance_ip }}"
+          ACTION="${{ github.event.inputs.action }}"
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          echo ""
+          echo "📋 Action Summary:"
+          echo "=================="
+          echo "• Action: $ACTION"
+          echo "• Environment: $ENVIRONMENT"
+          echo "• Instance: ${{ env.INSTANCE_NAME }}"
+          echo "• IP: $INSTANCE_IP"
+          echo "• Status: ${{ steps.get-details.outputs.instance_state }}"
+          echo ""
+          
+          if [ "$ACTION" != "destroy" ]; then
+            echo "🌐 Access URLs:"
+            echo "• Frontend: http://$INSTANCE_IP"
+            echo "• Backend API: http://$INSTANCE_IP/api"
+            echo "• Health Check: http://$INSTANCE_IP/health"
+            echo ""
+          fi
+          
+          echo "✅ Action '$ACTION' completed successfully!"

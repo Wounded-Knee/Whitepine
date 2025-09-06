@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { usePoliticalIdentity, PoliticalIdentity } from '../contexts/PoliticalIdentityContext'
+import { usePoliticalIdentity } from '../contexts/PoliticalIdentityContext'
+import { PoliticalIdentity } from '../types'
 
 export default function PoliticalIdentitySelector() {
   const { selectedIdentity, setSelectedIdentity, availableIdentities } = usePoliticalIdentity()
@@ -27,7 +28,7 @@ export default function PoliticalIdentitySelector() {
 
   const filteredIdentities = availableIdentities.filter(identity =>
     identity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    identity.abbreviation.toLowerCase().includes(searchTerm.toLowerCase())
+    (identity.abbr && identity.abbr.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
   const handleIdentitySelect = (identity: PoliticalIdentity) => {
@@ -49,7 +50,7 @@ export default function PoliticalIdentitySelector() {
           className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold"
           style={{ backgroundColor: selectedIdentity.color }}
         >
-          {selectedIdentity.abbreviation}
+          {selectedIdentity.abbr}
         </div>
       )
     }
@@ -69,7 +70,7 @@ export default function PoliticalIdentitySelector() {
             className="text-xs font-bold px-1.5 py-0.5 rounded text-white"
             style={{ backgroundColor: selectedIdentity.color }}
           >
-            {selectedIdentity.abbreviation}
+            {selectedIdentity.abbr}
           </span>
         </span>
       )
@@ -131,7 +132,7 @@ export default function PoliticalIdentitySelector() {
                         className="text-xs font-bold px-1.5 py-0.5 rounded text-white"
                         style={{ backgroundColor: identity.color }}
                       >
-                        {identity.abbreviation}
+                        {identity.abbr}
                       </span>
                     </span>
                     {selectedIdentity?.id === identity.id && (

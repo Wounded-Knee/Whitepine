@@ -120,9 +120,9 @@ export default function BaseBrowser({
         // Use custom fetch function if provided
         response = await customFetchData(params)
       } else {
-        // Use default fetch
+        // Use default fetch with new v1 API structure
         const queryParams = new URLSearchParams(params)
-        const axiosResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/${endpoint}?${queryParams}`)
+        const axiosResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/${endpoint}?${queryParams}`)
         response = axiosResponse.data
       }
       
@@ -152,9 +152,9 @@ export default function BaseBrowser({
     
     try {
       if (editingItem) {
-        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/government/${endpoint}/${editingItem._id}`, itemData)
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/${endpoint}/${editingItem._id}`, itemData)
       } else {
-        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/government/${endpoint}`, itemData)
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/${endpoint}`, itemData)
       }
       
       setShowForm(false)
@@ -176,7 +176,7 @@ export default function BaseBrowser({
     setError('')
     
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/government/${endpoint}/${id}`)
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/${endpoint}/${id}`)
       fetchData()
     } catch (err: any) {
       console.error('Error deleting item:', err)

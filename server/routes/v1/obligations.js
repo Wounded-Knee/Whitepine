@@ -33,12 +33,9 @@ router.get('/', async (req, res) => {
     }
     
     // Common obligation fields
-    if (category) filter.category = category;
+    if (category) filter.categoryId = category;
     if (status) filter.status = status;
     if (creator) filter.creator = creator;
-    if (jurisdiction) filter.jurisdiction = jurisdiction;
-    if (governingBody) filter.governingBody = governingBody;
-    if (legislation) filter.legislation = legislation;
     if (isActive !== undefined) filter.isActive = isActive === 'true';
 
     // Build sort object

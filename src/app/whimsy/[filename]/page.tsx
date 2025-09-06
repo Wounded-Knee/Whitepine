@@ -54,7 +54,7 @@ export default function WhimsyDocumentPage() {
 
   const renderMarkdown = (content: string) => {
     const lines = content.split('\n')
-    const elements: JSX.Element[] = []
+    const elements: React.ReactElement[] = []
     let inCodeBlock = false
     let codeBlockContent: string[] = []
     let inTable = false
@@ -187,8 +187,8 @@ export default function WhimsyDocumentPage() {
     return elements
   }
   
-  const renderInlineMarkdown = (text: string): JSX.Element[] => {
-    const elements: JSX.Element[] = []
+  const renderInlineMarkdown = (text: string): React.ReactElement[] => {
+    const elements: React.ReactElement[] = []
     let currentText = text
     let keyIndex = 0
     
@@ -207,7 +207,7 @@ export default function WhimsyDocumentPage() {
     if (currentText) {
       // Handle italic text (but not if it's already been processed as bold)
       let italicText = currentText
-      const italicElements: JSX.Element[] = []
+      const italicElements: React.ReactElement[] = []
       
       while (italicText.includes('*') && !italicText.startsWith('*')) {
         const parts = italicText.split('*')

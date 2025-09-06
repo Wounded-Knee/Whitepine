@@ -1,0 +1,14 @@
+const ages = [18,38,58,78];
+const cities = []
+
+{
+    name: String,
+    city: String,
+    political_identity: String,
+    religion: String,
+    income: Integer,
+    political_priorities: Array[String],
+    race: String,
+    gender: String,
+    bio: String,
+}

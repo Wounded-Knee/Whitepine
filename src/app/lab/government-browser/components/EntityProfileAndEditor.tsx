@@ -17,13 +17,13 @@ interface MediaItem {
   size: number
   path: string
   url: string
-  media_type: string
+  mediaType: string
   title?: string
   description?: string
   alt_text?: string
   width?: number
   height?: number
-  is_primary: boolean
+  isPrimary: boolean
   is_public: boolean
   uploaded_by: string
   createdAt: string
@@ -110,7 +110,7 @@ export default function EntityProfileAndEditor({ entity }: EntityProfileAndEdito
   // Fetch parent options for jurisdiction form
   const fetchParentOptions = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/jurisdictions`)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/jurisdictions`)
       const jurisdictions = response.data.jurisdictions || []
       const options = jurisdictions
         .filter((j: any) => j._id !== entity._id) // Exclude current entity
@@ -129,7 +129,7 @@ export default function EntityProfileAndEditor({ entity }: EntityProfileAndEdito
   const getPreferredMedia = () => {
     const preferredTypes = ['seal', 'flag', 'headshot']
     for (const type of preferredTypes) {
-      const media = mediaItems.find(item => item.media_type === type)
+      const media = mediaItems.find(item => item.mediaType === type)
       if (media) return media
     }
     return mediaItems[0] || null
@@ -228,10 +228,10 @@ export default function EntityProfileAndEditor({ entity }: EntityProfileAndEdito
                 {mediaItems.map((media) => (
                   <div key={media._id} className={`${themeClasses.mediaCard} rounded-lg border p-4`}>
                     <div className="flex items-center justify-between mb-3">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getMediaBadgeClass(media.media_type)}`}>
-                        {media.media_type}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getMediaBadgeClass(media.mediaType)}`}>
+                        {media.mediaType}
                       </span>
-                      {media.is_primary && (
+                      {media.isPrimary && (
                         <span className="text-xs text-primary font-medium">Primary</span>
                       )}
                     </div>
@@ -267,14 +267,14 @@ export default function EntityProfileAndEditor({ entity }: EntityProfileAndEdito
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral">
                       <button
                         onClick={() => setPrimaryMedia(media._id)}
-                        disabled={media.is_primary}
+                        disabled={media.isPrimary}
                         className={`text-xs px-2 py-1 rounded transition-colors ${
-                          media.is_primary
+                          media.isPrimary
                             ? 'text-neutral cursor-not-allowed'
                             : 'text-primary hover:bg-primary/10'
                         }`}
                       >
-                        {media.is_primary ? 'Primary' : 'Set Primary'}
+                        {media.isPrimary ? 'Primary' : 'Set Primary'}
                       </button>
                       <button
                         onClick={() => deleteMedia(media._id)}
@@ -309,10 +309,10 @@ export default function EntityProfileAndEditor({ entity }: EntityProfileAndEdito
             {preferredMedia ? (
               <div className={`${themeClasses.mediaCard} rounded-lg border p-4`}>
                 <div className="flex items-center justify-between mb-3">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getMediaBadgeClass(preferredMedia.media_type)}`}>
-                    {preferredMedia.media_type}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getMediaBadgeClass(preferredMedia.mediaType)}`}>
+                    {preferredMedia.mediaType}
                   </span>
-                  {preferredMedia.is_primary && (
+                  {preferredMedia.isPrimary && (
                     <span className="text-xs text-primary font-medium">Primary</span>
                   )}
                 </div>

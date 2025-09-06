@@ -1,7 +1,7 @@
 # Religious Identity Taxonomy Structure
 
 ## Overview
-This document outlines the comprehensive religious identity taxonomy implemented in the USA application. The taxonomy is based on Pew Research Center data and provides a 4-level hierarchical structure for religious identities in the United States.
+This document outlines the comprehensive religious identity taxonomy implemented in the Whitepine application. The taxonomy is based on Pew Research Center data and provides a 4-level hierarchical structure for religious identities in the United States.
 
 ## Taxonomy Structure
 

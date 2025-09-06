@@ -59,23 +59,13 @@ export default function UserAvatar({ size = 'md', showDropdown = true }: UserAva
         className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-neutral-light hover:border-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2`}
         aria-label="User menu"
       >
-        {user.avatar ? (
-          <Image
-            src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
-            alt={`${user.firstName} ${user.lastName}`}
-            width={size === 'xl' ? 144 : 48}
-            height={size === 'xl' ? 144 : 48}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <Image
-            src={getUserAvatarUrl(user, size === 'xl' ? 144 : 48)}
-            alt={`${user.firstName} ${user.lastName}`}
-            width={size === 'xl' ? 144 : 48}
-            height={size === 'xl' ? 144 : 48}
-            className="w-full h-full object-cover"
-          />
-        )}
+        <Image
+          src={getUserAvatarUrl(user, size === 'xl' ? 144 : 48)}
+          alt={`${user.firstName} ${user.lastName}`}
+          width={size === 'xl' ? 144 : 48}
+          height={size === 'xl' ? 144 : 48}
+          className="w-full h-full object-cover"
+        />
       </button>
 
       {showDropdown && isDropdownOpen && (

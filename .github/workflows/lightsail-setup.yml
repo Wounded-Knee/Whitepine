@@ -1,0 +1,323 @@
+name: Setup AWS Lightsail Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to setup'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - production
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  setup-infrastructure:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ""
+      
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            echo "INSTANCE_NAME=whitepine-production" >> $GITHUB_ENV
+            echo "STATIC_IP_NAME=whitepine-production-ip" >> $GITHUB_ENV
+          else
+            echo "INSTANCE_NAME=whitepine-dev" >> $GITHUB_ENV
+            echo "STATIC_IP_NAME=whitepine-dev-ip" >> $GITHUB_ENV
+          fi
+      
+      - name: Check if instance exists
+        id: check-instance
+        run: |
+          if aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Instance ${{ env.INSTANCE_NAME }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Instance ${{ env.INSTANCE_NAME }} does not exist"
+          fi
+      
+      - name: Create Lightsail instance
+        if: steps.check-instance.outputs.exists == 'false'
+        run: |
+          echo "🏗️ Creating Lightsail instance ${{ env.INSTANCE_NAME }}..."
+          
+          # Create user data script
+          cat > user-data.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          # Update system
+          apt-get update
+          apt-get upgrade -y
+          
+          # Install Node.js 20
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+          
+          # Install PM2 globally
+          npm install -g pm2
+          
+          # Install Nginx
+          apt-get install -y nginx
+          
+          # Install Git
+          apt-get install -y git
+          
+          # Install additional tools
+          apt-get install -y curl wget unzip
+          
+          # Create application directory
+          mkdir -p /opt/whitepine
+          chown ubuntu:ubuntu /opt/whitepine
+          
+          # Create PM2 ecosystem file
+          cat > /opt/whitepine/ecosystem.config.js << 'PM2EOF'
+          module.exports = {
+            apps: [
+              {
+                name: 'whitepine-backend',
+                script: 'server/index.js',
+                cwd: '/opt/whitepine',
+                instances: 1,
+                exec_mode: 'fork',
+                env: {
+                  NODE_ENV: 'production',
+                  PORT: 5000
+                },
+                error_file: '/var/log/pm2/whitepine-backend-error.log',
+                out_file: '/var/log/pm2/whitepine-backend-out.log',
+                log_file: '/var/log/pm2/whitepine-backend.log',
+                time: true
+              },
+              {
+                name: 'whitepine-frontend',
+                script: 'npm',
+                args: 'start',
+                cwd: '/opt/whitepine',
+                instances: 1,
+                exec_mode: 'fork',
+                env: {
+                  NODE_ENV: 'production',
+                  PORT: 3000
+                },
+                error_file: '/var/log/pm2/whitepine-frontend-error.log',
+                out_file: '/var/log/pm2/whitepine-frontend-out.log',
+                log_file: '/var/log/pm2/whitepine-frontend.log',
+                time: true
+              }
+            ]
+          };
+          PM2EOF
+          
+          # Configure Nginx
+          cat > /etc/nginx/sites-available/whitepine << 'NGINXEOF'
+          server {
+              listen 80;
+              server_name _;
+              
+              # Frontend (Next.js)
+              location / {
+                  proxy_pass http://localhost:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_cache_bypass $http_upgrade;
+              }
+              
+              # Backend API
+              location /api/ {
+                  proxy_pass http://localhost:5000/;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+                  proxy_cache_bypass $http_upgrade;
+              }
+              
+              # Health check
+              location /health {
+                  proxy_pass http://localhost:5000/health;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+          NGINXEOF
+          
+          # Enable the site
+          ln -sf /etc/nginx/sites-available/whitepine /etc/nginx/sites-enabled/
+          rm -f /etc/nginx/sites-enabled/default
+          
+          # Test Nginx configuration
+          nginx -t
+          
+          # Start and enable Nginx
+          systemctl start nginx
+          systemctl enable nginx
+          
+          # Create PM2 log directory
+          mkdir -p /var/log/pm2
+          chown ubuntu:ubuntu /var/log/pm2
+          
+          # Create deployment script
+          cat > /opt/whitepine/deploy.sh << 'DEPLOYEOF'
+          #!/bin/bash
+          set -e
+          
+          echo "🚀 Starting deployment..."
+          
+          # Stop PM2 processes
+          pm2 stop all || true
+          
+          # Install dependencies
+          npm ci --production
+          
+          # Build the application
+          npm run build
+          
+          # Start PM2 processes
+          pm2 start ecosystem.config.js
+          
+          # Save PM2 configuration
+          pm2 save
+          
+          # Setup PM2 startup script
+          pm2 startup systemd -u ubuntu --hp /home/ubuntu
+          
+          echo "✅ Deployment complete!"
+          echo "🌐 Frontend: http://$(curl -s ifconfig.me):3000"
+          echo "🔗 Backend: http://$(curl -s ifconfig.me):5000"
+          DEPLOYEOF
+          
+          chmod +x /opt/whitepine/deploy.sh
+          chown ubuntu:ubuntu /opt/whitepine/deploy.sh
+          
+          # Create environment file template
+          cat > /opt/whitepine/.env.template << 'ENVEOF'
+          # MongoDB Atlas Connection
+          MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/whitepine?retryWrites=true&w=majority
+          
+          # JWT Secret
+          JWT_SECRET=your_jwt_secret_here
+          
+          # Environment
+          NODE_ENV=production
+          PORT=5000
+          
+          # Frontend URL
+          NEXT_PUBLIC_API_URL=http://localhost:5000
+          ENVEOF
+          
+          chown ubuntu:ubuntu /opt/whitepine/.env.template
+          
+          # Set proper permissions
+          chown -R ubuntu:ubuntu /opt/whitepine
+          
+          echo "✅ Lightsail instance setup complete!"
+          echo "🌐 Instance is ready for application deployment"
+          echo "📁 Application directory: /opt/whitepine"
+          echo "🔧 Deployment script: /opt/whitepine/deploy.sh"
+          EOF
+          
+          # Create instance
+          aws lightsail create-instances \
+            --instance-names ${{ env.INSTANCE_NAME }} \
+            --availability-zone ${AWS_REGION}a \
+            --blueprint-id ubuntu_20_04 \
+            --bundle-id nano_2_0 \
+            --user-data file://user-data.sh
+          
+          echo "✅ Lightsail instance created"
+      
+      - name: Wait for instance to be running
+        if: steps.check-instance.outputs.exists == 'false'
+        run: |
+          echo "⏳ Waiting for instance to be running..."
+          aws lightsail wait instance-running --instance-name ${{ env.INSTANCE_NAME }}
+          echo "✅ Instance is running"
+      
+      - name: Create static IP
+        if: steps.check-instance.outputs.exists == 'false'
+        run: |
+          echo "🌐 Creating static IP..."
+          
+          # Check if static IP already exists
+          if aws lightsail get-static-ip --static-ip-name ${{ env.STATIC_IP_NAME }} > /dev/null 2>&1; then
+            echo "Static IP ${{ env.STATIC_IP_NAME }} already exists"
+          else
+            aws lightsail allocate-static-ip --static-ip-name ${{ env.STATIC_IP_NAME }}
+            aws lightsail attach-static-ip --static-ip-name ${{ env.STATIC_IP_NAME }} --instance-name ${{ env.INSTANCE_NAME }}
+            echo "✅ Static IP created and attached"
+          fi
+      
+      - name: Get instance details
+        id: get-details
+        run: |
+          INSTANCE_IP=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.publicIpAddress' --output text)
+          STATIC_IP=$(aws lightsail get-static-ip --static-ip-name ${{ env.STATIC_IP_NAME }} --query 'staticIp.ipAddress' --output text 2>/dev/null || echo "Not created")
+          INSTANCE_STATE=$(aws lightsail get-instance --instance-name ${{ env.INSTANCE_NAME }} --query 'instance.state.name' --output text)
+          
+          echo "instance_ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
+          echo "static_ip=$STATIC_IP" >> $GITHUB_OUTPUT
+          echo "instance_state=$INSTANCE_STATE" >> $GITHUB_OUTPUT
+          
+          echo "Instance IP: $INSTANCE_IP"
+          echo "Static IP: $STATIC_IP"
+          echo "Instance State: $INSTANCE_STATE"
+      
+      - name: Wait for instance setup to complete
+        run: |
+          echo "⏳ Waiting for instance setup to complete..."
+          sleep 300  # Wait 5 minutes for user data script to complete
+          echo "✅ Instance setup should be complete"
+      
+      - name: Setup summary
+        run: |
+          echo ""
+          echo "📋 Lightsail Infrastructure Setup Summary:"
+          echo "=========================================="
+          echo "• Instance Name: ${{ env.INSTANCE_NAME }}"
+          echo "• Instance IP: ${{ steps.get-details.outputs.instance_ip }}"
+          echo "• Static IP: ${{ steps.get-details.outputs.static_ip }}"
+          echo "• Instance State: ${{ steps.get-details.outputs.instance_state }}"
+          echo "• Environment: ${{ github.event.inputs.environment }}"
+          echo "• Monthly Cost: $5.00"
+          echo ""
+          echo "🔧 Next Steps:"
+          echo "1. Wait 5-10 minutes for instance setup to complete"
+          echo "2. Deploy your application using the main deployment workflow"
+          echo "3. Configure your .env file with MongoDB connection string"
+          echo ""
+          echo "🌐 Access URLs:"
+          echo "• Frontend: http://${{ steps.get-details.outputs.static_ip }}"
+          echo "• Backend API: http://${{ steps.get-details.outputs.static_ip }}/api"
+          echo "• Health Check: http://${{ steps.get-details.outputs.static_ip }}/health"
+          echo ""
+          echo "✅ Infrastructure setup complete!"

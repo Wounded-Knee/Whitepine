@@ -1,7 +1,7 @@
 # Identity System
 
 ## Overview
-The Identity system provides a hierarchical classification of political identities and affiliations for the USA application. It enables users to categorize themselves and others based on political beliefs, party affiliations, ideological positions, and cultural identities.
+The Identity system provides a hierarchical classification of political identities and affiliations for the Whitepine application. It enables users to categorize themselves and others based on political beliefs, party affiliations, ideological positions, and cultural identities.
 
 ## Schema Design
 

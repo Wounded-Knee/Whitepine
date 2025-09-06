@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import AuthDialog from './AuthDialog';
-import UserProfile from './UserProfile';
+import UserAvatar from './UserAvatar';
 
 interface AuthButtonProps {
   variant?: 'default' | 'compact' | 'minimal';
@@ -20,14 +20,15 @@ export default function AuthButton({ variant = 'default', className = '' }: Auth
     setShowAuthDialog(true);
   };
 
-  // If user is authenticated, show user profile
+  // If user is authenticated, show user avatar
   if (user) {
     return (
-      <UserProfile 
-        showAvatar={variant !== 'minimal'}
-        showEmail={variant === 'default'}
-        className={className}
-      />
+      <div className={className}>
+        <UserAvatar 
+          size={variant === 'minimal' ? 'sm' : 'md'}
+          showDropdown={true}
+        />
+      </div>
     );
   }
 

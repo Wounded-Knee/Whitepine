@@ -29,20 +29,24 @@ export default function AuthDemo() {
             {user ? (
               <div className="space-y-4">
                 <div className="flex items-center space-x-4">
-                  {user.avatar && (
-                    <img 
-                      src={user.avatar.startsWith('http') ? user.avatar : `${process.env.NEXT_PUBLIC_API_URL}${user.avatar}`}
-                      alt={user.firstName}
-                      className="w-12 h-12 rounded-full"
-                    />
-                  )}
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-lg">
+                      {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                    </span>
+                  </div>
                   <div>
                     <p className="text-lg font-medium text-gray-900">
                       {user.firstName} {user.lastName}
                     </p>
                     <p className="text-gray-600">{user.email}</p>
                     <p className="text-sm text-gray-500">
-                      Signed in via {user.authMethod === 'google' ? 'Google OAuth' : 'Email/Password'}
+                      Signed in via {user.authProviders && user.authProviders.length > 0 
+                        ? user.authProviders[0].provider === 'google' 
+                          ? 'Google OAuth' 
+                          : user.authProviders[0].provider === 'apple'
+                            ? 'Apple OAuth'
+                            : 'Email/Password'
+                        : 'Email/Password'}
                     </p>
                   </div>
                 </div>

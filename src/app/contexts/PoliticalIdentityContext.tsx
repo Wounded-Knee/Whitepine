@@ -1,80 +1,115 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-
-export interface PoliticalIdentity {
-  id: string
-  name: string
-  abbreviation: string
-  color: string
-  description?: string
-}
-
-export type PoliticalIdentityContextType = {
-  selectedIdentity: PoliticalIdentity | null
-  setSelectedIdentity: (identity: PoliticalIdentity | null) => void
-  availableIdentities: PoliticalIdentity[]
-}
+import { PoliticalIdentity, PoliticalIdentityContextType } from '../types'
 
 const PoliticalIdentityContext = createContext<PoliticalIdentityContextType | undefined>(undefined)
 
 // Default political identities with California democracy theme colors
 const defaultIdentities: PoliticalIdentity[] = [
   {
-    id: 'democrat',
+    _id: 'democrat',
+    id: 1,
     name: 'Democrat',
-    abbreviation: 'D',
+    slug: 'democrat',
+    abbr: 'D',
     color: '#1e40af', // blue-600
-    description: 'Democratic Party affiliation'
+    description: 'Democratic Party affiliation',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'republican',
+    _id: 'republican',
+    id: 2,
     name: 'Republican',
-    abbreviation: 'R',
+    slug: 'republican',
+    abbr: 'R',
     color: '#dc2626', // red-600
-    description: 'Republican Party affiliation'
+    description: 'Republican Party affiliation',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'independent',
+    _id: 'independent',
+    id: 3,
     name: 'Independent',
-    abbreviation: 'I',
+    slug: 'independent',
+    abbr: 'I',
     color: '#7c3aed', // violet-600
-    description: 'Independent voter'
+    description: 'Independent voter',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'green',
+    _id: 'green',
+    id: 4,
     name: 'Green',
-    abbreviation: 'G',
+    slug: 'green',
+    abbr: 'G',
     color: '#059669', // emerald-600
-    description: 'Green Party affiliation'
+    description: 'Green Party affiliation',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'libertarian',
+    _id: 'libertarian',
+    id: 5,
     name: 'Libertarian',
-    abbreviation: 'L',
+    slug: 'libertarian',
+    abbr: 'L',
     color: '#d97706', // amber-600
-    description: 'Libertarian Party affiliation'
+    description: 'Libertarian Party affiliation',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'progressive',
+    _id: 'progressive',
+    id: 6,
     name: 'Progressive',
-    abbreviation: 'P',
+    slug: 'progressive',
+    abbr: 'P',
     color: '#be185d', // pink-600
-    description: 'Progressive movement'
+    description: 'Progressive movement',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'conservative',
+    _id: 'conservative',
+    id: 7,
     name: 'Conservative',
-    abbreviation: 'C',
+    slug: 'conservative',
+    abbr: 'C',
     color: '#9d174d', // rose-600
-    description: 'Conservative movement'
+    description: 'Conservative movement',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 'moderate',
+    _id: 'moderate',
+    id: 8,
     name: 'Moderate',
-    abbreviation: 'M',
+    slug: 'moderate',
+    abbr: 'M',
     color: '#6b7280', // gray-600
-    description: 'Moderate political position'
+    description: 'Moderate political position',
+    isActive: true,
+    identityType: 'PoliticalIdentity',
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ]
 
@@ -86,7 +121,7 @@ export function PoliticalIdentityProvider({ children }: { children: React.ReactN
     // Load selected identity from localStorage on mount
     const savedIdentityId = localStorage.getItem('politicalIdentity')
     if (savedIdentityId) {
-      const savedIdentity = availableIdentities.find(id => id.id === savedIdentityId)
+      const savedIdentity = availableIdentities.find(id => id._id === savedIdentityId)
       if (savedIdentity) {
         setSelectedIdentity(savedIdentity)
       }
@@ -96,7 +131,7 @@ export function PoliticalIdentityProvider({ children }: { children: React.ReactN
   const handleSetIdentity = (identity: PoliticalIdentity | null) => {
     setSelectedIdentity(identity)
     if (identity) {
-      localStorage.setItem('politicalIdentity', identity.id)
+      localStorage.setItem('politicalIdentity', identity._id)
     } else {
       localStorage.removeItem('politicalIdentity')
     }

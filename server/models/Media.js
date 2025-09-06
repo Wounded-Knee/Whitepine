@@ -28,6 +28,25 @@ const Media = new Schema({
     type: String, 
     maxlength: 500 
   },
+  // Polymorphic entity reference
+  entityType: { 
+    type: String, 
+    enum: ['User', 'Obligation', 'Claim', 'Evidence', 'Jurisdiction', 'GoverningBody', 'Office', 'Position'],
+    index: true 
+  },
+  entityId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    index: true 
+  },
+  isPrimary: { 
+    type: Boolean, 
+    default: false, 
+    index: true 
+  },
+  url: { 
+    type: String, 
+    maxlength: 500 
+  },
   uploadedBy: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
@@ -44,9 +63,9 @@ const Media = new Schema({
 });
 
 // Indexes for common queries
-Media.index({ entityType: 1, entityId: 1, createdAt: -1 });
 Media.index({ uploadedBy: 1, createdAt: -1 });
 Media.index({ mediaType: 1, isActive: 1 });
+Media.index({ entityType: 1, entityId: 1, createdAt: -1 });
 Media.index({ isPrimary: 1, entityType: 1, entityId: 1 });
 
 module.exports = mongoose.model('Media', Media);

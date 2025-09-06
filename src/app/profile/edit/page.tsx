@@ -16,8 +16,7 @@ export default function EditProfilePage() {
     firstName: '',
     lastName: '',
     bio: '',
-    location: '',
-    website: ''
+    location: ''
   })
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function EditProfilePage() {
         lastName: user.lastName || '',
         bio: user.profile?.bio || '',
         location: user.profile?.location || '',
-        website: user.profile?.website || ''
       })
     }
   }, [user, token, router])
@@ -51,8 +49,7 @@ export default function EditProfilePage() {
           lastName: formData.lastName,
           profile: {
             bio: formData.bio,
-            location: formData.location,
-            website: formData.website
+            location: formData.location
           }
         },
         {
@@ -207,23 +204,6 @@ export default function EditProfilePage() {
             </div>
 
             {/* Website */}
-            <div>
-              <label htmlFor="website" className="block text-sm font-medium text-[var(--color-text)] mb-2">
-                Website
-              </label>
-              <input
-                type="url"
-                id="website"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md bg-[var(--color-background)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-focus-ring)] focus:border-transparent"
-                placeholder="https://yourwebsite.com"
-              />
-              <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                Optional: Link to your personal or professional website.
-              </p>
-            </div>
 
             {/* Form Actions */}
             <div className="flex justify-end space-x-3 pt-6 border-t border-[var(--color-border)]">

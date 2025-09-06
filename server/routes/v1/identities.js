@@ -35,14 +35,14 @@ router.get('/',
       }
       
       if (parentId !== undefined) {
-        query.parentId = parentId === 'null' ? null : parseInt(parentId);
+        query.parentId = parentId === 'null' ? null : parentId;
       }
       
       if (category) {
         // Find top-level identity by slug and get its descendants
         const categoryIdentity = await Identity.findOne({ slug: category, isActive: true });
         if (categoryIdentity) {
-          query.path = { $in: [categoryIdentity.id] };
+          query.path = { $in: [categoryIdentity._id] };
         }
       }
       
@@ -63,8 +63,8 @@ router.get('/',
         .sort(sort)
         .limit(parseInt(limit))
         .skip(parseInt(skip))
-        .populate('parent', 'id name slug abbr color')
-        .populate('children', 'id name slug abbr color level');
+        .populate('parent', '_id name slug abbr color')
+        .populate('children', '_id name slug abbr color level');
 
       const total = await Identity.countDocuments(query);
 
@@ -104,14 +104,14 @@ router.get('/hierarchy',
       if (category) {
         const categoryIdentity = await Identity.findOne({ slug: category, isActive: true });
         if (categoryIdentity) {
-          query.path = { $in: [categoryIdentity.id] };
+          query.path = { $in: [categoryIdentity._id] };
         }
       }
 
       const identities = await Identity.find(query)
         .sort({ level: 1, name: 1 })
-        .populate('parent', 'id name slug abbr color')
-        .populate('children', 'id name slug abbr color level');
+        .populate('parent', '_id name slug abbr color')
+        .populate('children', '_id name slug abbr color level');
 
       // Organize into hierarchy
       const hierarchy = {};
@@ -119,14 +119,14 @@ router.get('/hierarchy',
 
       // Create map for quick lookup
       identities.forEach(identity => {
-        identityMap.set(identity.id, identity);
+        identityMap.set(identity._id, identity);
       });
 
       // Build hierarchy
       identities.forEach(identity => {
         if (identity.level === 0) {
           // Top level
-          hierarchy[identity.id] = {
+          hierarchy[identity._id] = {
             ...identity.toObject(),
             children: []
           };
@@ -168,7 +168,7 @@ router.get('/categories',
         level: 0, 
         isActive: true 
       })
-      .select('id name slug abbr color description')
+      .select('_id name slug abbr color description')
       .sort({ name: 1 });
 
       return success(res, categories);
@@ -196,7 +196,7 @@ router.get('/:id',
       
       const identity = await Identity.findOne({ 
         $or: [
-          { id: parseInt(id) },
+          { _id: id },
           { slug: id }
         ],
         isActive: true 
@@ -238,7 +238,7 @@ router.get('/:id/descendants',
       
       const identity = await Identity.findOne({ 
         $or: [
-          { id: parseInt(id) },
+          { _id: id },
           { slug: id }
         ],
         isActive: true 
@@ -254,11 +254,11 @@ router.get('/:id/descendants',
       }
 
       const descendants = await Identity.find({ 
-        path: { $in: [identity.id] },
+        path: { $in: [identity._id] },
         isActive: true 
       })
       .sort({ level: 1, name: 1 })
-      .select('id name slug abbr color level description parentId');
+      .select('_id name slug abbr color level description parentId');
 
       return success(res, descendants);
 

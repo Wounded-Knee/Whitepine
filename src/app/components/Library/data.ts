@@ -49,14 +49,14 @@ export const libraryDocuments: LibraryDocument[] = [
   {
     title: "API Documentation - v1",
     filename: "api-documentation.md",
-    excerpt: "This document describes the v1 API for the USA application, which has been completely refactored for better data consistency, performance, and maintainability.",
+    excerpt: "This document describes the v1 API for the Whitepine application, which has been completely refactored for better data consistency, performance, and maintainability.",
     category: "API Documentation",
     section: "project-specs"
   },
   {
     title: "API Documentation Summary",
     filename: "api-documentation-summary.md",
-    excerpt: "This document provides a comprehensive overview of the API documentation and integration resources for the USA Full-Stack Application.",
+    excerpt: "This document provides a comprehensive overview of the API documentation and integration resources for the Whitepine Full-Stack Application.",
     category: "API Documentation",
     section: "project-specs"
   },
@@ -70,14 +70,14 @@ export const libraryDocuments: LibraryDocument[] = [
   {
     title: "Authentication System Setup Guide",
     filename: "Authentication_System.md",
-    excerpt: "This guide will help you set up the authentication system with Google OAuth integration for the USA full-stack application.",
+    excerpt: "This guide will help you set up the authentication system with Google OAuth integration for the Whitepine full-stack application.",
     category: "Technical Documentation",
     section: "project-specs"
   },
   {
     title: "AWS CloudFront Distribution Setup Guide",
     filename: "aws-cloudfront-setup.md",
-    excerpt: "This guide walks through creating and configuring a CloudFront distribution to serve the USA Full-Stack Application from the S3 bucket with global CDN capabilities.",
+    excerpt: "This guide walks through creating and configuring a CloudFront distribution to serve the Whitepine Full-Stack Application from the S3 bucket with global CDN capabilities.",
     category: "System Architecture",
     section: "project-specs"
   },
@@ -91,15 +91,22 @@ export const libraryDocuments: LibraryDocument[] = [
   {
     title: "AWS S3 Bucket Setup Guide",
     filename: "aws-s3-setup.md",
-    excerpt: "This guide walks through creating and configuring an S3 bucket for hosting the static files of the USA Full-Stack Application.",
+    excerpt: "This guide walks through creating and configuring an S3 bucket for hosting the static files of the Whitepine Full-Stack Application.",
     category: "System Architecture",
     section: "project-specs"
   },
   {
     title: "BaseModal Component Documentation",
     filename: "BaseModal-Component.md",
-    excerpt: "The BaseModal component is a reusable, accessible modal dialog component that provides consistent styling and behavior across the USA application. It abstracts common modal functionality and normalize...",
+    excerpt: "The BaseModal component is a reusable, accessible modal dialog component that provides consistent styling and behavior across the Whitepine application. It abstracts common modal functionality and nor...",
     category: "Media Management",
+    section: "project-specs"
+  },
+  {
+    title: "Complete Database Schema Documentation",
+    filename: "database-schema.md",
+    excerpt: "This document describes the complete database schema for the Whitepine application, covering all models including User management, Government entities, Obligations system, Claims, Evidence, Media mana...",
+    category: "Database Design",
     section: "project-specs"
   },
   {
@@ -110,17 +117,24 @@ export const libraryDocuments: LibraryDocument[] = [
     section: "project-specs"
   },
   {
-    title: "Database Schema - Refactored v1",
-    filename: "database-schema.md",
-    excerpt: "This document describes the refactored database schema for the USA application, which has been completely redesigned for better data consistency, performance, and maintainability.",
+    title: "Database Model Audit Report",
+    filename: "database-model-audit.md",
+    excerpt: "The current database models provide a solid foundation for modeling US government structure, but several critical relationships and constraints need to be addressed to ensure proper representation of ...",
     category: "Database Design",
     section: "project-specs"
   },
   {
     title: "Deployment Architecture Index",
     filename: "deployment-architecture-index.md",
-    excerpt: "This document provides a comprehensive index of the deployment architecture for the USA Full-Stack Application, including AWS infrastructure setup, GitHub Actions configuration, and deployment procedu...",
+    excerpt: "This document provides a comprehensive index of the deployment architecture for the Whitepine Full-Stack Application, including AWS infrastructure setup, GitHub Actions configuration, and deployment p...",
     category: "System Architecture",
+    section: "project-specs"
+  },
+  {
+    title: "Enhanced Government Models Implementation",
+    filename: "enhanced-government-models-implementation.md",
+    excerpt: "This document outlines the comprehensive implementation of enhanced database models for the US Government structure, including critical relationship fixes, new features, and frontend components.",
+    category: "Database Design",
     section: "project-specs"
   },
   {
@@ -133,7 +147,7 @@ export const libraryDocuments: LibraryDocument[] = [
   {
     title: "Frontend API Integration Guide",
     filename: "frontend-api-integration.md",
-    excerpt: "This document provides guidelines and best practices for integrating the USA Full-Stack Application backend API with the Next.js frontend.",
+    excerpt: "This document provides guidelines and best practices for integrating the Whitepine Full-Stack Application backend API with the Next.js frontend.",
     category: "API Documentation",
     section: "project-specs"
   },
@@ -159,30 +173,72 @@ export const libraryDocuments: LibraryDocument[] = [
     section: "project-specs"
   },
   {
+    title: "Identity Chips System",
+    filename: "identity-chips-system.md",
+    excerpt: "The Identity Chips system provides a comprehensive set of React components for displaying various types of identity data in the Whitepine application. Each chip represents a specific identity category...",
+    category: "Database Design",
+    section: "project-specs"
+  },
+  {
     title: "Identity System",
     filename: "identity-system.md",
-    excerpt: "The Identity system provides a hierarchical classification of political identities and affiliations for the USA application. It enables users to categorize themselves and others based on political bel...",
+    excerpt: "The Identity system provides a hierarchical classification of political identities and affiliations for the Whitepine application. It enables users to categorize themselves and others based on politic...",
     category: "API Documentation",
     section: "project-specs"
   },
   {
     title: "Initial Deployment Guide",
     filename: "initial-deployment.md",
-    excerpt: "This guide walks through the complete process of performing the initial deployment of the USA Full-Stack Application to production using the configured S3 + CloudFront infrastructure.",
+    excerpt: "This guide walks through the complete process of performing the initial deployment of the Whitepine Full-Stack Application to production using the configured S3 + CloudFront infrastructure.",
     category: "System Architecture",
     section: "project-specs"
   },
   {
-    title: "Media Management System - Project Specification",
-    filename: "media-management-system.md",
-    excerpt: "The Media Management System is a comprehensive solution for handling various types of media files associated with government entities in the US Government Database. This system enables users to upload...",
+    title: "Media File Serving Setup",
+    filename: "media-serving-setup.md",
+    excerpt: "This application uses a hybrid approach for serving uploaded media files:",
     category: "Media Management",
+    section: "project-specs"
+  },
+  {
+    title: "Media Management System",
+    filename: "media-system.md",
+    excerpt: "The Media Management System allows users to upload, manage, and link various types of media files to government entities. This includes seals, flags, headshots, logos, building photos, documents, sign...",
+    category: "Media Management",
+    section: "project-specs"
+  },
+  {
+    title: "Media Management System - Implementation Summary",
+    filename: "media-management-summary.md",
+    excerpt: "The Media Management System has been successfully implemented and integrated into the US Government Database, providing comprehensive functionality for managing media files associated with government ...",
+    category: "Media Management",
+    section: "project-specs"
+  },
+  {
+    title: "Media Management System Documentation",
+    filename: "media-management-system.md",
+    excerpt: "The Media Management System provides comprehensive functionality for uploading, managing, and linking various types of media files to government entities in the US Government Database. This system sup...",
+    category: "Media Management",
+    section: "project-specs"
+  },
+  {
+    title: "Multi-Environment AWS Deployment Architecture",
+    filename: "multi-environment-aws-deployment.md",
+    excerpt: "This document describes the complete multi-environment AWS deployment architecture for the Whitepine Full-Stack Application. The architecture supports three environments: **Development**, **Staging**,...",
+    category: "System Architecture",
     section: "project-specs"
   },
   {
     title: "QOTD Editor System",
     filename: "qotd-editor-system.md",
     excerpt: "The QOTD (Quote of the Day) Editor is a comprehensive content management system designed for Developer users to manage the Quote of the Day functionality. It provides full CRUD operations for both quo...",
+    category: "API Documentation",
+    section: "project-specs"
+  },
+  {
+    title: "Religious Identity Taxonomy Structure",
+    filename: "religious-taxonomy-structure.md",
+    excerpt: "This document outlines the comprehensive religious identity taxonomy implemented in the Whitepine application. The taxonomy is based on Pew Research Center data and provides a 4-level hierarchical str...",
     category: "API Documentation",
     section: "project-specs"
   },
@@ -208,9 +264,9 @@ export const libraryDocuments: LibraryDocument[] = [
     section: "project-specs"
   },
   {
-    title: "USA Full-Stack Application - Library Index",
-    filename: "library-index.md",
-    excerpt: "This index provides comprehensive documentation for the USA Full-Stack Application deployment architecture, setup procedures, and operational guidelines.",
+    title: "User Demographics and Political Identity API",
+    filename: "user-demographics-api.md",
+    excerpt: "This document describes the new API endpoints for managing user demographic information and political identities. Users can now store detailed demographic data and link themselves to multiple politica...",
     category: "API Documentation",
     section: "project-specs"
   },
@@ -224,8 +280,22 @@ export const libraryDocuments: LibraryDocument[] = [
   {
     title: "User Role System",
     filename: "User_Role_System.md",
-    excerpt: "The User Role System provides role-based access control (RBAC) for the USA application. It allows administrators to assign specific roles to users, which determine their permissions and access levels ...",
+    excerpt: "The User Role System provides role-based access control (RBAC) for the Whitepine application. It allows administrators to assign specific roles to users, which determine their permissions and access l...",
     category: "Platform Features",
+    section: "project-specs"
+  },
+  {
+    title: "Whitepine Brand Guide",
+    filename: "brand.md",
+    excerpt: "A civic platform rooted in the Great Tree of Peace, carrying forward the tradition of consensus, unity, and strength.",
+    category: "Technical Documentation",
+    section: "project-specs"
+  },
+  {
+    title: "Whitepine Full-Stack Application - Library Index",
+    filename: "library-index.md",
+    excerpt: "This index provides comprehensive documentation for the Whitepine Full-Stack Application deployment architecture, setup procedures, and operational guidelines.",
+    category: "API Documentation",
     section: "project-specs"
   },
 

@@ -10,8 +10,8 @@
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::usa-fullstack-app",
-        "arn:aws:s3:::usa-fullstack-app/*"
+        "arn:aws:s3:::whitepine-fullstack-app",
+        "arn:aws:s3:::whitepine-fullstack-app/*"
       ]
     },
     {

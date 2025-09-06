@@ -132,19 +132,19 @@ async function importIdentities() {
     // Connect to MongoDB
     console.log('Connecting to MongoDB...');
     
-    // Ensure we connect to the 'usa' database
+    // Ensure we connect to the 'whitepine' database
     let mongoUri = process.env.MONGODB_URI;
-    if (!mongoUri.includes('/usa')) {
+    if (!mongoUri.includes('/whitepine')) {
       // Add database name if not present
       if (mongoUri.includes('?')) {
-        mongoUri = mongoUri.replace('?', '/usa?');
+        mongoUri = mongoUri.replace('?', '/whitepine?');
       } else {
-        mongoUri = mongoUri + '/usa';
+        mongoUri = mongoUri + '/whitepine';
       }
     }
     
     // Fix double slashes that might occur
-    mongoUri = mongoUri.replace('//usa', '/usa');
+    mongoUri = mongoUri.replace('//whitepine', '/whitepine');
     
     await mongoose.connect(mongoUri, {
       maxPoolSize: 10,

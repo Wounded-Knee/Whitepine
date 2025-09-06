@@ -7,7 +7,7 @@ This project is configured for automated deployment to AWS S3 with CloudFront CD
 
 ### AWS Setup
 1. **S3 Bucket**: Create an S3 bucket for hosting the static files
-   - Bucket name: `usa-fullstack-app` (or your preferred name)
+   - Bucket name: `whitepine-fullstack-app` (or your preferred name)
    - Configure for static website hosting
    - Set bucket policy for public read access
 
@@ -60,7 +60,7 @@ The build process generates:
 ### Required for Deployment
 ```bash
 AWS_REGION=us-east-2
-S3_BUCKET=usa-fullstack-app
+S3_BUCKET=whitepine-fullstack-app
 CF_DIST_ID=YOUR_CLOUDFRONT_DISTRIBUTION_ID
 ```
 

@@ -97,7 +97,7 @@ export default function DistrictForm({ district, onSave, onCancel, currentJurisd
   useEffect(() => {
     const fetchJurisdictions = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/jurisdictions?limit=1000`)
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/jurisdictions?page_size=1000`)
         setJurisdictionOptions(response.data.jurisdictions || [])
       } catch (error) {
         console.error('Error fetching jurisdictions:', error)

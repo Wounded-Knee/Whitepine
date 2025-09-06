@@ -233,7 +233,7 @@ const religiousIdentities = [
 ];
 
 // MongoDB connection string - update this with your actual connection string
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/usa';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whitepine';
 
 async function populateReligiousIdentities() {
   try {

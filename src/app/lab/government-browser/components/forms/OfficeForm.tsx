@@ -3,24 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '@/app/contexts/ThemeContext'
 import axios from 'axios'
-
-interface Office {
-  _id: string
-  name: string
-  slug: string
-  office_type: string
-  governing_body?: string
-  jurisdiction?: string
-  constituency: string
-  district?: string
-  selection_method: string
-  term_length?: number
-  term_limit?: number
-  salary?: number
-  is_part_time: boolean
-  identifiers?: Record<string, string>
-  metadata?: Record<string, any>
-}
+import { Office } from '../../../../types'
 
 interface OfficeFormProps {
   office?: Office | null
@@ -52,10 +35,10 @@ export default function OfficeForm({ office, onSave, onCancel, currentJurisdicti
   const [formData, setFormData] = useState<Partial<Office>>({
     name: '',
     slug: '',
-    office_type: 'executive',
+    office_type: 'elected',
     governing_body: '',
     jurisdiction: '',
-    constituency: 'at_large',
+    constituency: 'at-large',
     district: '',
     selection_method: 'election',
     term_length: undefined,
@@ -127,7 +110,7 @@ export default function OfficeForm({ office, onSave, onCancel, currentJurisdicti
   useEffect(() => {
     const fetchJurisdictions = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/jurisdictions?limit=1000`)
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/jurisdictions?page_size=1000`)
         setJurisdictionOptions(response.data.jurisdictions || [])
       } catch (error) {
         console.error('Error fetching jurisdictions:', error)
@@ -140,7 +123,7 @@ export default function OfficeForm({ office, onSave, onCancel, currentJurisdicti
   useEffect(() => {
     const fetchGoverningBodies = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/governing-bodies?limit=1000`)
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/governing-bodies?page_size=1000`)
         setGoverningBodyOptions(response.data.governingBodies || [])
       } catch (error) {
         console.error('Error fetching governing bodies:', error)
@@ -154,7 +137,7 @@ export default function OfficeForm({ office, onSave, onCancel, currentJurisdicti
     const fetchDistricts = async () => {
       if (formData.jurisdiction) {
         try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/government/districts?jurisdiction=${formData.jurisdiction}&limit=1000`)
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/v1/gov/districts?jurisdiction=${formData.jurisdiction}&page_size=1000`)
           setDistrictOptions(response.data.districts || [])
         } catch (error) {
           console.error('Error fetching districts:', error)

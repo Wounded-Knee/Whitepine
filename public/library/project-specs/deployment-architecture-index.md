@@ -1,7 +1,7 @@
 # Deployment Architecture Index
 
 ## Overview
-This document provides a comprehensive index of the deployment architecture for the USA Full-Stack Application, including AWS infrastructure setup, GitHub Actions configuration, and deployment procedures.
+This document provides a comprehensive index of the deployment architecture for the Whitepine Full-Stack Application, including AWS infrastructure setup, GitHub Actions configuration, and deployment procedures.
 
 ## Architecture Components
 
@@ -88,7 +88,7 @@ This document provides a comprehensive index of the deployment architecture for 
 ```bash
 # AWS Configuration
 AWS_REGION=us-east-2
-S3_BUCKET=usa-fullstack-app
+S3_BUCKET=whitepine-fullstack-app
 CF_DIST_ID=YOUR_CLOUDFRONT_DISTRIBUTION_ID
 
 # GitHub Secrets

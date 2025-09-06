@@ -42,7 +42,7 @@ const ObligationSchemaStructure = {
     index: true
   },
   boundPartyId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
     index: true
   },
@@ -53,7 +53,7 @@ const ObligationSchemaStructure = {
     index: true
   },
   bindingPartyId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     required: true,
     index: true
   },

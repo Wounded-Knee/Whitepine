@@ -11,15 +11,11 @@ export function generateAvatarUrl(name: string, size: number = 200): string {
 
 /**
  * Get avatar URL for a user
- * @param user - User object with avatar and name properties
+ * @param user - User object with firstName and lastName properties
  * @param size - Size of the avatar (default: 200)
- * @returns URL to the user's avatar or a generated one
+ * @returns URL to a generated avatar based on user initials
  */
-export function getUserAvatarUrl(user: { avatar?: string; firstName: string; lastName: string }, size: number = 200): string {
-  if (user.avatar) {
-    return user.avatar;
-  }
-  
+export function getUserAvatarUrl(user: { firstName: string; lastName: string }, size: number = 200): string {
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
   return generateAvatarUrl(initials, size);
 }

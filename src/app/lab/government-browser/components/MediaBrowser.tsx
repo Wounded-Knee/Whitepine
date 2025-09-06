@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '@/app/contexts/ThemeContext';
+import { Media, EntityType } from '../../../types';
 
 interface BreadcrumbItem {
   id: string;
@@ -22,8 +23,8 @@ const MEDIA_TYPES = [
   'image', 'document', 'video', 'audio', 'archive', 'other'
 ];
 
-const ENTITY_TYPES = [
-  'user', 'petition', 'jurisdiction', 'governing_body', 'office', 'position', 'election', 'legislation'
+const ENTITY_TYPES: EntityType[] = [
+  'User', 'Obligation', 'Claim', 'Evidence', 'Jurisdiction', 'GoverningBody', 'Office', 'Position'
 ];
 
 export default function MediaBrowser({ 
@@ -35,7 +36,7 @@ export default function MediaBrowser({
   currentEntityFilter
 }: MediaBrowserProps) {
   const { resolvedTheme } = useTheme();
-  const [media, setMedia] = useState<any[]>([]);
+  const [media, setMedia] = useState<Media[]>([]);
   const [entityOptions, setEntityOptions] = useState<{ value: string; label: string }[]>([]);
 
   // Theme-aware class names
@@ -70,11 +71,11 @@ export default function MediaBrowser({
 
   const columns = [
     { key: 'filename', label: 'Filename', sortable: true },
-    { key: 'media_type', label: 'Type', sortable: true },
-    { key: 'entity_type', label: 'Entity Type', sortable: true },
-    { key: 'entity_name', label: 'Entity', sortable: true },
-    { key: 'file_size', label: 'Size', sortable: true },
-    { key: 'is_primary', label: 'Primary', sortable: true },
+    { key: 'mediaType', label: 'Type', sortable: true },
+    { key: 'entityType', label: 'Entity Type', sortable: true },
+    { key: 'entityId', label: 'Entity ID', sortable: true },
+    { key: 'bytes', label: 'Size', sortable: true },
+    { key: 'isPrimary', label: 'Primary', sortable: true },
     { key: 'createdAt', label: 'Uploaded', sortable: true }
   ];
 
@@ -129,24 +130,24 @@ export default function MediaBrowser({
 
   const renderCell = (item: any, column: { key: string; label: string }) => {
     switch (column.key) {
-      case 'media_type':
+      case 'mediaType':
         return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getMediaTypeBadgeClass(item.media_type)}`}>
-            {item.media_type?.charAt(0).toUpperCase() + item.media_type?.slice(1) || 'N/A'}
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getMediaTypeBadgeClass(item.mediaType)}`}>
+            {item.mediaType?.charAt(0).toUpperCase() + item.mediaType?.slice(1) || 'N/A'}
           </span>
         );
-      case 'entity_type':
+      case 'entityType':
         return (
           <span className="capitalize">
-            {item.entity_type?.replace('_', ' ') || 'N/A'}
+            {item.entityType || 'N/A'}
           </span>
         );
-      case 'entity_name':
-        return item.entity_name || 'N/A';
-      case 'file_size':
-        return formatFileSize(item.file_size);
-      case 'is_primary':
-        return item.is_primary ? (
+      case 'entityId':
+        return item.entityId || 'N/A';
+      case 'bytes':
+        return formatFileSize(item.bytes);
+      case 'isPrimary':
+        return item.isPrimary ? (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
             Primary
           </span>

@@ -1,0 +1,16 @@
+const { 
+    ObligationDispositions,
+    PromiseDispositions,
+    PetitionDispositions
+  } = require('../Obligations');
+
+  const dispositions = [...ObligationDispositions, ...PromiseDispositions, ...PetitionDispositions];
+
+"claimsSummary": {
+  [Claim.ObligationAttribute]: {
+    [dispositions[0]]: <count>,
+    [dispositions[1]]: <count>,
+    ...
+  }
+  "lastUpdated": "2025-09-02T19:35:00Z"
+}

@@ -182,7 +182,7 @@ export default function IdentityChipsPage() {
             Identity Chips Laboratory
           </h1>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Explore the different types of identity chips used in the USA application. 
+            Explore the different types of identity chips used in the Whitepine application. 
             Each chip represents a specific identity category with unique styling and data display.
           </p>
           <div className="mt-6">

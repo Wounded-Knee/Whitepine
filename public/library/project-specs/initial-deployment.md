@@ -1,7 +1,7 @@
 # Initial Deployment Guide
 
 ## Overview
-This guide walks through the complete process of performing the initial deployment of the USA Full-Stack Application to production using the configured S3 + CloudFront infrastructure.
+This guide walks through the complete process of performing the initial deployment of the Whitepine Full-Stack Application to production using the configured S3 + CloudFront infrastructure.
 
 ## Prerequisites
 - [ ] AWS infrastructure configured (S3, CloudFront, IAM)
@@ -12,7 +12,7 @@ This guide walks through the complete process of performing the initial deployme
 ## Pre-Deployment Checklist
 
 ### Infrastructure Verification
-- [ ] S3 bucket `usa-fullstack-app` exists and is accessible
+- [ ] S3 bucket `whitepine-fullstack-app` exists and is accessible
 - [ ] CloudFront distribution is deployed and active
 - [ ] IAM role `github-actions-deploy-s3-cloudfront` is configured
 - [ ] OIDC provider is set up correctly
@@ -28,7 +28,7 @@ This guide walks through the complete process of performing the initial deployme
 ### GitHub Configuration
 - [ ] Repository secrets configured:
   - `AWS_REGION` = `us-east-2`
-  - `S3_BUCKET` = `usa-fullstack-app`
+  - `S3_BUCKET` = `whitepine-fullstack-app`
   - `CF_DIST_ID` = `YOUR_DISTRIBUTION_ID`
   - `AWS_ACCOUNT_ID` = `YOUR_ACCOUNT_ID`
 - [ ] Workflow file `.github/workflows/deploy.yml` is committed
@@ -145,9 +145,9 @@ git push origin main
   out/index.html
   ...
 ✓ Sync static assets (long cache)
-  upload: out/_next/static/css/... to s3://usa-fullstack-app/_next/static/css/...
+  upload: out/_next/static/css/... to s3://whitepine-fullstack-app/_next/static/css/...
 ✓ Upload HTML (no-cache + correct MIME)
-  upload: out/index.html to s3://usa-fullstack-app/index.html
+  upload: out/index.html to s3://whitepine-fullstack-app/index.html
 ✓ Invalidate CloudFront
   {
     "Invalidation": {
@@ -163,11 +163,11 @@ git push origin main
 ### Check S3 Bucket
 ```bash
 # List uploaded files
-aws s3 ls s3://usa-fullstack-app --recursive
+aws s3 ls s3://whitepine-fullstack-app --recursive
 
 # Check specific files
-aws s3 ls s3://usa-fullstack-app/index.html
-aws s3 ls s3://usa-fullstack-app/_next/static/
+aws s3 ls s3://whitepine-fullstack-app/index.html
+aws s3 ls s3://whitepine-fullstack-app/_next/static/
 ```
 
 ### Check CloudFront Distribution

@@ -2,21 +2,10 @@
 
 import { useState } from 'react'
 import ProfileHeader from './ProfileHeader'
+import { User } from '../types'
 
 interface UserProfileProps {
-  user: {
-    _id: string
-    username: string
-    firstName: string
-    lastName: string
-    profile?: {
-      bio?: string
-      location?: string
-      website?: string
-      avatar?: string
-      banner?: string
-    }
-  }
+  user: User
   onProfileUpdate?: () => void
 }
 

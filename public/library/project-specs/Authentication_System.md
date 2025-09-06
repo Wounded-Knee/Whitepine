@@ -1,6 +1,6 @@
 # Authentication System Setup Guide
 
-This guide will help you set up the authentication system with Google OAuth integration for the USA full-stack application.
+This guide will help you set up the authentication system with Google OAuth integration for the Whitepine full-stack application.
 
 ## Overview
 

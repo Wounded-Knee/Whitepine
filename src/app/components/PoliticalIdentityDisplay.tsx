@@ -22,7 +22,7 @@ export default function PoliticalIdentityDisplay() {
           className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
           style={{ backgroundColor: selectedIdentity.color }}
         >
-          {selectedIdentity.abbreviation}
+          {selectedIdentity.abbr}
         </div>
         <div>
           <p className="font-medium text-foreground">{selectedIdentity.name}</p>

@@ -1,6 +1,6 @@
 # S3 + CloudFront Deployment Guide
 
-This document outlines the deployment process for the USA Full-Stack Application to AWS S3 with CloudFront CDN.
+This document outlines the deployment process for the Whitepine Full-Stack Application to AWS S3 with CloudFront CDN.
 
 ## Prerequisites
 

@@ -131,8 +131,8 @@ aws iam create-role \
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::usa-fullstack-app",
-        "arn:aws:s3:::usa-fullstack-app/*"
+        "arn:aws:s3:::whitepine-fullstack-app",
+        "arn:aws:s3:::whitepine-fullstack-app/*"
       ]
     },
     {
@@ -173,8 +173,8 @@ cat > deploy-policy.json << EOF
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::usa-fullstack-app",
-        "arn:aws:s3:::usa-fullstack-app/*"
+        "arn:aws:s3:::whitepine-fullstack-app",
+        "arn:aws:s3:::whitepine-fullstack-app/*"
       ]
     },
     {
@@ -259,7 +259,7 @@ aws sts assume-role-with-web-identity \
 
 2. **Verify Existing Secrets**
    - `AWS_REGION` = `us-east-2`
-   - `S3_BUCKET` = `usa-fullstack-app`
+   - `S3_BUCKET` = `whitepine-fullstack-app`
    - `CF_DIST_ID` = `YOUR_DISTRIBUTION_ID`
 
 ## Step 8: Security Best Practices
@@ -318,7 +318,7 @@ aws iam list-attached-role-policies --role-name github-actions-deploy-s3-cloudfr
 aws iam get-role --role-name github-actions-deploy-s3-cloudfront --query 'Role.AssumeRolePolicyDocument'
 
 # Test S3 access
-aws s3 ls s3://usa-fullstack-app --profile assumed-role
+aws s3 ls s3://whitepine-fullstack-app --profile assumed-role
 
 # Test CloudFront access
 aws cloudfront list-distributions --profile assumed-role

@@ -1,7 +1,7 @@
 # AWS CloudFront Distribution Setup Guide
 
 ## Overview
-This guide walks through creating and configuring a CloudFront distribution to serve the USA Full-Stack Application from the S3 bucket with global CDN capabilities.
+This guide walks through creating and configuring a CloudFront distribution to serve the Whitepine Full-Stack Application from the S3 bucket with global CDN capabilities.
 
 ## Prerequisites
 - S3 bucket configured for static website hosting
@@ -17,10 +17,10 @@ This guide walks through creating and configuring a CloudFront distribution to s
 
 2. **Configure Origin Settings**
    ```
-   Origin domain: usa-fullstack-app.s3-website-us-east-2.amazonaws.com
+   Origin domain: whitepine-fullstack-app.s3-website-us-east-2.amazonaws.com
    Protocol: HTTP only
    Origin path: (leave blank)
-   Name: usa-fullstack-app-origin
+   Name: whitepine-fullstack-app-origin
    ```
 
 3. **Configure Origin Access**
@@ -87,7 +87,7 @@ This guide walks through creating and configuring a CloudFront distribution to s
 1. **Logging**
    ```
    Logging: On
-   Log bucket: usa-fullstack-app-logs
+   Log bucket: whitepine-fullstack-app-logs
    Log prefix: cloudfront/
    ```
 
@@ -97,7 +97,7 @@ This guide walks through creating and configuring a CloudFront distribution to s
    Value: Production
    
    Key: Project
-   Value: USA-FullStack-App
+   Value: Whitepine-FullStack-App
    ```
 
 3. **Create Distribution**

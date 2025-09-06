@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the complete database schema for the USA application, covering all models including User management, Government entities, Obligations system, Claims, Evidence, Media management, and Political Identity systems.
+This document describes the complete database schema for the Whitepine application, covering all models including User management, Government entities, Obligations system, Claims, Evidence, Media management, and Political Identity systems.
 
 ## Core Design Principles
 

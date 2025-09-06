@@ -8,9 +8,9 @@ import {
   isDeveloper, 
   isModerator,
   getHighestRole,
-  getRoleBadgeClass,
-  type UserRole 
+  getRoleBadgeClass
 } from '../../utils/roleUtils';
+import { UserRole } from '../../types';
 import UserRoles from '../../components/UserRoles';
 
 const RoleTestPage: React.FC = () => {
@@ -122,8 +122,8 @@ const RoleTestPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Has Admin/Dev roles:</span>
-                      <span className={hasAnyRole(user, ['Admin', 'Developer']) ? 'text-green-600' : 'text-red-600'}>
-                        {hasAnyRole(user, ['Admin', 'Developer']) ? '✓ Yes' : '✗ No'}
+                      <span className={hasAnyRole(user, ['admin', 'developer']) ? 'text-green-600' : 'text-red-600'}>
+                        {hasAnyRole(user, ['admin', 'developer']) ? '✓ Yes' : '✗ No'}
                       </span>
                     </div>
                   </div>
@@ -156,11 +156,9 @@ const RoleTestPage: React.FC = () => {
                 <div className="p-4 border rounded-lg">
                   <UserRoles
                     userId={user._id}
-                    roles={user.roles}
-                    showManage={true}
-                    onRolesUpdate={(newRoles) => {
+                    onRolesUpdate={() => {
                       // This would typically update the user context
-                      console.log('Roles updated:', newRoles);
+                      console.log('Roles updated');
                     }}
                   />
                 </div>

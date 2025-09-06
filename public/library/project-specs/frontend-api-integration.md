@@ -1,7 +1,7 @@
 # Frontend API Integration Guide
 
 ## Overview
-This document provides guidelines and best practices for integrating the USA Full-Stack Application backend API with the Next.js frontend.
+This document provides guidelines and best practices for integrating the Whitepine Full-Stack Application backend API with the Next.js frontend.
 
 ## API Client Setup
 

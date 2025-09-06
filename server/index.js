@@ -53,7 +53,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Welcome to the USA Backend API',
+    message: 'Welcome to the Whitepine Backend API',
     version: '1.0',
     api: '/v1',
     documentation: '/v1/docs'
