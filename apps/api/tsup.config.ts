@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: ['src/server.ts'],
   format: ['esm'],
-  dts: true,
+  dts: false, // Disable DTS generation for now
   splitting: true,
   sourcemap: true,
   clean: true,
