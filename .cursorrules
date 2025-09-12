@@ -94,6 +94,7 @@
     "Migrations are authored in TS (apps/api/src/migrations) but compiled to CJS for migrate-mongo runtime.",
     "Certificates must be provisioned via Let's Encrypt on the Lightsail instance (no LB, no ACM).",
     "Dev host is HTTP Basic Auth protected with username 'dev'.",
-    "All secrets come from GitHub Actions Environments, mapped to /var/www/whitepine/shared/env/{prod|dev}.env on server."
+    "All secrets come from GitHub Actions Environments, mapped to /var/www/whitepine/shared/env/{prod|dev}.env on server.",
+    "Don't create documentation files unless asked to do so."
   ]
 }

@@ -1,0 +1,37 @@
+{
+  "name": "@whitepine/ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy:dev": "./deploy/install_release.sh dev",
+    "deploy:prod": "./deploy/install_release.sh prod",
+    "deploy:status": "./deploy/check_status.sh",
+    "deploy:logs": "./deploy/view_logs.sh",
+    "deploy:restart": "./deploy/restart_services.sh",
+    "ssl:renew": "./deploy/renew_ssl.sh",
+    "ssl:status": "./deploy/check_ssl.sh",
+    "backup:create": "./scripts/backup.sh",
+    "backup:restore": "./scripts/restore.sh",
+    "monitor:health": "./scripts/health_check.sh",
+    "monitor:performance": "./scripts/performance_check.sh",
+    "db:migrate:dev": "ssh dev-server 'cd /var/www/whitepine && pnpm migrate:dev'",
+    "db:migrate:prod": "ssh prod-server 'cd /var/www/whitepine && pnpm migrate:prod'",
+    "logs:web": "ssh dev-server 'pm2 logs web'",
+    "logs:api": "ssh dev-server 'pm2 logs api'",
+    "logs:web:prod": "ssh prod-server 'pm2 logs web'",
+    "logs:api:prod": "ssh prod-server 'pm2 logs api'",
+    "lint": "echo 'No linting configured for ops'",
+    "typecheck": "echo 'No typechecking configured for ops'",
+    "test": "echo 'No tests configured for ops'",
+    "clean": "rm -rf deploy/artifacts scripts/temp"
+  },
+  "keywords": [
+    "deployment",
+    "operations",
+    "devops",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC"
+}

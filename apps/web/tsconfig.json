@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "@shared/*": ["../../packages/types/src/*"],
       "@api/*": ["../api/src/*"],
       "@web/*": ["./*"]

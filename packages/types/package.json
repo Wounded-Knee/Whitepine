@@ -15,7 +15,11 @@
   ],
   "scripts": {
     "build": "tsc --build",
-    "clean": "rm -rf index.d.ts src/**/*.d.ts"
+    "clean": "rm -rf index.d.ts src/**/*.d.ts",
+    "lint": "echo 'No linting configured for types package'",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'No tests configured for types package'",
+    "watch": "tsc --build --watch"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
