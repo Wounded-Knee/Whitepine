@@ -1,0 +1,117 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# TypeScript and JavaScript files
+[*.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2
+max_line_length = 100
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Markdown files
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# Package.json files
+[package.json]
+indent_style = space
+indent_size = 2
+
+# Configuration files
+[*.{toml,ini,cfg,conf}]
+indent_style = space
+indent_size = 2
+
+# Shell scripts
+[*.{sh,bash}]
+indent_style = space
+indent_size = 2
+
+# Docker files
+[Dockerfile*]
+indent_style = space
+indent_size = 2
+
+# SQL files
+[*.sql]
+indent_style = space
+indent_size = 2
+
+# CSS and SCSS files
+[*.{css,scss,sass,less}]
+indent_style = space
+indent_size = 2
+
+# HTML files
+[*.{html,htm}]
+indent_style = space
+indent_size = 2
+
+# XML files
+[*.xml]
+indent_style = space
+indent_size = 2
+
+# Makefile
+[Makefile]
+indent_style = tab
+
+# Git commit messages
+[COMMIT_EDITMSG]
+max_line_length = 72
+
+# Lock files (keep as-is)
+[{package-lock.json,yarn.lock,pnpm-lock.yaml}]
+indent_style = space
+indent_size = 2
+
+# Generated files
+[*.generated.*]
+indent_style = space
+indent_size = 2
+
+# Test files
+[*.{test,spec}.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2
+
+# Migration files
+[**/migrations/*.ts]
+indent_style = space
+indent_size = 2
+
+# API routes
+[**/api/**/*.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2
+
+# Web app files
+[**/web/**/*.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2
+
+# Package files
+[**/packages/**/*.{ts,tsx,js,jsx}]
+indent_style = space
+indent_size = 2

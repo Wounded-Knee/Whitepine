@@ -1,0 +1,99 @@
+{
+  "language": "typescript",
+  "frameworks": [
+    "nextjs",
+    "express"
+  ],
+  "monorepo": true,
+  "packageManager": "pnpm",
+  "workspaceLayout": {
+    "apps": ["apps/web", "apps/api", "apps/ops"],
+    "packages": ["packages/types", "packages/tsconfig"]
+  },
+  "codingStandards": {
+    "typescript": {
+      "strict": true,
+      "module": "ESNext",
+      "target": "ES2022",
+      "moduleResolution": "Bundler",
+      "pathAliases": {
+        "@shared/*": ["packages/types/src/*"],
+        "@api/*": ["apps/api/src/*"],
+        "@web/*": ["apps/web/*"]
+      }
+    },
+    "eslint": {
+      "enabled": true,
+      "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"]
+    },
+    "prettier": {
+      "enabled": true
+    }
+  },
+  "build": {
+    "api": {
+      "tool": "tsup",
+      "entry": "src/server.ts",
+      "outDir": "dist",
+      "format": ["esm"],
+      "dts": true,
+      "splitting": true
+    },
+    "migrations": {
+      "tool": "tsup",
+      "entry": "src/migrations/*.ts",
+      "outDir": "migrations",
+      "format": ["cjs"]
+    },
+    "web": {
+      "tool": "next",
+      "dir": "apps/web"
+    }
+  },
+  "testing": {
+    "runner": "vitest",
+    "web": {
+      "environment": "jsdom"
+    },
+    "api": {
+      "environment": "node"
+    }
+  },
+  "deployment": {
+    "strategy": "ssh-rsync",
+    "server": {
+      "type": "lightsail",
+      "os": "ubuntu",
+      "processManager": "pm2",
+      "webPort": 3000,
+      "apiPort": 4000,
+      "webPortDev": 3001,
+      "apiPortDev": 4001
+    },
+    "nginx": {
+      "tls": "letsencrypt",
+      "hosts": {
+        "prod": "whitepine.jpkramer.com",
+        "dev": "whitepinedev.jpkramer.com"
+      }
+    }
+  },
+  "ci": {
+    "provider": "github-actions",
+    "branches": {
+      "main": "production",
+      "develop": "development"
+    },
+    "jobs": {
+      "build": "pnpm build",
+      "test": "pnpm test",
+      "deploy": "./apps/ops/deploy/install_release.sh"
+    }
+  },
+  "notes": [
+    "Migrations are authored in TS (apps/api/src/migrations) but compiled to CJS for migrate-mongo runtime.",
+    "Certificates must be provisioned via Let's Encrypt on the Lightsail instance (no LB, no ACM).",
+    "Dev host is HTTP Basic Auth protected with username 'dev'.",
+    "All secrets come from GitHub Actions Environments, mapped to /var/www/whitepine/shared/env/{prod|dev}.env on server."
+  ]
+}

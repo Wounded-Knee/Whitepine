@@ -1,0 +1,23 @@
+{
+  "name": "@whitepine/types",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.d.ts",
+    "src/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf index.d.ts src/**/*.d.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
