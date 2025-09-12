@@ -17,4 +17,6 @@ export default defineConfig({
       '@web': '../web',
     }
   },
+  // Ensure proper module resolution for migrations
+  external: ['mongodb'],
 })
