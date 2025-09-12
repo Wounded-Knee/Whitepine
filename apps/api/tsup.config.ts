@@ -13,4 +13,12 @@ export default defineConfig({
   env: {
     NODE_ENV: process.env.NODE_ENV || 'development',
   },
+  // Ensure tsup respects TypeScript path aliases
+  esbuildOptions(options) {
+    options.alias = {
+      '@shared': '../../packages/types/src',
+      '@api': './src',
+      '@web': '../web',
+    }
+  },
 })

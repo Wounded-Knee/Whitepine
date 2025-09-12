@@ -9,4 +9,12 @@ export default defineConfig({
   sourcemap: false,
   minify: false,
   dts: false,
+  // Ensure tsup respects TypeScript path aliases for migrations
+  esbuildOptions(options) {
+    options.alias = {
+      '@shared': '../../packages/types/src',
+      '@api': './src',
+      '@web': '../web',
+    }
+  },
 })

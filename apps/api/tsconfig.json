@@ -18,7 +18,8 @@
     "paths": {
       "@/*": ["./*"],
       "@shared/*": ["../../packages/types/src/*"],
-      "@api/*": ["./*"]
+      "@api/*": ["./*"],
+      "@web/*": ["../web/*"]
     },
     "strict": true,
     "noUnusedLocals": false,
