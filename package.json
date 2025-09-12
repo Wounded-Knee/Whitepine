@@ -18,7 +18,7 @@
     "lint": "pnpm --recursive lint",
     "lint:fix": "pnpm --recursive lint:fix",
     "typecheck": "pnpm --recursive typecheck",
-    "test": "pnpm --recursive test",
+    "test": "pnpm -r test",
     "test:watch": "pnpm --recursive test:watch",
     "clean": "pnpm --recursive clean && rm -rf node_modules",
     "clean:build": "pnpm --recursive clean:build",
