@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "build": "echo \"Build placeholder - implement workspace-specific builds\"",
     "typecheck": "echo \"Typecheck placeholder - implement workspace-specific type checking\"",
