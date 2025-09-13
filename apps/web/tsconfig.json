@@ -3,11 +3,20 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@shared/*": ["../../packages/types/src/*"],
-      "@api/*": ["../api/src/*"],
-      "@web/*": ["./*"]
-    }
+      "@/*": [
+        "./*"
+      ],
+      "@shared/*": [
+        "../../packages/types/src/*"
+      ],
+      "@api/*": [
+        "../api/src/*"
+      ],
+      "@web/*": [
+        "./*"
+      ]
+    },
+    "jsx": "preserve"
   },
   "include": [
     "next-env.d.ts",
@@ -15,5 +24,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

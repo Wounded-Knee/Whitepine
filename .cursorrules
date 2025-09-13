@@ -67,8 +67,8 @@
       "processManager": "pm2",
       "webPort": 3000,
       "apiPort": 4000,
-      "webPortDev": 3001,
-      "apiPortDev": 4001
+      "webPortDev": 3000,
+      "apiPortDev": 5000
     },
     "nginx": {
       "tls": "letsencrypt",
