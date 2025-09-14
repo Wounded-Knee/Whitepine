@@ -1,5 +1,6 @@
 import express from 'express';
 import { authRateLimit } from '../middleware/rateLimiting.js';
+import { nodeRoutes } from './nodes.js';
 
 export function setupRoutes(app: express.Application): void {
   // Health check route
@@ -14,6 +15,9 @@ export function setupRoutes(app: express.Application): void {
 
   // API routes
   const apiRouter = express.Router();
+
+  // Node routes
+  apiRouter.use('/nodes', nodeRoutes);
 
   // Example protected route
   apiRouter.get('/protected', (req, res) => {
@@ -45,6 +49,17 @@ export function setupRoutes(app: express.Application): void {
           google: '/auth/google',
           logout: '/auth/logout',
           me: '/auth/me',
+        },
+        nodes: {
+          list: '/api/nodes',
+          create: '/api/nodes',
+          get: '/api/nodes/:id',
+          update: '/api/nodes/:id',
+          delete: '/api/nodes/:id',
+          restore: '/api/nodes/:id/restore',
+          kinds: '/api/nodes/kinds',
+          stats: '/api/nodes/stats',
+          bulk: '/api/nodes/bulk',
         },
       },
     });

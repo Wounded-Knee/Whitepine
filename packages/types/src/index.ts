@@ -1,4 +1,5 @@
 // Shared types for the Whitepine application
+import type { Document, Types } from 'mongoose';
 
 export interface User {
   id: string;
@@ -6,6 +7,21 @@ export interface User {
   name: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// ---------- Node Types ----------
+export const discriminatorKey = "kind" as const;
+
+// Base Node interface for polymorphic nodes
+export interface BaseNode extends Document {
+  _id: Types.ObjectId;
+  kind: string;                  // discriminator
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date | null;       // soft delete
+  createdBy?: Types.ObjectId;    // User _id
+  updatedBy?: Types.ObjectId;    // User _id
+  ownerId?: Types.ObjectId;      // canonical owner (often same as createdBy)
 }
 
 export interface ApiResponse<T = unknown> {
