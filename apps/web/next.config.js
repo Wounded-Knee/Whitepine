@@ -12,7 +12,10 @@ const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typedRoutes: true,
+  experimental: {
+    typedRoutes: true,
+  },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['@whitepine/types'],
   webpack: (config) => {
     // Handle monorepo path resolution

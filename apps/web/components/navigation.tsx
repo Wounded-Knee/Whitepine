@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 const navigation = [
@@ -97,6 +97,7 @@ export function Navigation() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="pr-0">
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <div className="flex flex-col space-y-4">
               <Link className="flex items-center space-x-2" href="/">
                 <span className="font-bold">White Pine</span>
