@@ -3,11 +3,11 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AuthButton } from "@/components/auth-button"
 
 const navigation = [
   {
@@ -44,7 +44,7 @@ export function Navigation() {
             {navigation.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as any}
                 className={cn(
                   "transition-colors hover:text-foreground/80",
                   pathname === item.href
@@ -106,7 +106,7 @@ export function Navigation() {
                 {navigation.map((item) => (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={item.href as any}
                     className={cn(
                       "block px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
                       pathname === item.href
@@ -118,8 +118,9 @@ export function Navigation() {
                   </Link>
                 ))}
               </nav>
-              <div className="pt-4">
+              <div className="pt-4 space-y-4">
                 <ThemeToggle />
+                <AuthButton fullWidth />
               </div>
             </div>
           </SheetContent>
@@ -131,8 +132,9 @@ export function Navigation() {
               <span className="font-bold">White Pine</span>
             </Link>
           </div>
-          <nav className="flex items-center">
+          <nav className="flex items-center space-x-2">
             <ThemeToggle />
+            <AuthButton />
           </nav>
         </div>
       </div>
