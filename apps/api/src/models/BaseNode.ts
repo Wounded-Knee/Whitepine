@@ -22,12 +22,10 @@ const baseNodeSchema = new Schema<BaseNode>({
   deletedAt: {
     type: Date,
     default: null,
-    index: true,
   },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    index: true,
   },
   updatedBy: {
     type: Schema.Types.ObjectId,
@@ -37,7 +35,6 @@ const baseNodeSchema = new Schema<BaseNode>({
   ownerId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    index: true,
   },
 }, {
   timestamps: true, // This will automatically manage createdAt and updatedAt

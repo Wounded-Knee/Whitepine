@@ -123,8 +123,8 @@ userNodeSchema.methods.activate = function() {
 };
 
 // Create the UserNode discriminator model
-export const UserNodeModel = createNodeDiscriminator<UserNode>('User', userNodeSchema);
+const UserNodeModel = createNodeDiscriminator<UserNode>('User', userNodeSchema);
 
-// Export the schema as well for flexibility
+// Export the model and schema
 export { UserNodeModel, userNodeSchema };
 

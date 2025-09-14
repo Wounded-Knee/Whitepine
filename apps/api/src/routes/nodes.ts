@@ -6,7 +6,7 @@ import {
   validateQuery,
   validateParams,
   createNodeSchema,
-  updateNodeSchema,
+  updateUserNodeSchema,
   listNodesQuerySchema,
   bulkOperationsSchema,
   nodeIdSchema,
@@ -44,7 +44,7 @@ router.get('/:id',
 
 router.put('/:id', 
   validateParams(nodeIdSchema),
-  validateRequest(updateNodeSchema),
+  validateRequest(updateUserNodeSchema),
   NodeController.updateNode
 ); // Update node
 

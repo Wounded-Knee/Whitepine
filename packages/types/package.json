@@ -2,16 +2,16 @@
   "name": "@whitepine/types",
   "version": "0.1.0",
   "type": "module",
-  "main": "",
-  "types": "index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./index.d.ts"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "files": [
-    "index.d.ts",
-    "src/**/*.d.ts"
+    "src/**/*.ts"
   ],
   "scripts": {
     "build": "tsc --build",

@@ -29,8 +29,8 @@ export const createNodeSchema = z.discriminatedUnion('kind', [
   // Add more node type schemas here as they're created
 ]);
 
-// Update node validation schema (partial of create schema)
-export const updateNodeSchema = createNodeSchema.partial().omit({ kind: true });
+// Update user node validation schema (partial of userNodeSchema)
+export const updateUserNodeSchema = userNodeSchema.partial().omit({ kind: true });
 
 // Query parameters validation schema
 export const listNodesQuerySchema = z.object({

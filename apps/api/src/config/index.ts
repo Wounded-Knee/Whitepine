@@ -38,7 +38,7 @@ const envConfig = {
   nodeEnv: process.env.NODE_ENV,
   port: process.env.PORT,
   logLevel: process.env.LOG_LEVEL,
-  mongoUri: process.env.MONGODB_URI,
+  mongoUri: process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI_PROD : process.env.MONGODB_URI_DEV,
   corsOrigins: process.env.CORS_ORIGINS,
   sessionSecret: process.env.SESSION_SECRET,
   googleClientId: process.env.GOOGLE_CLIENT_ID,

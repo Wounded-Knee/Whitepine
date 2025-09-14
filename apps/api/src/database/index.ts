@@ -15,7 +15,6 @@ export async function connectDatabase(): Promise<void> {
       serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
       bufferCommands: false, // Disable mongoose buffering
-      bufferMaxEntries: 0, // Disable mongoose buffering
     };
 
     // Connect to MongoDB
@@ -45,6 +44,12 @@ export async function connectDatabase(): Promise<void> {
 
   } catch (error) {
     logger.error('Failed to connect to MongoDB:', error);
+    logger.error('MongoDB URI:', config.mongoUri ? 'Set' : 'Not set');
+    logger.error('Error details:', {
+      message: (error as Error).message,
+      code: (error as any).code,
+      name: (error as Error).name
+    });
     throw error;
   }
 }
