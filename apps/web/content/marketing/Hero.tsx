@@ -1,10 +1,10 @@
-export function Hero({ backgroundImage }: { backgroundImage: string }) {
+export function Hero({ children, backgroundImage }: { children: React.ReactNode, backgroundImage: string }) {
     return (
-        <div 
-            className="w-full max-w-1xl mx-auto rounded-lg shadow-lg my-8 bg-cover bg-center"
+        <section 
+            className="h-[50vh] p-6 rounded-b-lg shadow-lg bg-cover bg-center -mt-6 -ml-6 -mr-6"
             style={{ backgroundImage: `url(${backgroundImage})` }}
         >
-            <h1>Hero</h1>
-        </div>
+            { children }
+        </section>
     )
 }
