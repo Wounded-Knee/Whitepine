@@ -24,6 +24,25 @@ export interface BaseNode extends Document {
   ownerId?: Types.ObjectId;      // canonical owner (often same as createdBy)
 }
 
+// UserNode interface extending BaseNode
+export interface UserNode extends BaseNode {
+  kind: 'User';
+  email: string;
+  name: string;
+  avatar?: string;
+  bio?: string;
+  isActive: boolean;
+  lastLoginAt?: Date;
+  preferences?: {
+    theme?: 'light' | 'dark' | 'auto';
+    language?: string;
+    notifications?: {
+      email?: boolean;
+      push?: boolean;
+    };
+  };
+}
+
 export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
