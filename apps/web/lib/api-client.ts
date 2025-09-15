@@ -1,0 +1,224 @@
+import type { BaseNode, UserNode } from '@whitepine/types';
+
+// API client for node operations
+class ApiClient {
+  private baseUrl: string;
+  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private ongoingRequests: Map<string, Promise<any>> = new Map();
+
+  constructor(baseUrl?: string) {
+    // Use provided baseUrl, or default to local API server
+    this.baseUrl = baseUrl || (typeof window !== 'undefined' 
+      ? 'http://localhost:4000/api'  // Browser environment
+      : 'http://localhost:4000/api'  // Server environment
+    );
+  }
+
+  private getCacheKey(url: string): string {
+    return `api:${url}`;
+  }
+
+  private getCachedData(url: string): any | null {
+    const cacheKey = this.getCacheKey(url);
+    const cached = this.cache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.data;
+    }
+    
+    // Remove expired cache entry
+    if (cached) {
+      this.cache.delete(cacheKey);
+    }
+    
+    return null;
+  }
+
+  private setCachedData(url: string, data: any): void {
+    const cacheKey = this.getCacheKey(url);
+    this.cache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  private invalidateCache(pattern?: string): void {
+    if (pattern) {
+      // Invalidate specific cache entries matching pattern
+      for (const [key] of this.cache) {
+        if (key.includes(pattern)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      // Clear all cache
+      this.cache.clear();
+    }
+  }
+
+  /**
+   * Fetch a single node by ID
+   */
+  async getNode(nodeId: string): Promise<BaseNode | UserNode> {
+    const url = `${this.baseUrl}/nodes/${nodeId}`;
+    
+    // Check cache first
+    const cachedData = this.getCachedData(url);
+    if (cachedData) {
+      console.log(`[API Client] Cache hit for node ${nodeId}`);
+      return cachedData;
+    }
+
+    // Check if request is already ongoing
+    if (this.ongoingRequests.has(url)) {
+      console.log(`[API Client] Request for node ${nodeId} already ongoing, sharing promise`);
+      return this.ongoingRequests.get(url)!;
+    }
+
+    console.log(`[API Client] Making new API request for node ${nodeId}`);
+    
+    // Create the request promise
+    const requestPromise = this.makeHttpRequest(url);
+    
+    // Track the ongoing request
+    this.ongoingRequests.set(url, requestPromise);
+    
+    try {
+      const result = await requestPromise;
+      return result;
+    } finally {
+      // Clean up the ongoing request
+      this.ongoingRequests.delete(url);
+    }
+  }
+
+  /**
+   * Make the actual HTTP request
+   */
+  private async makeHttpRequest(url: string): Promise<BaseNode | UserNode> {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch node: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const nodeData = data.data;
+    
+    // Cache the result
+    this.setCachedData(url, nodeData);
+    
+    return nodeData;
+  }
+
+  /**
+   * Fetch multiple nodes with optional filtering
+   */
+  async getNodes(params?: {
+    kind?: string;
+    limit?: number;
+    offset?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Promise<{ nodes: (BaseNode | UserNode)[]; pagination: any }> {
+    const searchParams = new URLSearchParams();
+    
+    if (params?.kind) searchParams.append('kind', params.kind);
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.offset) searchParams.append('skip', params.offset.toString());
+    if (params?.sortBy) searchParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) searchParams.append('sortOrder', params.sortOrder);
+
+    const url = `${this.baseUrl}/nodes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch nodes: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      nodes: data.data,
+      pagination: data.pagination,
+    };
+  }
+
+  /**
+   * Create a new node
+   */
+  async createNode(nodeData: Partial<BaseNode | UserNode>): Promise<BaseNode | UserNode> {
+    const response = await fetch(`${this.baseUrl}/nodes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(nodeData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create node: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+  }
+
+  /**
+   * Update an existing node
+   */
+  async updateNode(nodeId: string, updates: Partial<BaseNode | UserNode>): Promise<BaseNode | UserNode> {
+    const response = await fetch(`${this.baseUrl}/nodes/${nodeId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update node: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const nodeData = data.data;
+    
+    // Invalidate cache for this specific node
+    this.invalidateCache(`/nodes/${nodeId}`);
+    
+    return nodeData;
+  }
+
+  /**
+   * Delete a node (soft delete)
+   */
+  async deleteNode(nodeId: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/nodes/${nodeId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete node: ${response.statusText}`);
+    }
+    
+    // Invalidate cache for this specific node
+    this.invalidateCache(`/nodes/${nodeId}`);
+  }
+}
+
+// Create and export a singleton instance
+export const apiClient = new ApiClient();
+
+// Export the class for testing or custom instances
+export { ApiClient };

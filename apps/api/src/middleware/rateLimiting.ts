@@ -11,8 +11,8 @@ const logger = pino({
 // Create rate limiter instance
 const rateLimiter = new RateLimiterMemory({
   keyPrefix: 'middleware',
-  points: config.rateLimitMax, // Number of requests
-  duration: config.rateLimitWindowMs / 1000, // Per duration in seconds
+  points: config.nodeEnv === 'development' ? 10000 : config.rateLimitMax, // Much more lenient in development
+  duration: config.nodeEnv === 'development' ? 60 : config.rateLimitWindowMs / 1000, // 1 minute in dev
 });
 
 // Rate limiting middleware
@@ -45,9 +45,9 @@ export function setupRateLimiting(app: express.Application): void {
 // Strict rate limiter for auth endpoints
 const authRateLimiter = new RateLimiterMemory({
   keyPrefix: 'auth',
-  points: 5, // 5 attempts
-  duration: 900, // per 15 minutes
-  blockDuration: 900, // block for 15 minutes
+  points: config.nodeEnv === 'development' ? 1000 : 5, // More lenient in development
+  duration: config.nodeEnv === 'development' ? 60 : 900, // 1 minute in dev, 15 minutes in prod
+  blockDuration: config.nodeEnv === 'development' ? 60 : 900, // 1 minute block in dev
 });
 
 export const authRateLimit = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
