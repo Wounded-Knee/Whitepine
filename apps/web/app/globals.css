@@ -104,3 +104,130 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
+
+/* React JSON Schema Form Styles - Global */
+.rjsf-form {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+.rjsf-form .form-group,
+.rjsf-form .field,
+.rjsf-form .field-string,
+.rjsf-form .field-datetime {
+  margin-bottom: 1.5rem !important;
+  padding: 1rem !important;
+  background: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.rjsf-form .form-group {
+  padding: 0 !important; 
+}
+
+.rjsf-form .field:hover,
+.rjsf-form .field-string:hover,
+.rjsf-form .field-datetime:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.rjsf-form .field.field-object:hover {
+  box-shadow: none !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.rjsf-form .form-group label,
+.rjsf-form .field label,
+.rjsf-form .field-string label,
+.rjsf-form .field-datetime label {
+  display: block !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  margin-bottom: 0.5rem !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.rjsf-form:not(.read-only) .form-group input,
+.rjsf-form:not(.read-only) .form-group textarea,
+.rjsf-form:not(.read-only) .field input,
+.rjsf-form:not(.read-only) .field textarea,
+.rjsf-form:not(.read-only) .field-string input,
+.rjsf-form:not(.read-only) .field-datetime input {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  font-size: 0.875rem !important;
+  transition: border-color 0.2s ease !important;
+  cursor: default !important;
+}
+
+.rjsf-form:not(.read-only) .form-group input:focus,
+.rjsf-form:not(.read-only) .form-group textarea:focus,
+.rjsf-form:not(.read-only) .field input:focus,
+.rjsf-form:not(.read-only) .field textarea:focus,
+.rjsf-form:not(.read-only) .field-string input:focus,
+.rjsf-form:not(.read-only) .field-datetime input:focus {
+  outline: none !important;
+  border-color: #d1d5db !important;
+  box-shadow: none !important;
+}
+
+.rjsf-form .field-description,
+.rjsf-form .help-block {
+  margin-top: 0.25rem !important;
+  font-size: 0.75rem !important;
+  color: #6b7280 !important;
+  font-style: italic !important;
+}
+
+.rjsf-form .field-array {
+  margin-top: 0.5rem !important;
+}
+
+.rjsf-form .field-array-item {
+  margin-bottom: 0.5rem !important;
+  padding: 0.5rem !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 0.25rem !important;
+}
+
+/* Collapsible Object Field Styles */
+.rjsf-form .collapsible-object {
+  margin-bottom: 1rem !important;
+}
+
+.rjsf-form .collapsible-object .collapsible-trigger {
+  width: 100% !important;
+  text-align: left !important;
+  padding: 0.75rem 1rem !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+  background: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
+
+.rjsf-form .collapsible-object .collapsible-trigger:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.rjsf-form .collapsible-object .collapsible-content {
+  border-top: 1px solid #e2e8f0 !important;
+  margin-top: 0.5rem !important;
+  padding-top: 1rem !important;
+}
+
+.rjsf-form .collapsible-object .collapsible-content .field {
+  margin-bottom: 1rem !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}

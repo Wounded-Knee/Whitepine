@@ -66,17 +66,13 @@ class ApiClient {
     // Check cache first
     const cachedData = this.getCachedData(url);
     if (cachedData) {
-      console.log(`[API Client] Cache hit for node ${nodeId}`);
       return cachedData;
     }
 
     // Check if request is already ongoing
     if (this.ongoingRequests.has(url)) {
-      console.log(`[API Client] Request for node ${nodeId} already ongoing, sharing promise`);
       return this.ongoingRequests.get(url)!;
     }
-
-    console.log(`[API Client] Making new API request for node ${nodeId}`);
     
     // Create the request promise
     const requestPromise = this.makeHttpRequest(url);

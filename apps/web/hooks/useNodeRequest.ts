@@ -22,7 +22,6 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   const fetchNode = useCallback(async () => {
     // If node already exists, don't fetch
     if (node) {
-      console.log(`[useNodeRequest] Node ${nodeId} already exists, skipping fetch`);
       return;
     }
     
@@ -30,7 +29,6 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     
     // If request is already ongoing, return the existing promise
     if (requestManager.isRequestOngoing(requestKey)) {
-      console.log(`[useNodeRequest] Request for ${nodeId} already ongoing, sharing promise`);
       const existingPromise = requestManager.getExistingPromise(requestKey);
       if (existingPromise) {
         return existingPromise;
@@ -38,7 +36,6 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     }
     
     // Start a new request and track it globally
-    console.log(`[useNodeRequest] Starting new request for ${nodeId}`);
     const promise = dispatch(fetchNodeById(nodeId)).unwrap();
     return requestManager.startRequest(requestKey, promise);
   }, [dispatch, nodeId, node]);

@@ -52,11 +52,9 @@ export const fetchNodeById = createAsyncThunk<
       
       // Don't fetch if node already exists in store
       if (node) {
-        console.log(`[fetchNodeById] Condition: Node ${nodeId} already exists, skipping fetch`);
         return false;
       }
       
-      console.log(`[fetchNodeById] Condition: Node ${nodeId} needs to be fetched`);
       return true;
     }
   }

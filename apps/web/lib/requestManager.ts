@@ -24,13 +24,11 @@ class RequestManager {
    * Start tracking a new request
    */
   startRequest(key: string, promise: Promise<any>): Promise<any> {
-    console.log(`[RequestManager] Starting request: ${key}`);
     this.ongoingRequests.add(key);
     this.requestPromises.set(key, promise);
 
     // Clean up when the request completes
     promise.finally(() => {
-      console.log(`[RequestManager] Completing request: ${key}`);
       this.ongoingRequests.delete(key);
       this.requestPromises.delete(key);
     });

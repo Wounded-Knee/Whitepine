@@ -174,7 +174,16 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 1. Basic BaseNodeView {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <BaseNodeView nodeId={realNodeId || "507f1f77bcf86cd799439011"} />
+              {realNodeId ? (
+                <BaseNodeView nodeId={realNodeId} />
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                  {realNodeError && (
+                    <p className="text-red-600 mt-2">Error: {realNodeError}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Example 2: BaseNodeView with Custom Styling */}
@@ -182,10 +191,16 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 2. With Custom Styling {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <BaseNodeView 
-                nodeId={realNodeId || "507f1f77bcf86cd799439012"} 
-                className="max-w-md mx-auto"
-              />
+              {realNodeId ? (
+                <BaseNodeView 
+                  nodeId={realNodeId} 
+                  className="max-w-md mx-auto"
+                />
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                </div>
+              )}
             </div>
 
             {/* Example 3: BaseNodeView with Render Prop */}
@@ -193,7 +208,8 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 3. With Custom Render Prop {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <BaseNodeView nodeId={realNodeId || "507f1f77bcf86cd799439013"}>
+              {realNodeId ? (
+                <BaseNodeView nodeId={realNodeId}>
                 {(node, isLoading, error) => {
                   if (isLoading) {
                     return (
@@ -238,6 +254,11 @@ export default function NodeViewDemo() {
                   );
                 }}
               </BaseNodeView>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                </div>
+              )}
             </div>
 
             {/* Example 4: Show Created Node */}
@@ -271,7 +292,13 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 1. Basic UserNodeView {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <UserNodeView nodeId={realNodeId || "507f1f77bcf86cd799439021"} />
+              {realNodeId ? (
+                <UserNodeView nodeId={realNodeId} />
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                </div>
+              )}
             </div>
 
             {/* Example 2: UserNodeView with Custom Styling */}
@@ -279,10 +306,16 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 2. With Custom Styling {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <UserNodeView 
-                nodeId={realNodeId || "507f1f77bcf86cd799439022"} 
-                className="max-w-md mx-auto"
-              />
+              {realNodeId ? (
+                <UserNodeView 
+                  nodeId={realNodeId} 
+                  className="max-w-md mx-auto"
+                />
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                </div>
+              )}
             </div>
 
             {/* Example 3: UserNodeView with Render Prop */}
@@ -290,7 +323,8 @@ export default function NodeViewDemo() {
               <h3 className="text-lg font-semibold mb-4">
                 3. With Custom Render Prop {realNodeId && <span className="text-green-600">(Real Node)</span>}
               </h3>
-              <UserNodeView nodeId={realNodeId || "507f1f77bcf86cd799439023"}>
+              {realNodeId ? (
+                <UserNodeView nodeId={realNodeId}>
                 {(userNode, isLoading, error) => {
                   if (isLoading) {
                     return (
@@ -356,6 +390,11 @@ export default function NodeViewDemo() {
                   );
                 }}
               </UserNodeView>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded border">
+                  <p className="text-gray-600">Loading real node data...</p>
+                </div>
+              )}
             </div>
 
             {/* Example 4: Show Created User Node */}

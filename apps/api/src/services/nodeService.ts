@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { BaseNodeModel, UserNodeModel } from '../models/index.js';
 import type { BaseNode } from '@whitepine/types';
 import { createError } from '../middleware/errorHandler.js';
+import { isWritePermitted } from '../middleware/datePermissions.js';
 
 export interface CreateNodeRequest {
   kind: string;
@@ -49,6 +50,11 @@ export class NodeService {
    * Create a new node
    */
   static async createNode(request: CreateNodeRequest) {
+    // Check write permissions
+    if (!isWritePermitted()) {
+      throw createError('Write operations are only permitted on the 15th of any month', 403);
+    }
+
     const { kind, data, createdBy, ownerId } = request;
     
     try {
@@ -86,7 +92,12 @@ export class NodeService {
       if (!node) {
         throw createError('Node not found', 404);
       }
-      return node;
+      
+      // Add computed readOnly field based on write permissions
+      const nodeWithComputedFields = node.toObject() as any;
+      nodeWithComputedFields.readOnly = !isWritePermitted();
+      
+      return nodeWithComputedFields;
     } catch (error: any) {
       if (error.statusCode) throw error;
       throw createError(`Failed to get node: ${error.message}`, 500);
@@ -97,6 +108,11 @@ export class NodeService {
    * Update a node
    */
   static async updateNode(id: string, request: UpdateNodeRequest) {
+    // Check write permissions
+    if (!isWritePermitted()) {
+      throw createError('Write operations are only permitted on the 15th of any month', 403);
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -127,6 +143,11 @@ export class NodeService {
    * Soft delete a node
    */
   static async deleteNode(id: string) {
+    // Check write permissions
+    if (!isWritePermitted()) {
+      throw createError('Write operations are only permitted on the 15th of any month', 403);
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -137,7 +158,7 @@ export class NodeService {
         throw createError('Node not found', 404);
       }
 
-      await node.softDelete();
+      await (node as any).softDelete();
       return { message: 'Node deleted successfully' };
     } catch (error: any) {
       if (error.statusCode) throw error;
@@ -159,7 +180,7 @@ export class NodeService {
         throw createError('Node not found', 404);
       }
 
-      await node.restore();
+      await (node as any).restore();
       return node;
     } catch (error: any) {
       if (error.statusCode) throw error;
@@ -197,10 +218,17 @@ export class NodeService {
         .populate('updatedBy', 'name email')
         .populate('ownerId', 'name email');
 
+      // Add computed readOnly field to each node
+      const nodesWithComputedFields = nodes.map(node => {
+        const nodeObj = node.toObject() as any;
+        nodeObj.readOnly = !isWritePermitted();
+        return nodeObj;
+      });
+
       const total = await BaseNodeModel.countDocuments(filter);
 
       return {
-        nodes,
+        nodes: nodesWithComputedFields,
         pagination: {
           total,
           limit,
