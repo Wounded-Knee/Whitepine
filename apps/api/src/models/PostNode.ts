@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { createNodeDiscriminator } from './index.js';
+import { BaseNodeModel } from './BaseNode.js';
 import type { PostNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
 
@@ -61,7 +61,7 @@ postNodeSchema.methods.unpublish = function() {
 };
 
 // Create the PostNode discriminator model
-const PostNodeModel = createNodeDiscriminator<PostNode>(NODE_TYPES.POST, postNodeSchema);
+const PostNodeModel = BaseNodeModel.discriminator<PostNode>(NODE_TYPES.POST, postNodeSchema);
 
 // Export the model and schema
 export { PostNodeModel, postNodeSchema };

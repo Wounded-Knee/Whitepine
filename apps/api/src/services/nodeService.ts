@@ -104,7 +104,7 @@ export class NodeService {
   }
 
   /**
-   * Get a node by ID
+   * Get a node by ID with automatically included connected synapses
    */
   static async getNodeById(id: string) {
     if (!Types.ObjectId.isValid(id)) {
@@ -121,7 +121,70 @@ export class NodeService {
       const nodeWithComputedFields = node.toObject() as any;
       nodeWithComputedFields.readOnly = !isWritePermitted();
       
-      return nodeWithComputedFields;
+      // Automatically fetch all connected synapses
+      const synapses = await SynapseService.getNodeSynapses(id, {
+        includeDeleted: false
+      });
+      
+      // Extract all connected node IDs from synapses
+      const connectedNodeIds = new Set<string>();
+      synapses.forEach(synapse => {
+        if (synapse.from && synapse.from.toString() !== id) {
+          connectedNodeIds.add(synapse.from.toString());
+        }
+        if (synapse.to && synapse.to.toString() !== id) {
+          connectedNodeIds.add(synapse.to.toString());
+        }
+      });
+      
+      // Extract ObjectID references from node attributes
+      const attributeNodeIds = new Set<string>();
+      const extractObjectIds = (obj: any, path: string = '') => {
+        if (obj && typeof obj === 'object') {
+          if (Array.isArray(obj)) {
+            obj.forEach((item, index) => extractObjectIds(item, `${path}[${index}]`));
+          } else {
+            Object.keys(obj).forEach(key => {
+              const value = obj[key];
+              if (value && typeof value === 'object' && value.toString && value.toString().length === 24 && /^[0-9a-fA-F]+$/.test(value.toString())) {
+                // This looks like an ObjectId
+                attributeNodeIds.add(value.toString());
+              } else {
+                extractObjectIds(value, path ? `${path}.${key}` : key);
+              }
+            });
+          }
+        }
+      };
+      
+      extractObjectIds(nodeWithComputedFields);
+      
+      // Combine all related node IDs
+      const allRelatedNodeIds = new Set([...connectedNodeIds, ...attributeNodeIds]);
+      
+      // Fetch all related nodes
+      const relatives: any[] = [];
+      if (allRelatedNodeIds.size > 0) {
+        const relatedNodesData = await BaseNodeModel.find({
+          _id: { $in: Array.from(allRelatedNodeIds) },
+          deletedAt: null
+        });
+        
+        // Add computed readOnly field to each related node
+        relatedNodesData.forEach(relatedNode => {
+          const nodeObj = relatedNode.toObject() as any;
+          nodeObj.readOnly = !isWritePermitted();
+          relatives.push(nodeObj);
+        });
+      }
+      
+      // Add synapses to relatives array as well
+      relatives.push(...synapses);
+      
+      return {
+        node: nodeWithComputedFields,
+        relatives
+      };
     } catch (error: any) {
       if (error.statusCode) throw error;
       throw createError(`Failed to get node: ${error.message}`, 500);

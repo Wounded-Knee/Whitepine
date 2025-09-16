@@ -73,9 +73,12 @@ class ApiClient {
   }
 
   /**
-   * Fetch a single node by ID
+   * Fetch a single node by ID with automatically included relatives
    */
-  async getNode(nodeId: string): Promise<BaseNode | UserNode> {
+  async getNode(nodeId: string): Promise<{
+    node: BaseNode | UserNode;
+    relatives: any[];
+  }> {
     const url = `${this.baseUrl}/nodes/${nodeId}`;
     
     // Check cache first
@@ -107,7 +110,10 @@ class ApiClient {
   /**
    * Make the actual HTTP request
    */
-  private async makeHttpRequest(url: string): Promise<BaseNode | UserNode> {
+  private async makeHttpRequest(url: string): Promise<{
+    node: BaseNode | UserNode;
+    relatives: any[];
+  }> {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -120,12 +126,12 @@ class ApiClient {
     }
 
     const data = await response.json();
-    const nodeData = data.data;
+    const result = data.data;
     
     // Cache the result
-    this.setCachedData(url, nodeData);
+    this.setCachedData(url, result);
     
-    return nodeData;
+    return result;
   }
 
   /**

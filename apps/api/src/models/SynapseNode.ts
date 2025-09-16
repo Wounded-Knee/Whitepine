@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { createNodeDiscriminator } from './index.js';
+import { BaseNodeModel } from './BaseNode.js';
 import type { SynapseNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
 
@@ -117,7 +117,7 @@ synapseNodeSchema.methods.updateOrder = function(order: number) {
 };
 
 // Create the SynapseNode discriminator model
-const SynapseNodeModel = createNodeDiscriminator<SynapseNode>(NODE_TYPES.SYNAPSE, synapseNodeSchema);
+const SynapseNodeModel = BaseNodeModel.discriminator<SynapseNode>(NODE_TYPES.SYNAPSE, synapseNodeSchema);
 
 // Export the model and schema
 export { SynapseNodeModel, synapseNodeSchema };

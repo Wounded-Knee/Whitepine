@@ -1,18 +1,93 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BaseNodeView } from './BaseNode';
 import type { BaseNodeViewProps, EditProps } from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X, Calendar, User } from 'lucide-react';
+import { Avatar } from '../avatar';
 import type { PostNode, UserNode } from '@whitepine/types';
 import { NODE_TYPES } from '@shared/nodeTypes';
+import { useNodeById, useAppDispatch } from '@web/store/hooks';
+import { fetchNodeById } from '@web/store/slices/nodesSlice';
 
 export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
   children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
   showAuthor?: boolean; // Whether to show author info (default: true)
   compact?: boolean; // Whether to use compact layout (default: false)
 }
+
+/**
+ * Component to fetch and display author information
+ */
+const AuthorInfo: React.FC<{
+  authorId: string;
+  compact?: boolean;
+}> = ({ authorId, compact = false }) => {
+  const dispatch = useAppDispatch();
+  const author = useNodeById(authorId) as UserNode | undefined;
+
+  useEffect(() => {
+    // Fetch author if not in store
+    if (authorId && !author) {
+      dispatch(fetchNodeById(authorId));
+    }
+  }, [authorId, author, dispatch]);
+
+  if (!author) {
+    return (
+      <div className="flex-shrink-0">
+        <Avatar
+          avatarUrl={null}
+          name="Loading..."
+          size={compact ? 'sm' : 'md'}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-shrink-0">
+      <Avatar
+        avatarUrl={author.avatar}
+        name={author.name}
+        size={compact ? 'sm' : 'md'}
+      />
+    </div>
+  );
+};
+
+/**
+ * Component to display author name
+ */
+const AuthorName: React.FC<{
+  authorId: string;
+  compact?: boolean;
+}> = ({ authorId, compact = false }) => {
+  const dispatch = useAppDispatch();
+  const author = useNodeById(authorId) as UserNode | undefined;
+
+  useEffect(() => {
+    // Fetch author if not in store
+    if (authorId && !author) {
+      dispatch(fetchNodeById(authorId));
+    }
+  }, [authorId, author, dispatch]);
+
+  if (!author) {
+    return (
+      <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
+        Loading...
+      </span>
+    );
+  }
+
+  return (
+    <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
+      {author.name || 'Anonymous'}
+    </span>
+  );
+};
 
 /**
  * PostNodeView component for displaying PostNode instances in IRC-style chat layout.
@@ -79,13 +154,6 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
 
         const postNode = node as PostNode;
 
-        // Get author information if available
-        const author = postNode.createdBy ? {
-          name: 'Unknown User', // This would typically come from a populated field
-          avatar: null,
-          id: postNode.createdBy
-        } : null;
-
         const timestamp = new Date(postNode.createdAt);
         const isPublished = postNode.publishedAt !== null && postNode.publishedAt !== undefined;
 
@@ -124,30 +192,22 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
             
             <div className={`flex items-start space-x-3 px-3 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
               {/* Author Avatar */}
-              {showAuthor && (
-                <div className="flex-shrink-0">
-                  {author?.avatar ? (
-                    <img
-                      src={author.avatar}
-                      alt={author.name}
-                      className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} rounded-full object-cover`}
-                    />
-                  ) : (
-                    <div className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} rounded-full bg-gray-300 flex items-center justify-center`}>
-                      <User className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} text-gray-600`} />
-                    </div>
-                  )}
-                </div>
+              {showAuthor && postNode.createdBy && (
+                <AuthorInfo 
+                  authorId={postNode.createdBy.toString()} 
+                  compact={compact} 
+                />
               )}
 
               {/* Content Area */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline space-x-2">
                   {/* Author Name */}
-                  {showAuthor && (
-                    <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-                      {author?.name || 'Anonymous'}
-                    </span>
+                  {showAuthor && postNode.createdBy && (
+                    <AuthorName 
+                      authorId={postNode.createdBy.toString()} 
+                      compact={compact} 
+                    />
                   )}
                   
                   {/* Timestamp */}
@@ -182,8 +242,8 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
                 </div>
               </div>
 
-              {/* Edit Button - only show when not editing and not read-only */}
-              {!editProps.isEditing && !postNode.readOnly && (
+              {/* Edit Button - only show when not editing */}
+              {!editProps.isEditing && (
                 <div className="flex-shrink-0">
                   <Button
                     onClick={editProps.handleEdit}

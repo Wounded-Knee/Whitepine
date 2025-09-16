@@ -28,7 +28,7 @@ export class NodeController {
         hasUser: !!req.user,
         userId: userId,
         isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'method not available',
-        sessionId: req.sessionID,
+        sessionId: (req as any).sessionID,
         session: req.session ? Object.keys(req.session) : 'no session'
       });
 
@@ -61,17 +61,18 @@ export class NodeController {
   }
 
   /**
-   * Get a node by ID
+   * Get a node by ID with automatically included connected synapses and nodes
    * GET /api/nodes/:id
    */
   static async getNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const node = await NodeService.getNodeById(id);
+      const result = await NodeService.getNodeById(id);
 
       const response: ApiResponse = {
         success: true,
-        data: node,
+        data: result,
+        message: 'Node retrieved with connected synapses and nodes',
       };
 
       res.json(response);

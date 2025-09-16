@@ -10,7 +10,7 @@
     "lint": "pnpm exec next lint",
     "lint:fix": "pnpm exec next lint --fix",
     "typecheck": "pnpm exec tsc --noEmit",
-    "test": "pnpm exec vitest",
+    "test": "pnpm exec vitest --run",
     "test:watch": "pnpm exec vitest --watch",
     "test:ui": "pnpm exec vitest --ui",
     "test:coverage": "pnpm exec vitest --coverage",

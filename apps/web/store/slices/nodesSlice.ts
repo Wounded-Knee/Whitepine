@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { apiClient } from '@web/lib/api-client';
 import type { Node, NormalizedNodes, AsyncThunkConfig } from '../types';
 
@@ -30,15 +31,25 @@ export const fetchNodes = createAsyncThunk<
 );
 
 export const fetchNodeById = createAsyncThunk<
-  Node,
+  { node: Node; relatives: any[] },
   string,
   AsyncThunkConfig
 >(
   'nodes/fetchNodeById',
-  async (nodeId, { rejectWithValue }) => {
+  async (nodeId, { rejectWithValue, dispatch }) => {
     try {
-      const fetchedNode = await apiClient.getNode(nodeId);
-      return fetchedNode as Node;
+      const result = await apiClient.getNode(nodeId);
+      
+      // Store all related nodes in the Redux store
+      if (result.relatives && result.relatives.length > 0) {
+        // Store all relatives as nodes (including synapses)
+        dispatch(addNodes(result.relatives as Node[]));
+      }
+      
+      return {
+        node: result.node as Node,
+        relatives: result.relatives
+      };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch node';
       return rejectWithValue(errorMessage);
@@ -245,12 +256,24 @@ const nodesSlice = createSlice({
         }
       })
       .addCase(fetchNodeById.fulfilled, (state, action) => {
-        const node = action.payload;
+        const { node, relatives } = action.payload;
         const nodeId = node._id.toString();
+        
+        // Store the main node
         if (!state.byId[nodeId]) {
           state.allIds.push(nodeId);
         }
         state.byId[nodeId] = node;
+        
+        // Store all related nodes (including synapses - they should already be added by the thunk)
+        relatives.forEach(relative => {
+          const relativeNodeId = relative._id.toString();
+          if (!state.byId[relativeNodeId]) {
+            state.allIds.push(relativeNodeId);
+          }
+          state.byId[relativeNodeId] = relative;
+        });
+        
         // Clear any error for this node
         if (state.error) {
           delete state.error[`fetchNodeById-${nodeId}`];

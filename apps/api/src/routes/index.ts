@@ -4,6 +4,7 @@ import { nextAuthMiddleware } from '../middleware/nextAuthMiddleware.js';
 import { nodeRoutes } from './nodes.js';
 import { synapseRoutes } from './synapses.js';
 import { isolatedPostsRoutes } from './isolatedPosts.js';
+import { avatarRoutes } from './avatars.js';
 
 export function setupRoutes(app: express.Application): void {
   // Health check route
@@ -30,6 +31,9 @@ export function setupRoutes(app: express.Application): void {
 
   // Synapse routes
   apiRouter.use('/synapses', synapseRoutes);
+
+  // Avatar routes
+  apiRouter.use('/avatars', avatarRoutes);
 
   // Example protected route
   apiRouter.get('/protected', (req, res) => {
@@ -101,6 +105,16 @@ export function setupRoutes(app: express.Application): void {
           stats: '/api/synapses/stats',
           bulk: '/api/synapses/bulk',
           nodeSynapses: '/api/synapses/node/:nodeId',
+        },
+        avatars: {
+          serve: '/api/avatars/:filename',
+          getUser: '/api/avatars/user/:userId',
+          upload: '/api/avatars/upload',
+          update: '/api/avatars/update',
+          refresh: '/api/avatars/refresh/:userId',
+          remove: '/api/avatars/remove',
+          cleanup: '/api/avatars/cleanup',
+          refreshAll: '/api/avatars/refresh-all',
         },
       },
     });

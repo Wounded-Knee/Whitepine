@@ -8,6 +8,7 @@
     "build": "pnpm -r run build",
     "build:web": "pnpm --filter='@whitepine/web' build",
     "build:api": "pnpm --filter='@whitepine/api' build",
+    "dev": "./scripts/kill-dev-ports.sh && concurrently \"pnpm dev:api\" \"pnpm dev:web\" --names \"API,WEB\" --prefix-colors \"blue,green\"",
     "dev:web": "pnpm --filter='@whitepine/web' dev",
     "dev:api": "pnpm --filter='@whitepine/api' dev",
     "migrate:up": "cd apps/api && pnpm migrate:dev",
@@ -29,7 +30,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.15.0",
   "devDependencies": {
-    "prettier": "^3.0.0",
-    "envsyncer": "^1.0.0"
+    "concurrently": "^9.2.1",
+    "envsyncer": "^1.0.0",
+    "prettier": "^3.0.0"
   }
 }

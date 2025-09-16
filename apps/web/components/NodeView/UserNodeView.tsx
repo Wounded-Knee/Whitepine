@@ -5,6 +5,7 @@ import { BaseNodeView } from './BaseNode';
 import type { BaseNodeViewProps, EditProps } from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
+import { Avatar } from '../avatar';
 import type { UserNode } from '@whitepine/types';
 
 export interface UserNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
@@ -119,13 +120,11 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
             )}
             
             <div className="flex items-center space-x-4">
-              {userNode.avatar && (
-                <img
-                  src={userNode.avatar}
-                  alt={userNode.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              )}
+              <Avatar
+                avatarUrl={userNode.avatar}
+                name={userNode.name}
+                size="xl"
+              />
               <div className="flex-1">
                 <h3 className="text-lg font-medium text-gray-900" title={userNode._id}>
                   {editProps.isEditing ? (

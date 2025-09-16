@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { createNodeDiscriminator } from './index.js';
+import { BaseNodeModel } from './BaseNode.js';
 import type { BaseNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
 
@@ -124,7 +124,7 @@ userNodeSchema.methods.activate = function() {
 };
 
 // Create the UserNode discriminator model
-const UserNodeModel = createNodeDiscriminator<UserNode>(NODE_TYPES.USER, userNodeSchema);
+const UserNodeModel = BaseNodeModel.discriminator<UserNode>(NODE_TYPES.USER, userNodeSchema);
 
 // Export the model and schema
 export { UserNodeModel, userNodeSchema };

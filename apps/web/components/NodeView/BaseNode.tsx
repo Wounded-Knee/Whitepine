@@ -1,16 +1,37 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import { useNodeRequest } from '@web/hooks/useNodeRequest';
-import { useAppDispatch } from '@web/store/hooks';
+import { useAppDispatch, useAppSelector } from '@web/store/hooks';
 import { updateNode } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@web/components/ui/collapsible';
 import { Button } from '@web/components/ui/button';
-import { ChevronsUpDown, Edit, Save, X } from 'lucide-react';
+import { ChevronsUpDown, Edit, Save, X, ExternalLink } from 'lucide-react';
 import type { BaseNode } from '@whitepine/types';
+
+// Helper function to render node IDs as clickable links
+const renderNodeId = (nodeId: string | any, className: string = '') => {
+  if (!nodeId) return null;
+  
+  const idString = nodeId.toString();
+  const shortId = idString.substring(0, 8) + '...';
+  
+  return (
+    <Link 
+      href={`/demo-nodes/${idString}`}
+      className={`inline-flex items-center text-blue-600 hover:text-blue-800 hover:underline transition-colors ${className}`}
+    >
+      <code className="bg-blue-50 px-2 py-1 rounded text-xs font-mono">
+        {shortId}
+      </code>
+      <ExternalLink className="w-3 h-3 ml-1" />
+    </Link>
+  );
+};
 
 // Error Boundary Component
 class NodeErrorBoundary extends React.Component<
@@ -251,7 +272,7 @@ const CollapsibleObjectFieldTemplate = (props: any) => {
 export interface BaseNodeViewProps {
   nodeId: string;
   className?: string;
-  children?: (node: BaseNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
+  children?: (node: BaseNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[]) => React.ReactNode;
 }
 
 export interface EditProps {
@@ -283,19 +304,32 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
   children
 }) => {
   // Use the custom hook for request management with deduplication
-  const { node, isLoading, error, fetchNode } = useNodeRequest(nodeId);
+  const { node, isLoading, error, fetchNode, relatives, getRelatives } = useNodeRequest(nodeId);
   const dispatch = useAppDispatch();
+  
+  // Get all nodes for debug information
+  const allNodes = useAppSelector((state) => state.nodes.byId);
   
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [synapses, setSynapses] = useState<any[]>([]); // This is an array of synapse nodeIDs which are connected directly to this node.
+  const [connectedNodes, setConnectedNodes] = useState<any[]>([]); // Connected nodes from the API response
   
   useEffect(() => {
-    fetchNode().catch((err) => {
-      console.error('Error fetching node:', err);
-    });
+    const loadNodeData = async () => {
+      try {
+        await fetchNode();
+        // The fetchNode will now automatically populate the Redux store with
+        // the main node, synapses, and connected nodes
+      } catch (err) {
+        console.error('Error fetching node:', err);
+      }
+    };
+    
+    loadNodeData();
   }, [nodeId, fetchNode]);
   
   // Reset edit state when node changes
@@ -424,7 +458,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
     
     return (
       <div className={className}>
-        {children(node, isLoading, error, editProps)}
+        {children(node, isLoading, error, editProps, relatives, getRelatives)}
       </div>
     );
   }
@@ -500,7 +534,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
             {/* Edit/Save/Cancel buttons */}
             <div className="flex items-center justify-end space-x-2">
               {!isEditing ? (
-                !node.readOnly && (
+                !(node as any).readOnly && (
                   <Button
                     onClick={handleEdit}
                     variant="outline"
@@ -560,6 +594,91 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
               {/* Empty children since we're using readonly mode */}
               <div></div>
             </Form>
+            
+            {/* Connected Relatives Section */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Related Elements</h4>
+              <div className="text-sm text-gray-600">
+                <p>
+                  This node has {relatives.length} related elements (synapses and attribute-referenced nodes). 
+                  Use the getRelatives() function to filter by relationship type.
+                </p>
+                
+                {relatives.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <h5 className="font-medium text-gray-800">Available Relatives:</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {relatives.map((relative, index) => (
+                        <div key={relative._id || index} className="p-2 bg-gray-50 border rounded text-xs">
+                          <div className="font-medium">{relative.kind || 'Unknown'}</div>
+                          <div className="text-gray-600">
+                            {relative._relationshipType === 'attribute' && `Referenced by: ${relative._attribute}`}
+                            {relative._relationshipType === 'synaptic' && `Synaptic connection`}
+                            {relative.role && ` | Role: ${relative.role}`}
+                            {relative.dir && ` | Dir: ${relative.dir}`}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {renderNodeId(relative._id)}
+                          </div>
+                          {relative.name && (
+                            <div className="text-gray-700 text-xs mt-1">
+                              {relative.name}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 font-medium">Enhanced API with getRelatives()</p>
+                  <p className="text-blue-700 text-sm mt-1">
+                    Use getRelatives() to filter by synaptic properties, attributes, or custom criteria.
+                    Example: getRelatives({`{synaptic: {role: 'author'}}`})
+                  </p>
+                </div>
+                
+                {/* Debug information */}
+                <details className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <summary className="cursor-pointer text-sm font-medium text-gray-700">
+                    Debug Information
+                  </summary>
+                  <div className="mt-2 text-xs text-gray-600 space-y-2">
+                    <div>
+                      <strong>Node ID:</strong> {renderNodeId(node?._id, 'ml-2')}
+                    </div>
+                    <div>
+                      <strong>Node CreatedBy:</strong> {renderNodeId(node?.createdBy, 'ml-2')}
+                    </div>
+                    <div>
+                      <strong>Relatives Count:</strong> {relatives.length}
+                    </div>
+                    <div>
+                      <strong>All Nodes Count:</strong> {Object.keys(allNodes).length}
+                    </div>
+                    {relatives.length > 0 && (
+                      <div>
+                        <strong>Relatives Details:</strong>
+                        <div className="mt-1 p-2 bg-white border rounded text-xs overflow-auto space-y-1">
+                          {relatives.map((r, index) => (
+                            <div key={index} className="flex items-center justify-between">
+                              <div>
+                                <span className="font-medium">{r.kind}</span>
+                                {r.name && <span className="ml-2 text-gray-600">({r.name})</span>}
+                                <span className="ml-2 text-gray-500">- {r._relationshipType}</span>
+                                {r._attribute && <span className="ml-2 text-blue-600">via {r._attribute}</span>}
+                              </div>
+                              {renderNodeId(r._id)}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </details>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="text-center py-8">

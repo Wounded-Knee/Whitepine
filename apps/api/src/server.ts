@@ -10,6 +10,8 @@ import { setupRateLimiting } from './middleware/rateLimiting.js';
 import { setupRoutes } from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { AvatarService } from './services/avatarService.js';
+import { SchedulerService } from './services/schedulerService.js';
 
 const logger = pino({
   level: config.logLevel,
@@ -67,6 +69,14 @@ async function startServer() {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
+
+    // Initialize avatar service
+    await AvatarService.initialize();
+    logger.info('Avatar service initialized successfully');
+
+    // Initialize scheduler service
+    SchedulerService.initialize();
+    logger.info('Scheduler service initialized successfully');
 
     // Start server
     const server = app.listen(config.port, () => {

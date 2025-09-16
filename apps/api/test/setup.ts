@@ -1,7 +1,7 @@
 // Global test setup for API app with node environment
 // This file is imported by vitest.config.ts
 
-import { beforeAll, beforeEach, afterAll, afterEach } from 'vitest'
+import { beforeAll, beforeEach, afterAll, afterEach, vi } from 'vitest'
 
 // Setup global test environment
 beforeEach(() => {
