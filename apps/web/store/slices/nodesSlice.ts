@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { apiClient } from '@web/lib/api-client';
 import type { Node, NormalizedNodes, AsyncThunkConfig } from '../types';
 
 // Initial state
@@ -16,14 +17,14 @@ export const fetchNodes = createAsyncThunk<
   'nodes/fetchNodes',
   async (params, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: const response = await api.getNodes(params);
-      // return response.data;
-      
-      // Placeholder return
-      return [];
+      const { nodes } = await apiClient.getNodes({
+        limit: params.limit,
+        offset: params.offset,
+      });
+      return nodes as Node[];
     } catch (error) {
-      return rejectWithValue('Failed to fetch nodes');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch nodes';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -36,14 +37,25 @@ export const fetchNodeById = createAsyncThunk<
   'nodes/fetchNodeById',
   async (nodeId, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: const response = await api.getNode(nodeId);
-      // return response.data;
-      
-      // Placeholder return
-      throw new Error('Not implemented');
+      const fetchedNode = await apiClient.getNode(nodeId);
+      return fetchedNode as Node;
     } catch (error) {
-      return rejectWithValue('Failed to fetch node');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch node';
+      return rejectWithValue(errorMessage);
+    }
+  },
+  {
+    // Use Redux Toolkit's built-in request deduplication
+    condition: (nodeId, { getState }) => {
+      const state = getState();
+      const node = state.nodes.byId[nodeId];
+      
+      // Don't fetch if node already exists in store
+      if (node) {
+        return false;
+      }
+      
+      return true;
     }
   }
 );
@@ -56,14 +68,11 @@ export const createNode = createAsyncThunk<
   'nodes/createNode',
   async (nodeData, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: const response = await api.createNode(nodeData);
-      // return response.data;
-      
-      // Placeholder return
-      throw new Error('Not implemented');
+      const node = await apiClient.createNode(nodeData);
+      return node as Node;
     } catch (error) {
-      return rejectWithValue('Failed to create node');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create node';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -76,14 +85,11 @@ export const updateNode = createAsyncThunk<
   'nodes/updateNode',
   async ({ id, updates }, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: const response = await api.updateNode(id, updates);
-      // return response.data;
-      
-      // Placeholder return
-      throw new Error('Not implemented');
+      const node = await apiClient.updateNode(id, updates);
+      return node as Node;
     } catch (error) {
-      return rejectWithValue('Failed to update node');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update node';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -96,14 +102,11 @@ export const deleteNode = createAsyncThunk<
   'nodes/deleteNode',
   async (nodeId, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: await api.deleteNode(nodeId);
-      // return nodeId;
-      
-      // Placeholder return
-      throw new Error('Not implemented');
+      await apiClient.deleteNode(nodeId);
+      return nodeId;
     } catch (error) {
-      return rejectWithValue('Failed to delete node');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete node';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -116,14 +119,19 @@ export const bulkUpdateNodes = createAsyncThunk<
   'nodes/bulkUpdateNodes',
   async ({ nodeIds, updates }, { rejectWithValue }) => {
     try {
-      // Insert API call logic here
-      // Example: const response = await api.bulkUpdateNodes(nodeIds, updates);
-      // return response.data;
+      // For now, we'll update nodes one by one since we don't have a bulk endpoint
+      // In a real implementation, you might want to add a bulk update endpoint to the API
+      const updatedNodes: Node[] = [];
       
-      // Placeholder return
-      throw new Error('Not implemented');
+      for (const nodeId of nodeIds) {
+        const node = await apiClient.updateNode(nodeId, updates);
+        updatedNodes.push(node as Node);
+      }
+      
+      return updatedNodes;
     } catch (error) {
-      return rejectWithValue('Failed to bulk update nodes');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to bulk update nodes';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -229,6 +237,13 @@ const nodesSlice = createSlice({
 
     // Fetch single node
     builder
+      .addCase(fetchNodeById.pending, (state, action) => {
+        const nodeId = action.meta.arg;
+        // Clear any previous error for this node
+        if (state.error) {
+          delete state.error[`fetchNodeById-${nodeId}`];
+        }
+      })
       .addCase(fetchNodeById.fulfilled, (state, action) => {
         const node = action.payload;
         const nodeId = node._id.toString();
@@ -236,6 +251,17 @@ const nodesSlice = createSlice({
           state.allIds.push(nodeId);
         }
         state.byId[nodeId] = node;
+        // Clear any error for this node
+        if (state.error) {
+          delete state.error[`fetchNodeById-${nodeId}`];
+        }
+      })
+      .addCase(fetchNodeById.rejected, (state, action) => {
+        const nodeId = action.meta.arg;
+        const errorMessage = action.payload as string;
+        // Store error for this specific node
+        if (!state.error) state.error = {};
+        state.error[`fetchNodeById-${nodeId}`] = errorMessage;
       });
 
     // Create node

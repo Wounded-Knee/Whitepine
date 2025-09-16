@@ -1,4 +1,4 @@
-import type { BaseNode, UserNode } from '@shared/types';
+import type { BaseNode, UserNode } from '@whitepine/types';
 
 // These will be properly typed in the store index file
 export type RootState = any; // Will be overridden in store/index.ts
@@ -14,6 +14,11 @@ export type Node = BaseNode | UserNode;
 export interface NormalizedNodes {
   byId: Record<string, Node>;
   allIds: string[];
+  loading?: {
+    nodes: boolean;
+    operations: Record<string, boolean>;
+  };
+  error?: Record<string, string>;
 }
 
 // UI state types

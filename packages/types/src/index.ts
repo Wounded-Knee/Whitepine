@@ -22,6 +22,7 @@ export interface BaseNode extends Document {
   createdBy?: Types.ObjectId;    // User _id
   updatedBy?: Types.ObjectId;    // User _id
   ownerId?: Types.ObjectId;      // canonical owner (often same as createdBy)
+  readOnly?: boolean;            // computed field indicating if node is read-only
 }
 
 // UserNode interface extending BaseNode

@@ -3,9 +3,9 @@ import { getContentBySlug, getContentSlugs } from '@/lib/content/utils';
 import { BlogPost } from '@/lib/content/types';
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateStaticParams() {
@@ -16,7 +16,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps) {
-  const post = getContentBySlug(params.slug, 'blog') as BlogPost;
+  const { slug } = await params;
+  const post = getContentBySlug(slug, 'blog') as BlogPost;
   
   if (!post) {
     return {
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = getContentBySlug(params.slug, 'blog') as BlogPost;
+  const { slug } = await params;
+  const post = getContentBySlug(slug, 'blog') as BlogPost;
 
   if (!post) {
     notFound();
@@ -48,10 +50,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   // Import the MDX content dynamically using dynamic import
   let MDXContent;
   try {
-    const mdxModule = await import(`@/content/blog/${params.slug}.mdx`);
+    const mdxModule = await import(`@/content/blog/${slug}.mdx`);
     MDXContent = mdxModule.default;
   } catch (error) {
-    console.error(`Failed to load MDX content for ${params.slug}:`, error);
+    console.error(`Failed to load MDX content for ${slug}:`, error);
     notFound();
   }
 
