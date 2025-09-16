@@ -1,4 +1,5 @@
 import type { BaseNode, UserNode } from '@whitepine/types';
+import { getSession } from 'next-auth/react';
 
 // API client for node operations
 class ApiClient {
@@ -55,6 +56,20 @@ class ApiClient {
       // Clear all cache
       this.cache.clear();
     }
+  }
+
+  private async getAuthHeaders(): Promise<HeadersInit> {
+    const session = await getSession();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    if (session?.user?.id) {
+      // Include the user ID in a custom header for the API server
+      headers['X-User-ID'] = session.user.id;
+    }
+
+    return headers;
   }
 
   /**
@@ -210,6 +225,63 @@ class ApiClient {
     
     // Invalidate cache for this specific node
     this.invalidateCache(`/nodes/${nodeId}`);
+  }
+
+  /**
+   * Get isolated PostNodes (PostNodes without synapses)
+   */
+  async getIsolatedPostNodes(): Promise<any[]> {
+    const url = `${this.baseUrl}/nodes/isolated-posts`;
+    
+    // Check cache first
+    const cached = this.getCachedData(url);
+    if (cached) {
+      return cached;
+    }
+
+    // Check if request is already in progress
+    if (this.ongoingRequests.has(url)) {
+      return this.ongoingRequests.get(url)!;
+    }
+
+    const request = this.makeHttpRequest(url);
+    this.ongoingRequests.set(url, request);
+
+    try {
+      const response = await request;
+      this.setCachedData(url, response);
+      return response;
+    } finally {
+      this.ongoingRequests.delete(url);
+    }
+  }
+
+  /**
+   * Create a new PostNode
+   */
+  async createPostNode(content: string): Promise<any> {
+    const headers = await this.getAuthHeaders();
+    
+    const response = await fetch(`${this.baseUrl}/nodes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        kind: 'post',
+        content: content,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error?.message || `Failed to create post: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    // Invalidate cache for isolated posts since we just created a new one
+    this.invalidateCache('/nodes/isolated-posts');
+    
+    return result.data;
   }
 }
 

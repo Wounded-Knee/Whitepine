@@ -3,6 +3,8 @@ import passport from 'passport';
 import session from 'cookie-session';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { config } from '../config/index.js';
+import { UserNodeModel } from '../models/index.js';
+import { NODE_TYPES } from '@whitepine/types';
 
 export function setupAuth(app: express.Application): void {
   // Configure session middleware
@@ -27,21 +29,52 @@ export function setupAuth(app: express.Application): void {
       callbackURL: '/auth/google/callback'
     }, async (accessToken, refreshToken, profile, done) => {
       try {
-        // Here you would typically:
-        // 1. Check if user exists in your database
-        // 2. Create user if they don't exist
-        // 3. Return the user object
-        
+        const email = profile.emails?.[0]?.value;
+        const name = profile.displayName;
+        const avatar = profile.photos?.[0]?.value;
+
+        if (!email) {
+          return done(new Error('No email provided by Google'), undefined);
+        }
+
+        // Look up existing UserNode by email
+        let userNode = await UserNodeModel.findOne({ email });
+
+        if (!userNode) {
+          // Create new UserNode if it doesn't exist
+          userNode = new UserNodeModel({
+            kind: NODE_TYPES.USER,
+            email,
+            name: name || 'Unknown User',
+            avatar,
+            isActive: true,
+            lastLoginAt: new Date(),
+          });
+          await userNode.save();
+        } else {
+          // Update last login time for existing user
+          userNode.lastLoginAt = new Date();
+          if (name && userNode.name !== name) {
+            userNode.name = name;
+          }
+          if (avatar && userNode.avatar !== avatar) {
+            userNode.avatar = avatar;
+          }
+          await userNode.save();
+        }
+
+        // Return the UserNode's MongoDB ObjectId as the user ID
         const user = {
-          id: profile.id,
-          email: profile.emails?.[0]?.value,
-          name: profile.displayName,
-          picture: profile.photos?.[0]?.value,
+          id: userNode._id.toString(), // MongoDB ObjectId as string
+          email: userNode.email,
+          name: userNode.name,
+          picture: userNode.avatar,
           provider: 'google'
         };
 
         return done(null, user);
       } catch (error) {
+        console.error('Error in Google OAuth strategy:', error);
         return done(error, undefined);
       }
     }));
@@ -53,10 +86,31 @@ export function setupAuth(app: express.Application): void {
   });
 
   // Deserialize user from session
-  passport.deserializeUser((id: string, done) => {
-    // Here you would typically fetch user from database
-    // For now, we'll just pass the id
-    done(null, { id });
+  passport.deserializeUser(async (id: string, done) => {
+    try {
+      // Look up the UserNode by its MongoDB ObjectId
+      const userNode = await UserNodeModel.findById(id);
+      
+      if (!userNode) {
+        return done(null, false); // User not found
+      }
+
+      // Return the user object with the UserNode's data
+      const user = {
+        id: userNode._id.toString(),
+        email: userNode.email,
+        name: userNode.name,
+        picture: userNode.avatar,
+        provider: 'google'
+      };
+
+      done(null, user);
+    } catch (error) {
+      console.error('Error in deserializeUser:', error);
+      // If there's a database error, don't fail the entire request
+      // Just return false to indicate the user is not authenticated
+      done(null, false);
+    }
   });
 
   // Auth routes

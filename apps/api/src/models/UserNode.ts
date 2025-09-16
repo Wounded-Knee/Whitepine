@@ -1,10 +1,11 @@
 import { Schema } from 'mongoose';
 import { createNodeDiscriminator } from './index.js';
 import type { BaseNode } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 
 // UserNode interface extending BaseNode
 export interface UserNode extends BaseNode {
-  kind: 'User';
+  kind: typeof NODE_TYPES.USER;
   email: string;
   name: string;
   avatar?: string;
@@ -89,7 +90,7 @@ userNodeSchema.index({ name: 'text', bio: 'text' }); // Text search index
 // Pre-save middleware to ensure kind is set
 userNodeSchema.pre('save', function(next) {
   if (!this.kind) {
-    this.kind = 'User';
+    this.kind = NODE_TYPES.USER;
   }
   next();
 });
@@ -123,7 +124,7 @@ userNodeSchema.methods.activate = function() {
 };
 
 // Create the UserNode discriminator model
-const UserNodeModel = createNodeDiscriminator<UserNode>('User', userNodeSchema);
+const UserNodeModel = createNodeDiscriminator<UserNode>(NODE_TYPES.USER, userNodeSchema);
 
 // Export the model and schema
 export { UserNodeModel, userNodeSchema };

@@ -10,6 +10,7 @@ import uiReducer, {
   setError,
   clearError
 } from '@/store/slices/uiSlice';
+import { NODE_TYPES } from '@shared/nodeTypes';
 
 describe('uiSlice', () => {
   let store: ReturnType<typeof configureStore>;
@@ -81,14 +82,14 @@ describe('uiSlice', () => {
 
   describe('filters', () => {
     it('should set a filter', () => {
-      store.dispatch(setFilter({ key: 'type', value: 'User' }));
+      store.dispatch(setFilter({ key: 'type', value: NODE_TYPES.USER }));
       
       const state = store.getState().ui;
-      expect(state.filters.type).toBe('User');
+      expect(state.filters.type).toBe(NODE_TYPES.USER);
     });
 
     it('should clear a filter when value is undefined', () => {
-      store.dispatch(setFilter({ key: 'type', value: 'User' }));
+      store.dispatch(setFilter({ key: 'type', value: NODE_TYPES.USER }));
       store.dispatch(setFilter({ key: 'type', value: undefined }));
       
       const state = store.getState().ui;

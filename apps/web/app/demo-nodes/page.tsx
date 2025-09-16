@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BaseNodeView, UserNodeView } from '@web/components/NodeView';
+import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeView';
 import { useAppDispatch } from '@web/store/hooks';
 import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
@@ -12,6 +12,60 @@ export default function NodeViewDemo() {
   const [realNodeId, setRealNodeId] = useState<string | null>(null);
   const [isLoadingRealNode, setIsLoadingRealNode] = useState(true);
   const [realNodeError, setRealNodeError] = useState<string | null>(null);
+  
+  // State for isolated PostNodes
+  const [isolatedPostNodes, setIsolatedPostNodes] = useState<any[]>([]);
+  const [isLoadingIsolatedPosts, setIsLoadingIsolatedPosts] = useState(false);
+  const [isolatedPostsError, setIsolatedPostsError] = useState<string | null>(null);
+  
+  // State for creating new PostNodes
+  const [newPostContent, setNewPostContent] = useState('');
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [createPostError, setCreatePostError] = useState<string | null>(null);
+
+  // Function to fetch isolated PostNodes
+  const fetchIsolatedPostNodes = async () => {
+    try {
+      setIsLoadingIsolatedPosts(true);
+      setIsolatedPostsError(null);
+      const posts = await apiClient.getIsolatedPostNodes();
+      setIsolatedPostNodes(posts);
+    } catch (error: any) {
+      setIsolatedPostsError(error.message || 'Failed to fetch isolated posts');
+      console.error('Error fetching isolated posts:', error);
+    } finally {
+      setIsLoadingIsolatedPosts(false);
+    }
+  };
+
+  // Function to create a new PostNode
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPostContent.trim()) return;
+
+    try {
+      setIsCreatingPost(true);
+      setCreatePostError(null);
+      
+      const newPost = await apiClient.createPostNode(newPostContent.trim());
+      setNewPostContent('');
+      
+      // Refresh the list of isolated posts
+      await fetchIsolatedPostNodes();
+      
+      console.log('Created new post:', newPost);
+    } catch (error: any) {
+      setCreatePostError(error.message || 'Failed to create post');
+      console.error('Error creating post:', error);
+    } finally {
+      setIsCreatingPost(false);
+    }
+  };
+
+  // Fetch isolated PostNodes on component mount
+  useEffect(() => {
+    fetchIsolatedPostNodes();
+  }, []);
 
   // Fetch a real node from the database on component mount
   useEffect(() => {
@@ -417,6 +471,93 @@ export default function NodeViewDemo() {
                 <UserNodeView nodeId={realNodeId} />
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Isolated PostNodes Section */}
+        <div className="mt-12 bg-white rounded-lg shadow-sm border p-6">
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Isolated PostNodes (No Synapses)</h2>
+            
+            {/* Create New Post Form */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-4">Create New PostNode</h3>
+              <form onSubmit={handleCreatePost} className="space-y-4">
+                <div>
+                  <label htmlFor="postContent" className="block text-sm font-medium text-gray-700 mb-2">
+                    Post Content
+                  </label>
+                  <textarea
+                    id="postContent"
+                    value={newPostContent}
+                    onChange={(e) => setNewPostContent(e.target.value)}
+                    placeholder="Enter your post content here..."
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
+                    disabled={isCreatingPost}
+                  />
+                </div>
+                
+                {createPostError && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                    <p className="text-red-600 text-sm">{createPostError}</p>
+                  </div>
+                )}
+                
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="submit"
+                    disabled={!newPostContent.trim() || isCreatingPost}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isCreatingPost ? 'Creating...' : 'Create Post'}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={fetchIsolatedPostNodes}
+                    disabled={isLoadingIsolatedPosts}
+                    className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingIsolatedPosts ? 'Refreshing...' : 'Refresh List'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Isolated PostNodes List */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-4">
+                Isolated PostNodes ({isolatedPostNodes.length})
+              </h3>
+              
+              {isLoadingIsolatedPosts ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse bg-gray-200 rounded h-8 w-full"></div>
+                  ))}
+                </div>
+              ) : isolatedPostsError ? (
+                <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                  <p className="text-red-600">Error: {isolatedPostsError}</p>
+                </div>
+              ) : isolatedPostNodes.length === 0 ? (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                  <p className="text-yellow-700">No isolated PostNodes found. All PostNodes have synapses connected to them.</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {isolatedPostNodes.map((post) => (
+                    <PostNodeView 
+                      key={post._id} 
+                      nodeId={post._id} 
+                      compact={true}
+                      className="hover:bg-white/50 transition-colors"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import {
   validateQuery,
   validateParams,
   createNodeSchema,
-  updateUserNodeSchema,
+  updateNodeSchema,
   listNodesQuerySchema,
   bulkOperationsSchema,
   nodeIdSchema,
@@ -17,6 +17,7 @@ const router = Router();
 
 // Apply rate limiting to all node routes
 router.use(authRateLimit);
+
 
 // Node routes with validation
 router.post('/', 
@@ -45,10 +46,15 @@ router.get('/:id',
   NodeController.getNode
 ); // Get node by ID
 
+router.get('/:id/synapses', 
+  validateParams(nodeIdSchema),
+  NodeController.getNodeWithSynapses
+); // Get node with synapses
+
 router.put('/:id', 
   requireWritePermissions,
   validateParams(nodeIdSchema),
-  validateRequest(updateUserNodeSchema),
+  validateRequest(updateNodeSchema),
   NodeController.updateNode
 ); // Update node
 

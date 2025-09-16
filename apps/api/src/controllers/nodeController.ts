@@ -4,18 +4,14 @@ import { NodeService } from '../services/nodeService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { ApiResponse, PaginationParams } from '@whitepine/types';
 
-// Extend Express Request to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        _id: string;
-        email: string;
-        name: string;
-      };
-    }
-  }
-}
+// Define our user type
+type AuthUser = {
+  id: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+  provider?: string;
+};
 
 export class NodeController {
   /**
@@ -25,17 +21,31 @@ export class NodeController {
   static async createNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { kind, ...data } = req.body;
-      const userId = req.user?._id;
+      const userId = (req.user as AuthUser)?.id;
+
+      // Debug logging
+      console.log('Node creation request:', {
+        hasUser: !!req.user,
+        userId: userId,
+        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'method not available',
+        sessionId: req.sessionID,
+        session: req.session ? Object.keys(req.session) : 'no session'
+      });
 
       if (!kind) {
         throw createError('Node kind is required', 400);
       }
 
+      // Ensure createdBy is always set for authenticated users
+      if (!userId) {
+        throw createError('Authentication required to create nodes', 401);
+      }
+
       const node = await NodeService.createNode({
         kind,
         data,
-        createdBy: userId ? new Types.ObjectId(userId) : undefined,
-        ownerId: userId ? new Types.ObjectId(userId) : undefined,
+        createdBy: new Types.ObjectId(userId), // UserNode's MongoDB ObjectId
+        ownerId: new Types.ObjectId(userId),   // UserNode's MongoDB ObjectId
       });
 
       const response: ApiResponse = {
@@ -71,17 +81,43 @@ export class NodeController {
   }
 
   /**
+   * Get a node by ID with its synapses
+   * GET /api/nodes/:id/synapses
+   */
+  static async getNodeWithSynapses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { role, dir, includeDeleted = 'false' } = req.query;
+
+      const result = await NodeService.getNodeWithSynapses(id, {
+        role: role as string,
+        dir: dir as 'out' | 'in' | 'undirected',
+        includeDeleted: includeDeleted === 'true',
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Update a node
    * PUT /api/nodes/:id
    */
   static async updateNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const userId = req.user?._id;
+      const userId = (req.user as AuthUser)?.id;
 
       const node = await NodeService.updateNode(id, {
         data: req.body,
-        updatedBy: userId ? new Types.ObjectId(userId) : undefined,
+        ...(userId && { updatedBy: new Types.ObjectId(userId) }),
       });
 
       const response: ApiResponse = {
@@ -160,18 +196,18 @@ export class NodeController {
       const sortOrderNum = sortOrder === 'asc' ? 1 : -1;
 
       const query = {
-        kind: kind as string,
-        createdBy: createdBy ? new Types.ObjectId(createdBy as string) : undefined,
-        ownerId: ownerId ? new Types.ObjectId(ownerId as string) : undefined,
+        ...(kind && { kind: kind as string }),
+        ...(createdBy && { createdBy: new Types.ObjectId(createdBy as string) }),
+        ...(ownerId && { ownerId: new Types.ObjectId(ownerId as string) }),
         deletedAt: includeDeleted === 'true' ? undefined : null,
         limit: limitNum,
         skip: skipNum,
-        sort: { [sortBy as string]: sortOrderNum },
+        sort: { [sortBy as string]: sortOrderNum } as Record<string, 1 | -1>,
       };
 
       const result = await NodeService.listNodes(query);
 
-      const response: ApiResponse = {
+      const response = {
         success: true,
         data: result.nodes,
         pagination: {
@@ -233,7 +269,7 @@ export class NodeController {
   static async bulkOperations(req: Request, res: Response, next: NextFunction) {
     try {
       const { operation, nodeIds, data } = req.body;
-      const userId = req.user?._id;
+      const userId = (req.user as AuthUser)?.id;
 
       if (!operation || !nodeIds || !Array.isArray(nodeIds)) {
         throw createError('Invalid bulk operation request', 400);
@@ -258,7 +294,7 @@ export class NodeController {
               }
               result = await NodeService.updateNode(nodeId, {
                 data,
-                updatedBy: userId ? new Types.ObjectId(userId) : undefined,
+                ...(userId && { updatedBy: new Types.ObjectId(userId) }),
               });
               break;
             default:
@@ -275,13 +311,33 @@ export class NodeController {
         data: {
           operation,
           processed: results.length,
-          errors: errors.length,
+          errorCount: errors.length,
           results,
           errors,
         },
       };
 
       res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get PostNodes that have no synapses connected to them
+   * GET /api/nodes/isolated-posts
+   */
+  static async getIsolatedPostNodes(req: Request, res: Response, next: NextFunction) {
+    try {
+      const isolatedPostNodes = await NodeService.getIsolatedPostNodes();
+
+      const response: ApiResponse = {
+        success: true,
+        data: isolatedPostNodes,
+        message: 'Isolated post nodes retrieved successfully',
+      };
+
+      res.status(200).json(response);
     } catch (error) {
       next(error);
     }

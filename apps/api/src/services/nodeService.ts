@@ -1,26 +1,34 @@
 import { Types } from 'mongoose';
-import { BaseNodeModel, UserNodeModel } from '../models/index.js';
-import type { BaseNode } from '@whitepine/types';
+import { BaseNodeModel, UserNodeModel, PostNodeModel, SynapseNodeModel } from '../models/index.js';
+import type { BaseNode, SynapseDirection } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 import { createError } from '../middleware/errorHandler.js';
 import { isWritePermitted } from '../middleware/datePermissions.js';
+import { SynapseService, CreateSynapseRequest } from './synapseService.js';
 
 export interface CreateNodeRequest {
   kind: string;
   data: Record<string, any>;
   createdBy?: Types.ObjectId;
   ownerId?: Types.ObjectId;
+  synapses?: CreateSynapseRequest[];
 }
 
 export interface UpdateNodeRequest {
   data: Record<string, any>;
   updatedBy?: Types.ObjectId;
+  synapses?: {
+    create?: CreateSynapseRequest[];
+    update?: Array<{ id: string; data: Partial<CreateSynapseRequest> }>;
+    delete?: string[];
+  };
 }
 
 export interface NodeQuery {
   kind?: string;
   createdBy?: Types.ObjectId;
   ownerId?: Types.ObjectId;
-  deletedAt?: Date | null;
+  deletedAt?: Date | null | undefined;
   limit?: number;
   skip?: number;
   sort?: Record<string, 1 | -1>;
@@ -28,8 +36,9 @@ export interface NodeQuery {
 
 // Registry of available node models
 const nodeModels = {
-  User: UserNodeModel,
-  // Add more node types here as they're created
+  [NODE_TYPES.USER]: UserNodeModel,
+  [NODE_TYPES.POST]: PostNodeModel,
+  [NODE_TYPES.SYNAPSE]: SynapseNodeModel,
 } as const;
 
 type NodeKind = keyof typeof nodeModels;
@@ -47,35 +56,50 @@ export class NodeService {
   }
 
   /**
-   * Create a new node
+   * Create a new node with optional synapses
    */
   static async createNode(request: CreateNodeRequest) {
-    // Check write permissions
-    if (!isWritePermitted()) {
-      throw createError('Write operations are only permitted on the 15th of any month', 403);
-    }
-
-    const { kind, data, createdBy, ownerId } = request;
+    const { kind, data, createdBy, ownerId, synapses } = request;
+    
+    const session = await BaseNodeModel.startSession();
     
     try {
-      const Model = this.getModel(kind);
-      
-      const nodeData = {
-        kind,
-        ...data,
-        createdBy,
-        ownerId: ownerId || createdBy,
-      };
+      return await session.withTransaction(async () => {
+        const Model = this.getModel(kind);
+        
+        const nodeData = {
+          kind,
+          ...data,
+          createdBy,
+          ownerId: ownerId || createdBy,
+        };
 
-      const node = new Model(nodeData);
-      await node.save();
-      
-      return node;
+        const node = new Model(nodeData);
+        await node.save({ session });
+        
+        // Create synapses if provided
+        if (synapses && synapses.length > 0) {
+          const synapseRequests = synapses.map(synapse => ({
+            ...synapse,
+            from: synapse.from || node._id, // Default to the new node if not specified
+            to: synapse.to || node._id,
+            createdBy: synapse.createdBy || createdBy || undefined,
+            ownerId: synapse.ownerId || ownerId || createdBy || undefined,
+          }));
+
+          await SynapseService.createMultipleSynapses(synapseRequests);
+        }
+        
+        return node;
+      });
     } catch (error: any) {
       if (error.code === 11000) {
         throw createError('A node with this data already exists', 409);
       }
+      if (error.statusCode) throw error;
       throw createError(`Failed to create node: ${error.message}`, 400);
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -105,19 +129,16 @@ export class NodeService {
   }
 
   /**
-   * Update a node
+   * Get a node by ID with its synapses
    */
-  static async updateNode(id: string, request: UpdateNodeRequest) {
-    // Check write permissions
-    if (!isWritePermitted()) {
-      throw createError('Write operations are only permitted on the 15th of any month', 403);
-    }
-
+  static async getNodeWithSynapses(id: string, options: {
+    role?: string;
+    dir?: SynapseDirection;
+    includeDeleted?: boolean;
+  } = {}) {
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
-
-    const { data, updatedBy } = request;
 
     try {
       const node = await BaseNodeModel.findById(id);
@@ -125,17 +146,83 @@ export class NodeService {
         throw createError('Node not found', 404);
       }
 
-      // Update fields
-      Object.assign(node, data);
-      if (updatedBy) {
-        node.updatedBy = updatedBy;
-      }
+      const synapses = await SynapseService.getNodeSynapses(id, options);
+      
+      return {
+        node,
+        synapses,
+      };
+    } catch (error: any) {
+      if (error.statusCode) throw error;
+      throw createError(`Failed to get node with synapses: ${error.message}`, 500);
+    }
+  }
 
-      await node.save();
-      return node;
+  /**
+   * Update a node with optional synapse operations
+   */
+  static async updateNode(id: string, request: UpdateNodeRequest) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw createError('Invalid node ID', 400);
+    }
+
+    const { data, updatedBy, synapses } = request;
+
+    const session = await BaseNodeModel.startSession();
+    
+    try {
+      return await session.withTransaction(async () => {
+        const node = await BaseNodeModel.findById(id);
+        if (!node) {
+          throw createError('Node not found', 404);
+        }
+
+        // Update node fields
+        Object.assign(node, data);
+        if (updatedBy) {
+          node.updatedBy = updatedBy;
+        }
+        await node.save({ session });
+
+        // Handle synapse operations if provided
+        if (synapses) {
+          const nodeId = new Types.ObjectId(id);
+
+          // Create new synapses
+          if (synapses.create && synapses.create.length > 0) {
+            const synapseRequests = synapses.create.map(synapse => ({
+              ...synapse,
+              from: synapse.from || nodeId,
+              to: synapse.to || nodeId,
+              createdBy: synapse.createdBy || updatedBy || undefined,
+              ownerId: synapse.ownerId || node.ownerId || undefined,
+            }));
+            await SynapseService.createMultipleSynapses(synapseRequests);
+          }
+
+          // Update existing synapses
+          if (synapses.update && synapses.update.length > 0) {
+            for (const update of synapses.update) {
+              await SynapseService.updateSynapse(update.id, {
+                ...update.data,
+                updatedBy: updatedBy || undefined,
+              });
+            }
+          }
+
+          // Delete synapses
+          if (synapses.delete && synapses.delete.length > 0) {
+            await SynapseService.bulkDeleteSynapses(synapses.delete);
+          }
+        }
+
+        return node;
+      });
     } catch (error: any) {
       if (error.statusCode) throw error;
       throw createError(`Failed to update node: ${error.message}`, 500);
+    } finally {
+      await session.endSession();
     }
   }
 
@@ -158,7 +245,8 @@ export class NodeService {
         throw createError('Node not found', 404);
       }
 
-      await (node as any).softDelete();
+      node.deletedAt = new Date();
+      await node.save();
       return { message: 'Node deleted successfully' };
     } catch (error: any) {
       if (error.statusCode) throw error;
@@ -180,7 +268,8 @@ export class NodeService {
         throw createError('Node not found', 404);
       }
 
-      await (node as any).restore();
+      node.deletedAt = null;
+      await node.save();
       return node;
     } catch (error: any) {
       if (error.statusCode) throw error;
@@ -275,6 +364,35 @@ export class NodeService {
       return stats;
     } catch (error: any) {
       throw createError(`Failed to get node stats: ${error.message}`, 500);
+    }
+  }
+
+  /**
+   * Get PostNodes that have no synapses connected to them
+   */
+  static async getIsolatedPostNodes() {
+    try {
+      // Get all PostNodes
+      const postNodes = await PostNodeModel.find({ deletedAt: null }).lean();
+      
+      // Get all synapses that reference PostNodes
+      const synapseFromIds = await SynapseNodeModel.distinct('from', { deletedAt: null });
+      const synapseToIds = await SynapseNodeModel.distinct('to', { deletedAt: null });
+      
+      // Combine all synapse-referenced node IDs
+      const connectedNodeIds = new Set([
+        ...synapseFromIds.map(id => id.toString()),
+        ...synapseToIds.map(id => id.toString())
+      ]);
+      
+      // Filter out PostNodes that are referenced by synapses
+      const isolatedPostNodes = postNodes.filter(postNode => 
+        !connectedNodeIds.has(postNode._id.toString())
+      );
+      
+      return isolatedPostNodes;
+    } catch (error: any) {
+      throw createError(`Failed to get isolated post nodes: ${error.message}`, 500);
     }
   }
 }

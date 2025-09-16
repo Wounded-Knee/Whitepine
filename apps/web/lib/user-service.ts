@@ -1,9 +1,10 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import type { BaseNode } from '@shared/index'
+import { NODE_TYPES } from '@shared/nodeTypes'
 
 // Define UserNode interface extending BaseNode
 interface UserNode extends BaseNode {
-  kind: 'User'
+  kind: typeof NODE_TYPES.USER
   email: string
   name: string
   avatar?: string
@@ -51,7 +52,7 @@ export async function findOrCreateUser(profile: {
   // First, try to find existing user by email
   if (profile.email) {
     const existingUser = await collection.findOne({
-      kind: 'User',
+      kind: NODE_TYPES.USER,
       email: profile.email.toLowerCase(),
       deletedAt: null
     }) as UserNode | null
@@ -73,7 +74,7 @@ export async function findOrCreateUser(profile: {
 
   // Create new user if not found
   const newUser: Omit<UserNode, '_id'> = {
-    kind: 'User',
+    kind: NODE_TYPES.USER,
     email: profile.email?.toLowerCase() || '',
     name: profile.name || 'Unknown User',
     avatar: profile.picture || undefined,
@@ -106,7 +107,7 @@ export async function findUserById(id: string): Promise<UserNode | null> {
   
   return await collection.findOne({
     _id: new ObjectId(id),
-    kind: 'User',
+    kind: NODE_TYPES.USER,
     deletedAt: null
   }) as UserNode | null
 }
@@ -117,7 +118,7 @@ export async function findUserByEmail(email: string): Promise<UserNode | null> {
   
   return await collection.findOne({
     email: email.toLowerCase(),
-    kind: 'User',
+    kind: NODE_TYPES.USER,
     deletedAt: null
   }) as UserNode | null
 }

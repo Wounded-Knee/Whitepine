@@ -8,11 +8,12 @@ import nodesReducer, {
   fetchNodes 
 } from '@/store/slices/nodesSlice';
 import type { Node } from '@/store/types';
+import { NODE_TYPES } from '@shared/nodeTypes';
 
 // Mock node data
 const mockNode: Node = {
   _id: '1' as any,
-  kind: 'User',
+  kind: NODE_TYPES.USER,
   email: 'test@example.com',
   name: 'Test User',
   isActive: true,

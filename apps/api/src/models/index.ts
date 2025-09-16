@@ -1,13 +1,17 @@
 import { BaseNodeModel, baseNodeSchema } from './BaseNode.js';
 import { UserNodeModel, userNodeSchema } from './UserNode.js';
+import { PostNodeModel, postNodeSchema } from './PostNode.js';
+import { SynapseNodeModel, synapseNodeSchema } from './SynapseNode.js';
 import { Model, Schema } from 'mongoose';
-import { BaseNode } from '@whitepine/types';
+import { BaseNode, NODE_TYPES } from '@whitepine/types';
 
 // Export the base model and schema
 export { BaseNodeModel, baseNodeSchema };
 
 // Export specific node models and schemas
 export { UserNodeModel, userNodeSchema };
+export { PostNodeModel, postNodeSchema };
+export { SynapseNodeModel, synapseNodeSchema };
 
 // Factory function to create discriminator models
 export function createNodeDiscriminator<T extends BaseNode>(
@@ -45,7 +49,7 @@ export function createNodeDiscriminator<T extends BaseNode>(
 // 
 // // Create a new user
 // const newUser = new UserNodeModel({
-//   kind: 'User',
+//   kind: NODE_TYPES.USER,
 //   email: 'user@example.com',
 //   name: 'John Doe',
 //   createdBy: adminUserId,

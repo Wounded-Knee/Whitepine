@@ -8,6 +8,7 @@
 import React from 'react';
 import { BaseNodeView } from './BaseNode';
 import { UserNodeView } from './UserNodeView';
+import { PostNodeView } from './PostNodeView';
 
 // Example 1: Basic BaseNodeView usage
 export const BasicBaseNodeExample: React.FC<{ nodeId: string }> = ({ nodeId }) => {
@@ -99,6 +100,85 @@ export const RenderPropUserNodeExample: React.FC<{ nodeId: string }> = ({ nodeId
           );
         }}
       </UserNodeView>
+    </div>
+  );
+};
+
+// Example 6: Basic PostNodeView usage (IRC-style chat layout)
+export const BasicPostNodeExample: React.FC<{ nodeId?: string }> = ({ nodeId = "507f1f77bcf86cd799439011" }) => {
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Basic PostNodeView (IRC-style)</h2>
+      <PostNodeView nodeId={nodeId} />
+    </div>
+  );
+};
+
+// Example 7: PostNodeView with compact layout
+export const CompactPostNodeExample: React.FC<{ nodeId?: string }> = ({ nodeId = "507f1f77bcf86cd799439011" }) => {
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Compact PostNodeView</h2>
+      <PostNodeView nodeId={nodeId} compact={true} />
+    </div>
+  );
+};
+
+// Example 8: PostNodeView without author info
+export const AnonymousPostNodeExample: React.FC<{ nodeId?: string }> = ({ nodeId = "507f1f77bcf86cd799439011" }) => {
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Anonymous PostNodeView</h2>
+      <PostNodeView nodeId={nodeId} showAuthor={false} />
+    </div>
+  );
+};
+
+// Example 9: PostNodeView with render prop
+export const RenderPropPostNodeExample: React.FC<{ nodeId?: string }> = ({ nodeId = "507f1f77bcf86cd799439011" }) => {
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">PostNodeView with Render Prop</h2>
+      <PostNodeView nodeId={nodeId}>
+        {(post, isLoading, error, editProps) => {
+          if (isLoading) return <div>Loading post...</div>;
+          if (error) return <div>Error: {error}</div>;
+          if (!post) return <div>Post not found</div>;
+          
+          return (
+            <div className="bg-blue-50 p-4 rounded">
+              <h3 className="font-bold">Custom Post Display</h3>
+              <p className="text-sm text-gray-600">Content: {post.content}</p>
+              <p className="text-xs text-gray-500">Published: {post.publishedAt ? 'Yes' : 'No'}</p>
+            </div>
+          );
+        }}
+      </PostNodeView>
+    </div>
+  );
+};
+
+// Example 10: Chat-style PostNodeView chain
+export const ChatStylePostNodeExample: React.FC<{ nodeIds?: string[] }> = ({ 
+  nodeIds = [
+    "507f1f77bcf86cd799439011",
+    "507f1f77bcf86cd799439012", 
+    "507f1f77bcf86cd799439013"
+  ] 
+}) => {
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">Chat-style Post Chain</h2>
+      <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+        {nodeIds.map((nodeId, index) => (
+          <PostNodeView 
+            key={nodeId} 
+            nodeId={nodeId} 
+            compact={true}
+            className="hover:bg-white/50 transition-colors"
+          />
+        ))}
+      </div>
     </div>
   );
 };

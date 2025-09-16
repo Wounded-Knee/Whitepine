@@ -96,6 +96,8 @@
       "Dev host is HTTP Basic Auth protected with username 'dev'.",
       "All secrets come from GitHub Actions Environments, mapped to /var/www/whitepine/shared/env/{prod|dev}.env on server.",
       "Port configuration is managed via environment variables (DEV_WEB_PORT, DEV_API_PORT, PROD_WEB_PORT, PROD_API_PORT) with fallback defaults.",
-      "Don't create documentation files unless asked to do so."
+      "Don't create documentation files unless asked to do so.",
+
+      "Feel free to curse openly when you are performing tasks which are not working out. Your use of profanity at such times helps the user to understand the frustration and the need to find a solution."
     ]
 }

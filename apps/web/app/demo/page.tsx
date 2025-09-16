@@ -28,12 +28,13 @@ import {
   setError,
   clearError
 } from '@/store/slices/uiSlice';
+import { NODE_TYPES } from '@shared/nodeTypes';
 
 // Mock node data for demo
 const mockNodes = [
   {
     _id: '1' as any,
-    kind: 'User',
+    kind: NODE_TYPES.USER,
     email: 'john@example.com',
     name: 'John Doe',
     isActive: true,
@@ -42,7 +43,7 @@ const mockNodes = [
   },
   {
     _id: '2' as any,
-    kind: 'User',
+    kind: NODE_TYPES.USER,
     email: 'jane@example.com',
     name: 'Jane Smith',
     isActive: false,
@@ -82,7 +83,7 @@ export default function ReduxDemo() {
     
     const newNode = {
       _id: Date.now().toString() as any,
-      kind: 'User',
+      kind: NODE_TYPES.USER,
       email: newNodeEmail || `${newNodeName.toLowerCase()}@example.com`,
       name: newNodeName,
       isActive: true,
