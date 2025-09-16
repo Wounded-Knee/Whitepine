@@ -52,21 +52,23 @@ export const PostNodeViewTest: React.FC<{ postNodeId: string }> = ({ postNodeId 
             if (error) return <div>Error: {error}</div>;
             if (!postNode) return <div>Post not found</div>;
             
-            // Demonstrate using getRelatives to find author
+            // Demonstrate using getRelatives to find the createdBy node as author
+            const createdByNode = postNode.createdBy ? getRelatives({ 
+              kind: NODE_TYPES.USER,
+              filter: (relative: any) => {
+                return relative._id.toString() === postNode.createdBy!.toString();
+              }
+            })[0] : null;
+            
             const authoredSynapses = getRelatives({ 
               synaptic: { role: 'authored', dir: 'in' } 
             });
             
-            const author = getRelatives({ 
-              kind: NODE_TYPES.USER,
-              filter: (relative: any) => {
-                return authoredSynapses.some((synapse: any) => 
-                  synapse._relationshipType === 'synaptic' && 
-                  synapse.role === 'authored' &&
-                  synapse.from && synapse.from.toString() === relative._id.toString()
-                );
-              }
-            })[0];
+            const createdBySynapses = postNode.createdBy ? authoredSynapses.filter((synapse: any) => 
+              synapse._relationshipType === 'synaptic' && 
+              synapse.role === 'authored' &&
+              synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
+            ) : [];
             
             return (
               <div className="bg-blue-50 border border-blue-200 rounded p-3">
@@ -75,8 +77,10 @@ export const PostNodeViewTest: React.FC<{ postNodeId: string }> = ({ postNodeId 
                 </div>
                 <div className="text-sm text-blue-800">
                   <div><strong>Post Content:</strong> {postNode.content}</div>
-                  <div><strong>Author Found via getRelatives():</strong> {author ? author.name : 'No author found'}</div>
-                  <div><strong>Authored Synapses:</strong> {authoredSynapses.length}</div>
+                  <div><strong>CreatedBy ID:</strong> {postNode.createdBy ? postNode.createdBy.toString() : 'No createdBy'}</div>
+                  <div><strong>CreatedBy Node Found:</strong> {createdByNode ? createdByNode.name : 'Not found in relatives'}</div>
+                  <div><strong>CreatedBy Synapses:</strong> {createdBySynapses.length}</div>
+                  <div><strong>Total Authored Synapses:</strong> {authoredSynapses.length}</div>
                   <div><strong>Total Relatives:</strong> {relatives.length}</div>
                 </div>
               </div>

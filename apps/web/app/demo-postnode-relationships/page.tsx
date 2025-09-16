@@ -29,34 +29,47 @@ export default function DemoPostNodeRelationshipsPage() {
         <div className="prose mb-8">
           <p>
             This demo shows how the <code>PostNodeView</code> component now uses the 
-            <code>getRelatives()</code> function to find authors via synaptic relationships 
-            instead of relying on the <code>createdBy</code> field directly.
+            <code>getRelatives()</code> function to find and display the <code>createdBy</code> node 
+            as the author via synaptic relationships.
           </p>
           
           <h2>Key Changes:</h2>
           <ul>
             <li>
-              <strong>AuthorInfo Component:</strong> Now uses <code>getRelatives()</code> to find 
-              the author via synapses with role "authored" and direction "in"
+              <strong>AuthorInfo Component:</strong> Now specifically looks for the <code>createdBy</code> node 
+              in relatives, either directly or via authored synapses
             </li>
             <li>
-              <strong>AuthorName Component:</strong> Similarly updated to use synaptic relationships
+              <strong>AuthorName Component:</strong> Similarly updated to find the <code>createdBy</code> node 
+              through synaptic relationships
+            </li>
+            <li>
+              <strong>Two-Step Process:</strong> First tries to find the <code>createdBy</code> node directly 
+              in relatives, then falls back to looking for authored synapses that connect to that node
             </li>
             <li>
               <strong>Interface Update:</strong> PostNodeView now accepts <code>relatives</code> and 
               <code>getRelatives</code> parameters in its children render prop
             </li>
             <li>
-              <strong>Backward Compatibility:</strong> The component still works the same way from 
-              the outside, but internally uses the more flexible synaptic relationship system
+              <strong>Null Safety:</strong> Properly handles cases where <code>createdBy</code> is undefined
             </li>
           </ul>
           
+          <h2>How It Works:</h2>
+          <ol>
+            <li>Gets the <code>createdBy</code> ID from the PostNode</li>
+            <li>Uses <code>getRelatives()</code> to find that specific UserNode in the relatives array</li>
+            <li>If not found directly, looks for authored synapses that connect the <code>createdBy</code> node to the post</li>
+            <li>Displays the author's avatar and name from the found UserNode</li>
+          </ol>
+          
           <h2>Benefits:</h2>
           <ul>
-            <li>More flexible relationship modeling</li>
-            <li>Consistent with the synaptic relationship system</li>
-            <li>Better separation of concerns</li>
+            <li>Specifically targets the <code>createdBy</code> node as the author</li>
+            <li>Uses synaptic relationships for flexible relationship modeling</li>
+            <li>Consistent with the overall synaptic relationship system</li>
+            <li>Better separation of concerns between data and display</li>
             <li>Easier to extend with additional relationship types</li>
           </ul>
         </div>

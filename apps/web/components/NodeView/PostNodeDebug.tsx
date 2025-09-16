@@ -92,36 +92,50 @@ export const PostNodeDebug: React.FC<{ postNodeId: string }> = ({ postNodeId }) 
                 </div>
               )}
               
-              {/* Author Found */}
+              {/* CreatedBy Node Detection */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="font-semibold mb-2">Author Detection:</h3>
+                <h3 className="font-semibold mb-2">CreatedBy Node Detection:</h3>
                 {(() => {
-                  const author = getRelatives({ 
+                  const createdByNode = postNode.createdBy ? getRelatives({ 
                     kind: NODE_TYPES.USER,
                     filter: (relative: any) => {
-                      return authoredSynapses.some((synapse: any) => 
-                        synapse._relationshipType === 'synaptic' && 
-                        synapse.role === 'authored' &&
-                        synapse.from && synapse.from.toString() === relative._id.toString()
-                      );
+                      return relative._id.toString() === postNode.createdBy!.toString();
                     }
-                  })[0];
+                  })[0] : null;
                   
-                  if (author) {
-                    return (
-                      <div className="text-sm">
-                        <div><strong>Author Found:</strong> {author.name}</div>
-                        <div><strong>Author Email:</strong> {author.email}</div>
-                        <div><strong>Author ID:</strong> {author._id?.toString()}</div>
-                      </div>
-                    );
-                  } else {
-                    return (
-                      <div className="text-sm text-red-600">
-                        <strong>No author found via synaptic relationships</strong>
-                      </div>
-                    );
-                  }
+                  const createdBySynapses = postNode.createdBy ? authoredSynapses.filter((synapse: any) => 
+                    synapse._relationshipType === 'synaptic' && 
+                    synapse.role === 'authored' &&
+                    synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
+                  ) : [];
+                  
+                  return (
+                    <div className="text-sm space-y-2">
+                      <div><strong>Post CreatedBy ID:</strong> {postNode.createdBy ? postNode.createdBy.toString() : 'No createdBy'}</div>
+                      {createdByNode ? (
+                        <div>
+                          <div><strong>CreatedBy Node Found:</strong> {createdByNode.name}</div>
+                          <div><strong>CreatedBy Email:</strong> {createdByNode.email}</div>
+                          <div><strong>CreatedBy ID:</strong> {createdByNode._id?.toString()}</div>
+                        </div>
+                      ) : (
+                        <div className="text-red-600">
+                          <strong>CreatedBy node not found in relatives</strong>
+                        </div>
+                      )}
+                      <div><strong>CreatedBy Synapses:</strong> {createdBySynapses.length}</div>
+                      {createdBySynapses.length > 0 && (
+                        <div>
+                          <strong>Synapse Details:</strong>
+                          {createdBySynapses.map((synapse, index) => (
+                            <div key={index} className="ml-4 text-xs">
+                              Role: {synapse.role}, From: {synapse.from?.toString()}, To: {synapse.to?.toString()}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
                 })()}
               </div>
             </div>

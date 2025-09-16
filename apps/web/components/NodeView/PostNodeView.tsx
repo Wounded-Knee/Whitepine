@@ -19,31 +19,15 @@ export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
 
 /**
  * Component to fetch and display author information using synaptic relationships
+ * Specifically looks for the createdBy node connected via synapses
  */
 const AuthorInfo: React.FC<{
   getRelatives: (selector: any) => any[];
+  postNode: PostNode;
   compact?: boolean;
-}> = ({ getRelatives, compact = false }) => {
-  // Find the author using synaptic relationships
-  // Get all authored synapses (incoming relationships to this post)
-  const authoredSynapses = getRelatives({ 
-    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
-  });
-  
-  // Find the author by looking for user nodes connected via these synapses
-  const author = getRelatives({ 
-    kind: NODE_TYPES.USER,
-    filter: (relative: any) => {
-      // Check if this user is the 'from' node in any authored synapse
-      return authoredSynapses.some((synapse: any) => 
-        synapse._relationshipType === 'synaptic' && 
-        synapse.role === 'authored' &&
-        synapse.from && synapse.from.toString() === relative._id.toString()
-      );
-    }
-  })[0]; // Get the first (and should be only) author
-
-  if (!author) {
+}> = ({ getRelatives, postNode, compact = false }) => {
+  // Check if createdBy exists
+  if (!postNode.createdBy) {
     return (
       <div className="flex-shrink-0">
         <Avatar
@@ -55,11 +39,68 @@ const AuthorInfo: React.FC<{
     );
   }
 
+  // First, try to find the createdBy node directly in relatives
+  const createdByNode = getRelatives({ 
+    kind: NODE_TYPES.USER,
+    filter: (relative: any) => {
+      return relative._id.toString() === postNode.createdBy!.toString();
+    }
+  })[0];
+
+  // If found directly, use it
+  if (createdByNode) {
+    return (
+      <div className="flex-shrink-0">
+        <Avatar
+          avatarUrl={createdByNode.avatar}
+          name={createdByNode.name}
+          size={compact ? 'sm' : 'md'}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: look for authored synapses that connect to the createdBy node
+  const authoredSynapses = getRelatives({ 
+    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
+  });
+  
+  // Find synapses that connect the createdBy node to this post
+  const createdBySynapses = authoredSynapses.filter((synapse: any) => 
+    synapse._relationshipType === 'synaptic' && 
+    synapse.role === 'authored' &&
+    synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
+  );
+
+  // If we have synapses connecting the createdBy node, try to find the node
+  if (createdBySynapses.length > 0) {
+    // The createdBy node should be in the relatives as a connected node
+    const author = getRelatives({ 
+      kind: NODE_TYPES.USER,
+      filter: (relative: any) => {
+        return relative._id.toString() === postNode.createdBy!.toString();
+      }
+    })[0];
+
+    if (author) {
+      return (
+        <div className="flex-shrink-0">
+          <Avatar
+            avatarUrl={author.avatar}
+            name={author.name}
+            size={compact ? 'sm' : 'md'}
+          />
+        </div>
+      );
+    }
+  }
+
+  // If no synaptic connection found, show unknown
   return (
     <div className="flex-shrink-0">
       <Avatar
-        avatarUrl={author.avatar}
-        name={author.name}
+        avatarUrl={null}
+        name="Unknown"
         size={compact ? 'sm' : 'md'}
       />
     </div>
@@ -68,31 +109,15 @@ const AuthorInfo: React.FC<{
 
 /**
  * Component to display author name using synaptic relationships
+ * Specifically looks for the createdBy node connected via synapses
  */
 const AuthorName: React.FC<{
   getRelatives: (selector: any) => any[];
+  postNode: PostNode;
   compact?: boolean;
-}> = ({ getRelatives, compact = false }) => {
-  // Find the author using synaptic relationships
-  // Get all authored synapses (incoming relationships to this post)
-  const authoredSynapses = getRelatives({ 
-    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
-  });
-  
-  // Find the author by looking for user nodes connected via these synapses
-  const author = getRelatives({ 
-    kind: NODE_TYPES.USER,
-    filter: (relative: any) => {
-      // Check if this user is the 'from' node in any authored synapse
-      return authoredSynapses.some((synapse: any) => 
-        synapse._relationshipType === 'synaptic' && 
-        synapse.role === 'authored' &&
-        synapse.from && synapse.from.toString() === relative._id.toString()
-      );
-    }
-  })[0]; // Get the first (and should be only) author
-
-  if (!author) {
+}> = ({ getRelatives, postNode, compact = false }) => {
+  // Check if createdBy exists
+  if (!postNode.createdBy) {
     return (
       <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
         Unknown Author
@@ -100,9 +125,58 @@ const AuthorName: React.FC<{
     );
   }
 
+  // First, try to find the createdBy node directly in relatives
+  const createdByNode = getRelatives({ 
+    kind: NODE_TYPES.USER,
+    filter: (relative: any) => {
+      return relative._id.toString() === postNode.createdBy!.toString();
+    }
+  })[0];
+
+  // If found directly, use it
+  if (createdByNode) {
+    return (
+      <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
+        {createdByNode.name || 'Anonymous'}
+      </span>
+    );
+  }
+
+  // Fallback: look for authored synapses that connect to the createdBy node
+  const authoredSynapses = getRelatives({ 
+    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
+  });
+  
+  // Find synapses that connect the createdBy node to this post
+  const createdBySynapses = authoredSynapses.filter((synapse: any) => 
+    synapse._relationshipType === 'synaptic' && 
+    synapse.role === 'authored' &&
+    synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
+  );
+
+  // If we have synapses connecting the createdBy node, try to find the node
+  if (createdBySynapses.length > 0) {
+    // The createdBy node should be in the relatives as a connected node
+    const author = getRelatives({ 
+      kind: NODE_TYPES.USER,
+      filter: (relative: any) => {
+        return relative._id.toString() === postNode.createdBy!.toString();
+      }
+    })[0];
+
+    if (author) {
+      return (
+        <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
+          {author.name || 'Anonymous'}
+        </span>
+      );
+    }
+  }
+
+  // If no synaptic connection found, show unknown
   return (
     <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-      {author.name || 'Anonymous'}
+      Unknown Author
     </span>
   );
 };
@@ -210,9 +284,10 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
             
             <div className={`flex items-start space-x-3 px-3 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
               {/* Author Avatar */}
-              {showAuthor && (
+              {showAuthor && postNode.createdBy && (
                 <AuthorInfo 
                   getRelatives={getRelatives}
+                  postNode={postNode}
                   compact={compact} 
                 />
               )}
@@ -221,9 +296,10 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline space-x-2">
                   {/* Author Name */}
-                  {showAuthor && (
+                  {showAuthor && postNode.createdBy && (
                     <AuthorName 
                       getRelatives={getRelatives}
+                      postNode={postNode}
                       compact={compact} 
                     />
                   )}
