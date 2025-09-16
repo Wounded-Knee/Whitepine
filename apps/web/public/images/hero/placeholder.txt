@@ -1,0 +1,21 @@
+# Hero Image Placeholder
+
+This directory is for hero section images.
+
+Example usage in your components:
+```jsx
+<img 
+  src="/images/hero/hero-image.jpg" 
+  alt="Hero image description"
+  className="w-full h-64 object-cover"
+/>
+```
+
+Recommended image formats:
+- WebP (preferred)
+- JPEG
+- PNG
+
+Recommended dimensions:
+- Desktop: 1920x1080px
+- Mobile: 768x432px
