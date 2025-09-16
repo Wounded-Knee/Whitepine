@@ -80,60 +80,83 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     const relatedNodes: any[] = [];
     const seenNodeIds = new Set<string>();
     
-    // Get all nodes that are not the main node and not synapses
+    // Get all nodes that are not the main node (including synapses)
     // These are the relatives returned by the API
     Object.values(allNodes).forEach(otherNode => {
-      if (otherNode._id.toString() !== nodeId && otherNode.kind !== 'synapse') {
+      if (otherNode._id.toString() !== nodeId) {
         if (!seenNodeIds.has(otherNode._id.toString())) {
           seenNodeIds.add(otherNode._id.toString());
           
-          // Determine relationship type by checking if it's referenced in the main node
+          // Determine relationship type
           let relationshipType = 'unknown';
           let attribute = null;
+          let direction = null;
+          let synapse = null;
           
-          // Check if this node is referenced by an attribute in the main node
-          const extractObjectIds = (obj: any, path: string = '') => {
-            if (obj && typeof obj === 'object') {
-              if (Array.isArray(obj)) {
-                obj.forEach((item, index) => extractObjectIds(item, `${path}[${index}]`));
-              } else {
-                Object.keys(obj).forEach(key => {
-                  const value = obj[key];
-                  if (value && typeof value === 'object' && value.toString && value.toString() === otherNode._id.toString()) {
-                    relationshipType = 'attribute';
-                    attribute = key;
-                  } else {
-                    extractObjectIds(value, path ? `${path}.${key}` : key);
-                  }
-                });
-              }
+          // If this is a synapse, it's a synaptic relationship
+          if (otherNode.kind === 'synapse') {
+            relationshipType = 'synaptic';
+            synapse = otherNode;
+            
+            // Determine direction based on synapse direction
+            const synapseData = otherNode as any;
+            if (synapseData.from && synapseData.from.toString() === nodeId) {
+              direction = 'outgoing';
+            } else if (synapseData.to && synapseData.to.toString() === nodeId) {
+              direction = 'incoming';
+            } else {
+              direction = 'undirected';
             }
-          };
-          
-          extractObjectIds(node);
-          
-          // If not found as attribute reference, check if it's connected via synapse
-          if (relationshipType === 'unknown') {
-            Object.values(allNodes).forEach(synapseNode => {
-              if (synapseNode.kind === 'synapse') {
-                const synapse = synapseNode as any;
-                if ((synapse.from && synapse.from.toString() === nodeId && synapse.to.toString() === otherNode._id.toString()) ||
-                    (synapse.to && synapse.to.toString() === nodeId && synapse.from.toString() === otherNode._id.toString())) {
-                  relationshipType = 'synaptic';
+          } else {
+            // For non-synapse nodes, check if they're referenced by attributes
+            const extractObjectIds = (obj: any, path: string = '') => {
+              if (obj && typeof obj === 'object') {
+                if (Array.isArray(obj)) {
+                  obj.forEach((item, index) => extractObjectIds(item, `${path}[${index}]`));
+                } else {
+                  Object.keys(obj).forEach(key => {
+                    const value = obj[key];
+                    if (value && typeof value === 'object' && value.toString && value.toString() === otherNode._id.toString()) {
+                      relationshipType = 'attribute';
+                      attribute = key;
+                    } else {
+                      extractObjectIds(value, path ? `${path}.${key}` : key);
+                    }
+                  });
                 }
               }
-            });
+            };
+            
+            extractObjectIds(node);
+            
+            // If not found as attribute reference, check if it's connected via synapse
+            if (relationshipType === 'unknown') {
+              Object.values(allNodes).forEach(synapseNode => {
+                if (synapseNode.kind === 'synapse') {
+                  const synapseData = synapseNode as any;
+                  if ((synapseData.from && synapseData.from.toString() === nodeId && synapseData.to.toString() === otherNode._id.toString()) ||
+                      (synapseData.to && synapseData.to.toString() === nodeId && synapseData.from.toString() === otherNode._id.toString())) {
+                    relationshipType = 'synaptic';
+                    synapse = synapseNode;
+                    
+                    // Determine direction
+                    if (synapseData.from && synapseData.from.toString() === nodeId) {
+                      direction = 'outgoing';
+                    } else {
+                      direction = 'incoming';
+                    }
+                  }
+                }
+              });
+            }
           }
           
           relatedNodes.push({
             ...otherNode,
             _relationshipType: relationshipType,
             _attribute: attribute,
-            _synapse: relationshipType === 'synaptic' ? 
-              Object.values(allNodes).find(n => n.kind === 'synapse' && 
-                ((n as any).from?.toString() === nodeId && (n as any).to?.toString() === otherNode._id.toString()) ||
-                ((n as any).to?.toString() === nodeId && (n as any).from?.toString() === otherNode._id.toString())
-              ) : undefined
+            _direction: direction,
+            _synapse: synapse
           });
         }
       }

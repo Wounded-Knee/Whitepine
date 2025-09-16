@@ -12,34 +12,43 @@ import { useNodeById, useAppDispatch } from '@web/store/hooks';
 import { fetchNodeById } from '@web/store/slices/nodesSlice';
 
 export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
-  children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
+  children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[]) => React.ReactNode;
   showAuthor?: boolean; // Whether to show author info (default: true)
   compact?: boolean; // Whether to use compact layout (default: false)
 }
 
 /**
- * Component to fetch and display author information
+ * Component to fetch and display author information using synaptic relationships
  */
 const AuthorInfo: React.FC<{
-  authorId: string;
+  getRelatives: (selector: any) => any[];
   compact?: boolean;
-}> = ({ authorId, compact = false }) => {
-  const dispatch = useAppDispatch();
-  const author = useNodeById(authorId) as UserNode | undefined;
-
-  useEffect(() => {
-    // Fetch author if not in store
-    if (authorId && !author) {
-      dispatch(fetchNodeById(authorId));
+}> = ({ getRelatives, compact = false }) => {
+  // Find the author using synaptic relationships
+  // Get all authored synapses (incoming relationships to this post)
+  const authoredSynapses = getRelatives({ 
+    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
+  });
+  
+  // Find the author by looking for user nodes connected via these synapses
+  const author = getRelatives({ 
+    kind: NODE_TYPES.USER,
+    filter: (relative: any) => {
+      // Check if this user is the 'from' node in any authored synapse
+      return authoredSynapses.some((synapse: any) => 
+        synapse._relationshipType === 'synaptic' && 
+        synapse.role === 'authored' &&
+        synapse.from && synapse.from.toString() === relative._id.toString()
+      );
     }
-  }, [authorId, author, dispatch]);
+  })[0]; // Get the first (and should be only) author
 
   if (!author) {
     return (
       <div className="flex-shrink-0">
         <Avatar
           avatarUrl={null}
-          name="Loading..."
+          name="Unknown"
           size={compact ? 'sm' : 'md'}
         />
       </div>
@@ -58,26 +67,35 @@ const AuthorInfo: React.FC<{
 };
 
 /**
- * Component to display author name
+ * Component to display author name using synaptic relationships
  */
 const AuthorName: React.FC<{
-  authorId: string;
+  getRelatives: (selector: any) => any[];
   compact?: boolean;
-}> = ({ authorId, compact = false }) => {
-  const dispatch = useAppDispatch();
-  const author = useNodeById(authorId) as UserNode | undefined;
-
-  useEffect(() => {
-    // Fetch author if not in store
-    if (authorId && !author) {
-      dispatch(fetchNodeById(authorId));
+}> = ({ getRelatives, compact = false }) => {
+  // Find the author using synaptic relationships
+  // Get all authored synapses (incoming relationships to this post)
+  const authoredSynapses = getRelatives({ 
+    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
+  });
+  
+  // Find the author by looking for user nodes connected via these synapses
+  const author = getRelatives({ 
+    kind: NODE_TYPES.USER,
+    filter: (relative: any) => {
+      // Check if this user is the 'from' node in any authored synapse
+      return authoredSynapses.some((synapse: any) => 
+        synapse._relationshipType === 'synaptic' && 
+        synapse.role === 'authored' &&
+        synapse.from && synapse.from.toString() === relative._id.toString()
+      );
     }
-  }, [authorId, author, dispatch]);
+  })[0]; // Get the first (and should be only) author
 
   if (!author) {
     return (
       <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-        Loading...
+        Unknown Author
       </span>
     );
   }
@@ -110,11 +128,11 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
 }) => {
   return (
     <BaseNodeView nodeId={nodeId} className={className}>
-      {(node, isLoading, error, editProps) => {
+      {(node, isLoading, error, editProps, relatives, getRelatives) => {
         // If children is provided as a render prop, use it with typed PostNode
         if (children) {
           const postNode = node?.kind === NODE_TYPES.POST ? (node as PostNode) : null;
-          return children(postNode, isLoading, error, editProps);
+          return children(postNode, isLoading, error, editProps, relatives, getRelatives);
         }
 
         // Default rendering for PostNode
@@ -192,9 +210,9 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
             
             <div className={`flex items-start space-x-3 px-3 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
               {/* Author Avatar */}
-              {showAuthor && postNode.createdBy && (
+              {showAuthor && (
                 <AuthorInfo 
-                  authorId={postNode.createdBy.toString()} 
+                  getRelatives={getRelatives}
                   compact={compact} 
                 />
               )}
@@ -203,9 +221,9 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline space-x-2">
                   {/* Author Name */}
-                  {showAuthor && postNode.createdBy && (
+                  {showAuthor && (
                     <AuthorName 
-                      authorId={postNode.createdBy.toString()} 
+                      getRelatives={getRelatives}
                       compact={compact} 
                     />
                   )}

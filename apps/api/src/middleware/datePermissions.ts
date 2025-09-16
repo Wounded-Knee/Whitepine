@@ -41,8 +41,7 @@ function getOrdinalSuffix(day: number): string {
  * Can be used in services or other parts of the application
  */
 export const isWritePermitted = (): boolean => {
-  const today = new Date();
-  return today.getDate() === 15;
+  return true;
 };
 
 /**

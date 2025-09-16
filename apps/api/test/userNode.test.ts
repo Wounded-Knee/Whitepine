@@ -534,4 +534,157 @@ describe('User Node API Tests', () => {
       expect(deletedSynapseInResult.deletedAt).toBeDefined();
     });
   });
+
+  describe('GET /api/nodes/:id - Fetch PostNode with Author Relationship', () => {
+    it('should fetch a PostNode and be able to relate to its author via getRelatives()', async () => {
+      // Import the mocked modules
+      const { BaseNodeModel } = await import('../src/models/index.js');
+      const { SynapseService } = await import('../src/services/synapseService.js');
+
+      // Create a synapse connecting the author (mockUser) to the post (mockPost1)
+      const authorToPostSynapse = {
+        ...mockSynapse1,
+        from: mockUser._id,
+        to: mockPost1._id,
+        role: 'authored',
+        dir: 'out' as const,
+        weight: 1.0,
+        props: {
+          timestamp: new Date(),
+          confidence: 0.95
+        }
+      };
+
+      // Mock the database responses for PostNode
+      const mockPostNode = {
+        ...mockPost1,
+        toObject: () => mockPost1
+      };
+      
+      BaseNodeModel.findById.mockResolvedValue(mockPostNode);
+      SynapseService.getNodeSynapses.mockResolvedValue([authorToPostSynapse]);
+      BaseNodeModel.find.mockResolvedValue([
+        { ...mockUser, toObject: () => mockUser }
+      ]);
+
+      // Call the NodeService method to get the PostNode with relatives
+      const result = await NodeService.getNodeById(mockPost1._id.toString());
+
+      // Verify the main PostNode is returned
+      expect(result.node).toBeDefined();
+      expect(result.node._id.toString()).toBe(mockPost1._id.toString());
+      expect(result.node.kind).toBe(NODE_TYPES.POST);
+      expect(result.node.content).toBe('This is a test post created by the test user');
+      expect(result.node.publishedAt).toBeDefined();
+
+      // Verify the relatives array contains the author and synapse
+      expect(result.relatives).toBeDefined();
+      expect(Array.isArray(result.relatives)).toBe(true);
+      expect(result.relatives.length).toBeGreaterThan(0);
+
+      // Extract different types of relatives
+      const synapses = result.relatives.filter((rel: any) => rel.kind === NODE_TYPES.SYNAPSE);
+      const users = result.relatives.filter((rel: any) => rel.kind === NODE_TYPES.USER);
+
+      // Verify the authored synapse is included
+      expect(synapses.length).toBe(1);
+      const authoredSynapse = synapses.find((s: any) => s.role === 'authored');
+      expect(authoredSynapse).toBeDefined();
+      expect(authoredSynapse.from.toString()).toBe(mockUser._id.toString());
+      expect(authoredSynapse.to.toString()).toBe(mockPost1._id.toString());
+      expect(authoredSynapse.dir).toBe('out');
+      expect(authoredSynapse.weight).toBe(1.0);
+      expect(authoredSynapse.props.confidence).toBe(0.95);
+
+      // Verify the author UserNode is included in relatives
+      expect(users.length).toBe(1);
+      const authorInRelatives = users.find((u: any) => u._id.toString() === mockUser._id.toString());
+      expect(authorInRelatives).toBeDefined();
+      expect(authorInRelatives.email).toBe('testuser@example.com');
+      expect(authorInRelatives.name).toBe('Test User');
+      expect(authorInRelatives.bio).toBe('A test user for API testing');
+      expect(authorInRelatives.isActive).toBe(true);
+
+      // Verify the service methods were called correctly
+      expect(BaseNodeModel.findById).toHaveBeenCalledWith(mockPost1._id.toString());
+      expect(SynapseService.getNodeSynapses).toHaveBeenCalledWith(mockPost1._id.toString(), {
+        includeDeleted: false
+      });
+
+      // Test the getRelatives functionality by simulating the frontend behavior
+      // This simulates what would happen in the frontend when using getRelatives()
+      const relatives = result.relatives;
+      
+      // Simulate getRelatives with synaptic filter for authored relationships
+      const authoredRelatives = relatives.filter((relative: any) => {
+        if (relative.kind === NODE_TYPES.SYNAPSE && relative.role === 'authored') {
+          return true;
+        }
+        return false;
+      });
+      
+      expect(authoredRelatives.length).toBe(1);
+      expect(authoredRelatives[0].role).toBe('authored');
+
+      // Simulate getRelatives with kind filter for user nodes (the author)
+      const userRelatives = relatives.filter((relative: any) => {
+        return relative.kind === NODE_TYPES.USER;
+      });
+      
+      expect(userRelatives.length).toBe(1);
+      expect(userRelatives[0]._id.toString()).toBe(mockUser._id.toString());
+      expect(userRelatives[0].name).toBe('Test User');
+
+      // Simulate getRelatives with custom filter to find the author specifically
+      const authorRelatives = relatives.filter((relative: any) => {
+        return relative.kind === NODE_TYPES.USER && 
+               relative._id.toString() === mockUser._id.toString();
+      });
+      
+      expect(authorRelatives.length).toBe(1);
+      expect(authorRelatives[0].email).toBe('testuser@example.com');
+    });
+
+    it('should handle PostNode with no author relationship gracefully', async () => {
+      const { BaseNodeModel } = await import('../src/models/index.js');
+      const { SynapseService } = await import('../src/services/synapseService.js');
+
+      // Create an orphaned post with no author relationship
+      const orphanedPost = {
+        ...mockPost1,
+        _id: new Types.ObjectId(),
+        content: 'This is an orphaned post with no author',
+        toObject: () => ({
+          ...mockPost1,
+          _id: new Types.ObjectId(),
+          content: 'This is an orphaned post with no author'
+        })
+      };
+      
+      BaseNodeModel.findById.mockResolvedValue(orphanedPost);
+      SynapseService.getNodeSynapses.mockResolvedValue([]);
+      BaseNodeModel.find.mockResolvedValue([]);
+
+      const result = await NodeService.getNodeById(orphanedPost._id.toString());
+
+      expect(result.node).toBeDefined();
+      expect(result.node.content).toBe('This is an orphaned post with no author');
+      
+      // Should have empty relatives array or only contain synapses (which would be empty)
+      const nonSynapseRelatives = result.relatives.filter((rel: any) => rel.kind !== NODE_TYPES.SYNAPSE);
+      expect(nonSynapseRelatives.length).toBe(0);
+
+      // Simulate getRelatives for authored relationships - should return empty
+      const authoredRelatives = result.relatives.filter((relative: any) => {
+        return relative.kind === NODE_TYPES.SYNAPSE && relative.role === 'authored';
+      });
+      expect(authoredRelatives.length).toBe(0);
+
+      // Simulate getRelatives for user nodes - should return empty
+      const userRelatives = result.relatives.filter((relative: any) => {
+        return relative.kind === NODE_TYPES.USER;
+      });
+      expect(userRelatives.length).toBe(0);
+    });
+  });
 });
