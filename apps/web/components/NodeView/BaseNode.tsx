@@ -11,7 +11,14 @@ import { apiClient } from '@web/lib/api-client';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@web/components/ui/collapsible';
 import { Button } from '@web/components/ui/button';
 import { ChevronsUpDown, Edit, Save, X, ExternalLink } from 'lucide-react';
+import { RelativeNodeView } from './RelativeNodeView';
 import type { BaseNode } from '@whitepine/types';
+import { 
+  combineRelationshipConfigs, 
+  filterApplicableConfigs,
+  type RelationshipConfig 
+} from '@whitepine/types';
+import { POST_NODE_RELATIONSHIP_CONFIGS, USER_NODE_RELATIONSHIP_CONFIGS } from '@whitepine/types';
 
 // Helper function to render node IDs as clickable links
 const renderNodeId = (nodeId: string | any, className: string = '') => {
@@ -33,39 +40,6 @@ const renderNodeId = (nodeId: string | any, className: string = '') => {
   );
 };
 
-// Error Boundary Component
-class NodeErrorBoundary extends React.Component<
-  { children: React.ReactNode; fallback?: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('NodeErrorBoundary caught an error:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="bg-red-50 border border-red-200 rounded p-4">
-          <h3 className="text-red-800 font-medium">Error loading node</h3>
-          <p className="text-red-600 mt-1">
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // Dynamic schema generator for any node type
 const generateNodeSchema = (node: any, isEditing: boolean = false) => {
@@ -87,9 +61,7 @@ const generateNodeSchema = (node: any, isEditing: boolean = false) => {
       createdAt: 'When this node was first created',
       updatedAt: 'When this node was last modified',
       deletedAt: 'When this node was deleted (if applicable)',
-      createdBy: 'User ID of who created this node',
-      updatedBy: 'User ID of who last updated this node',
-      ownerId: 'User ID of the owner of this node',
+      // Note: All relationships are now handled via SynapseNode connections
       email: 'Email address',
       name: 'Display name',
       avatar: 'Profile picture URL',
@@ -179,7 +151,7 @@ const generateNodeSchema = (node: any, isEditing: boolean = false) => {
     const description = generateDescription(key, value);
 
     // Determine if this field should be read-only
-    const isFieldReadOnly = !isEditing || key === '_id' || key === 'kind' || key === 'createdAt' || key === 'updatedAt' || key === 'deletedAt' || key === 'createdBy' || key === 'updatedBy' || key === 'ownerId' || key === 'readOnly';
+    const isFieldReadOnly = !isEditing || key === '_id' || key === 'kind' || key === 'createdAt' || key === 'updatedAt' || key === 'deletedAt' || key === 'readOnly';
 
     // Generate schema property
     properties[key] = {
@@ -272,7 +244,7 @@ const CollapsibleObjectFieldTemplate = (props: any) => {
 export interface BaseNodeViewProps {
   nodeId: string;
   className?: string;
-  children?: (node: BaseNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[]) => React.ReactNode;
+  children?: (node: BaseNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[], relationshipConfigs: RelationshipConfig[]) => React.ReactNode;
 }
 
 export interface EditProps {
@@ -298,7 +270,7 @@ export interface EditProps {
  * @param className - Optional CSS class name for styling
  * @param children - Render prop function that receives (node, isLoading, error)
  */
-const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
+const BaseNodeView: React.FC<BaseNodeViewProps> = ({
   nodeId,
   className,
   children
@@ -309,6 +281,34 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
   
   // Get all nodes for debug information
   const allNodes = useAppSelector((state) => state.nodes.byId);
+
+  // Determine relationship configurations based on node type and context
+  const relationshipConfigs = React.useMemo(() => {
+    if (!node) return [];
+
+    // Get base configurations
+    let nodeTypeConfigs: RelationshipConfig[] = [];
+    
+    // Add node-type-specific configurations
+    switch (node.kind) {
+      case 'post':
+        nodeTypeConfigs = POST_NODE_RELATIONSHIP_CONFIGS;
+        break;
+      case 'user':
+        nodeTypeConfigs = USER_NODE_RELATIONSHIP_CONFIGS;
+        break;
+      default:
+        nodeTypeConfigs = [];
+    }
+
+    // Combine all configurations
+    const allConfigs = combineRelationshipConfigs(
+      nodeTypeConfigs
+    );
+
+    // Filter based on applicability
+    return filterApplicableConfigs(allConfigs, node, relatives);
+  }, [node, relatives]);
   
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -364,7 +364,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
     
     try {
       // Filter out fields that shouldn't be updated
-      const { _id, kind, createdAt, updatedAt, deletedAt, createdBy, updatedBy, ownerId, readOnly, ...updateableData } = editData;
+      const { _id, kind, createdAt, updatedAt, deletedAt, readOnly, ...updateableData } = editData;
       
       // Parse stringified objects back to objects
       const parsedData = Object.fromEntries(
@@ -389,7 +389,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
       const updatedNode = await apiClient.updateNode(node._id.toString(), parsedData);
       
       // Update Redux store with fresh data
-      dispatch(updateNode.fulfilled(updatedNode, '', node._id.toString()));
+      dispatch(updateNode.fulfilled(updatedNode, '', { id: node._id.toString(), updates: parsedData }));
       
       // Refresh the node data
       await fetchNode();
@@ -458,7 +458,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
     
     return (
       <div className={className}>
-        {children(node, isLoading, error, editProps, relatives, getRelatives)}
+        {children(node, isLoading, error, editProps, relatives, getRelatives, relationshipConfigs)}
       </div>
     );
   }
@@ -605,27 +605,16 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
                 </p>
                 
                 {relatives.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <h5 className="font-medium text-gray-800">Available Relatives:</h5>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="mt-4 space-y-4">
+                    <h5 className="font-medium text-gray-800">Related Nodes:</h5>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {relatives.map((relative, index) => (
-                        <div key={relative._id || index} className="p-2 bg-gray-50 border rounded text-xs">
-                          <div className="font-medium">{relative.kind || 'Unknown'}</div>
-                          <div className="text-gray-600">
-                            {relative._relationshipType === 'attribute' && `Referenced by: ${relative._attribute}`}
-                            {relative._relationshipType === 'synaptic' && `Synaptic connection`}
-                            {relative.role && ` | Role: ${relative.role}`}
-                            {relative.dir && ` | Dir: ${relative.dir}`}
-                          </div>
-                          <div className="text-gray-500 text-xs">
-                            {renderNodeId(relative._id)}
-                          </div>
-                          {relative.name && (
-                            <div className="text-gray-700 text-xs mt-1">
-                              {relative.name}
-                            </div>
-                          )}
-                        </div>
+                        <RelativeNodeView
+                          key={relative._id || index}
+                          relative={relative}
+                          compact={true}
+                          showRelationshipInfo={true}
+                        />
                       ))}
                     </div>
                   </div>
@@ -649,7 +638,7 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
                       <strong>Node ID:</strong> {renderNodeId(node?._id, 'ml-2')}
                     </div>
                     <div>
-                      <strong>Node CreatedBy:</strong> {renderNodeId(node?.createdBy, 'ml-2')}
+                      {/* Note: All relationships are now handled via SynapseNode connections */}
                     </div>
                     <div>
                       <strong>Relatives Count:</strong> {relatives.length}
@@ -690,14 +679,6 @@ const BaseNodeViewInner: React.FC<BaseNodeViewProps> = ({
   );
 };
 
-// Main component with error boundary
-const BaseNodeView: React.FC<BaseNodeViewProps> = (props) => {
-  return (
-    <NodeErrorBoundary>
-      <BaseNodeViewInner {...props} />
-    </NodeErrorBoundary>
-  );
-};
 
 export { BaseNodeView };
 

@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { SynapseService } from '../services/synapseService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { ApiResponse, PaginationParams } from '@whitepine/types';
+import { decodeNodeId } from '@whitepine/types';
 
 // Define our user type
 type AuthUser = {
@@ -23,21 +24,14 @@ export class SynapseController {
       const { from, to, role, dir, order, weight, props } = req.body;
       const userId = (req.user as any)?.id;
 
-      // Ensure createdBy is always set for authenticated users
-      if (!userId) {
-        throw createError('Authentication required to create synapses', 401);
-      }
-
       const synapse = await SynapseService.createSynapse({
-        from: new Types.ObjectId(from),
-        to: new Types.ObjectId(to),
+        from: decodeNodeId(from),
+        to: decodeNodeId(to),
         role,
         dir,
         order,
         weight,
         props,
-        createdBy: new Types.ObjectId(userId), // UserNode's MongoDB ObjectId
-        ownerId: new Types.ObjectId(userId),   // UserNode's MongoDB ObjectId
       });
 
       const response: ApiResponse = {
@@ -80,11 +74,9 @@ export class SynapseController {
     try {
       const { id } = req.params;
       const userId = (req.user as any)?.id;
+      const decodedId = decodeNodeId(id);
 
-      const synapse = await SynapseService.updateSynapse(id, {
-        ...req.body,
-        ...(userId && { updatedBy: new Types.ObjectId(userId) }),
-      });
+      const synapse = await SynapseService.updateSynapse(decodedId.toString(), req.body);
 
       const response: ApiResponse = {
         success: true,
@@ -105,7 +97,8 @@ export class SynapseController {
   static async deleteSynapse(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await SynapseService.deleteSynapse(id);
+      const decodedId = decodeNodeId(id);
+      const result = await SynapseService.deleteSynapse(decodedId.toString());
 
       const response: ApiResponse = {
         success: true,
@@ -125,7 +118,8 @@ export class SynapseController {
   static async restoreSynapse(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const synapse = await SynapseService.restoreSynapse(id);
+      const decodedId = decodeNodeId(id);
+      const synapse = await SynapseService.restoreSynapse(decodedId.toString());
 
       const response: ApiResponse = {
         success: true,
@@ -162,9 +156,7 @@ export class SynapseController {
       const skipNum = parseInt(skip as string) || 0;
       const sortOrderNum = sortOrder === 'asc' ? 1 : -1;
 
-      const query = {
-        from: from ? new Types.ObjectId(from as string) : undefined,
-        to: to ? new Types.ObjectId(to as string) : undefined,
+      const query: any = {
         role: role as string,
         dir: dir as 'out' | 'in' | 'undirected',
         deletedAt: includeDeleted === 'true' ? undefined : null,
@@ -172,10 +164,13 @@ export class SynapseController {
         skip: skipNum,
         sort: { [sortBy as string]: sortOrderNum },
       };
+      
+      if (from) query.from = decodeNodeId(from as string);
+      if (to) query.to = decodeNodeId(to as string);
 
       const result = await SynapseService.listSynapses(query);
 
-      const response: ApiResponse = {
+      const response = {
         success: true,
         data: result.synapses,
         pagination: {
@@ -254,13 +249,14 @@ export class SynapseController {
 
       for (const synapseId of synapseIds) {
         try {
+          const decodedId = decodeNodeId(synapseId);
           let result;
           switch (operation) {
             case 'delete':
-              result = await SynapseService.deleteSynapse(synapseId);
+              result = await SynapseService.deleteSynapse(decodedId.toString());
               break;
             case 'restore':
-              result = await SynapseService.restoreSynapse(synapseId);
+              result = await SynapseService.restoreSynapse(decodedId.toString());
               break;
             default:
               throw createError(`Unknown operation: ${operation}`, 400);
@@ -276,7 +272,7 @@ export class SynapseController {
         data: {
           operation,
           processed: results.length,
-          errors: errors.length,
+          errorCount: errors.length,
           results,
           errors,
         },

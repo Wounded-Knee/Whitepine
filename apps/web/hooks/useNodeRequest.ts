@@ -1,8 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@web/store/hooks';
 import { fetchNodeById } from '@web/store/slices/nodesSlice';
-import { requestManager } from '@web/lib/requestManager';
+import { useApiRequest } from './useApiRequest';
+import type { UseApiRequestResult } from './useApiRequest';
 import type { BaseNode } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 
 interface RelativesSelector {
   // Synaptic selectors
@@ -20,12 +22,10 @@ interface RelativesSelector {
   filter?: (relative: any) => boolean;
 }
 
-interface UseNodeRequestResult {
+interface UseNodeRequestResult extends Omit<UseApiRequestResult<BaseNode>, 'data' | 'refetch'> {
   node: BaseNode | null;
   relatives: any[];
   getRelatives: (selector: RelativesSelector) => any[];
-  isLoading: boolean;
-  error: string | null;
   fetchNode: () => Promise<void>;
 }
 
@@ -35,43 +35,37 @@ interface UseNodeRequestResult {
  */
 export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   const dispatch = useAppDispatch();
-  const node = useAppSelector((state) => state.nodes.byId[nodeId] || null);
+  
+  // Use the generic API request hook for basic request management
+  const { data: node, refetch } = useApiRequest(
+    'nodes',
+    nodeId,
+    {
+      fetchAction: async (id) => {
+        // This won't be called since we use dispatchAction
+        throw new Error('fetchAction should not be called when dispatchAction is provided');
+      },
+      selector: (state, id) => state.nodes.byId[id] || null,
+      dispatchAction: (id) => fetchNodeById(id),
+      enableCache: true
+    }
+  );
+  
+  // Get loading and error state from Redux (node-specific)
+  const isLoading = useAppSelector((state) => {
+    return state.nodes.loading?.operations?.[`fetchNodeById-${nodeId}`] || false;
+  });
+  
+  const error = useAppSelector((state) => {
+    return state.nodes.error?.[`fetchNodeById-${nodeId}`] || null;
+  });
   
   // Get all nodes from Redux store to compute relationships
   const allNodes = useAppSelector((state) => state.nodes.byId);
   
   const fetchNode = useCallback(async () => {
-    // If node already exists, don't fetch
-    if (node) {
-      return;
-    }
-    
-    const requestKey = `fetchNodeById-${nodeId}`;
-    
-    // If request is already ongoing, return the existing promise
-    if (requestManager.isRequestOngoing(requestKey)) {
-      const existingPromise = requestManager.getExistingPromise(requestKey);
-      if (existingPromise) {
-        return existingPromise;
-      }
-    }
-    
-    // Start a new request and track it globally
-    const promise = dispatch(fetchNodeById(nodeId)).unwrap();
-    return requestManager.startRequest(requestKey, promise);
-  }, [dispatch, nodeId, node]);
-  
-  // Get loading state from Redux
-  const isLoading = useAppSelector((state) => {
-    // Check if this specific node fetch is pending
-    return state.nodes.loading?.operations?.[`fetchNodeById-${nodeId}`] || false;
-  });
-  
-  // Get error state from Redux
-  const error = useAppSelector((state) => {
-    // Check if there's an error for this specific node
-    return state.nodes.error?.[`fetchNodeById-${nodeId}`] || null;
-  });
+    await refetch();
+  }, [refetch]);
   
   // Get relatives from the API response (stored in Redux)
   const relatives = useMemo(() => {
@@ -94,7 +88,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
           let synapse = null;
           
           // If this is a synapse, it's a synaptic relationship
-          if (otherNode.kind === 'synapse') {
+          if (otherNode.kind === NODE_TYPES.SYNAPSE) {
             relationshipType = 'synaptic';
             synapse = otherNode;
             
@@ -132,7 +126,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
             // If not found as attribute reference, check if it's connected via synapse
             if (relationshipType === 'unknown') {
               Object.values(allNodes).forEach(synapseNode => {
-                if (synapseNode.kind === 'synapse') {
+                if (synapseNode.kind === NODE_TYPES.SYNAPSE) {
                   const synapseData = synapseNode as any;
                   if ((synapseData.from && synapseData.from.toString() === nodeId && synapseData.to.toString() === otherNode._id.toString()) ||
                       (synapseData.to && synapseData.to.toString() === nodeId && synapseData.from.toString() === otherNode._id.toString())) {
@@ -238,6 +232,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     getRelatives,
     isLoading,
     error,
-    fetchNode
+    fetchNode,
+    isCached: node !== null
   };
 }

@@ -23,19 +23,7 @@ const baseNodeSchema = new Schema<BaseNode>({
     type: Date,
     default: null,
   },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  updatedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    index: true,
-  },
-  ownerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
+  // Note: All relationships are now handled via SynapseNode connections
 }, {
   timestamps: true, // This will automatically manage createdAt and updatedAt
   discriminatorKey: discriminatorKey,
@@ -44,8 +32,6 @@ const baseNodeSchema = new Schema<BaseNode>({
 
 // Indexes for efficient querying
 baseNodeSchema.index({ [discriminatorKey]: 1, deletedAt: 1 });
-baseNodeSchema.index({ ownerId: 1 });
-baseNodeSchema.index({ createdBy: 1, createdAt: -1 });
 
 // Compound index for soft delete queries
 baseNodeSchema.index({ deletedAt: 1, [discriminatorKey]: 1, createdAt: -1 });

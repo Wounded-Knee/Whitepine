@@ -14,9 +14,7 @@ export interface BaseNode extends Document {
     createdAt: Date;
     updatedAt: Date;
     deletedAt?: Date | null;
-    createdBy?: Types.ObjectId;
-    updatedBy?: Types.ObjectId;
-    ownerId?: Types.ObjectId;
+    // Note: All relationships are now handled via SynapseNode connections
 }
 export interface UserNode extends BaseNode {
     kind: typeof NODE_TYPES.USER;
@@ -71,4 +69,7 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
         totalPages: number;
     };
 }
+export type { RelationshipConfig, FormFieldConfig } from './relationshipConfig';
+export { combineRelationshipConfigs, filterApplicableConfigs } from './relationshipConfig';
+export { NODE_RELATIONSHIP_REGISTRY, getRelationshipConfigsForNodeType, getAllRelationshipConfigs, validateRelationshipCreation, hasRelationshipConfig, getUserNodeRelationshipConfigs, validateUserNodeRelationship, getPostNodeRelationshipConfigs, validatePostNodeRelationship, getSynapseNodeRelationshipConfigs, validateSynapseNodeRelationship, USER_NODE_RELATIONSHIP_CONFIGS, POST_NODE_RELATIONSHIP_CONFIGS, SYNAPSE_NODE_RELATIONSHIP_CONFIGS, } from './nodes';
 //# sourceMappingURL=index.d.ts.map

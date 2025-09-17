@@ -1,7 +1,7 @@
 import { Schema } from 'mongoose';
 import { BaseNodeModel } from './BaseNode.js';
 import type { PostNode } from '@whitepine/types';
-import { NODE_TYPES } from '@whitepine/types';
+import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
 
 // PostNode schema
 const postNodeSchema = new Schema<PostNode>({
@@ -17,7 +17,7 @@ const postNodeSchema = new Schema<PostNode>({
   },
 }, {
   // Inherit discriminatorKey and collection from BaseNode
-  discriminatorKey: 'kind',
+  discriminatorKey: discriminatorKey,
 });
 
 // Text search index for content
@@ -25,7 +25,6 @@ postNodeSchema.index({ content: 'text' });
 
 // Additional indexes for efficient querying
 postNodeSchema.index({ publishedAt: -1 });
-postNodeSchema.index({ ownerId: 1, publishedAt: -1 });
 
 // Pre-save middleware to ensure kind is set
 postNodeSchema.pre('save', function(next) {

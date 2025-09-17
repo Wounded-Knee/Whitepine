@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { SynapseController } from '../controllers/synapseController.js';
 import { authRateLimit } from '../middleware/rateLimiting.js';
+import { 
+  decodeNodeIdParams, 
+  decodeNodeIdQuery, 
+  decodeNodeIdBody,
+  encodeNodeIdResponseByType,
+  DEFAULT_NODE_ID_CONFIG
+} from '../middleware/nodeIdMiddleware.js';
 import {
   validateRequest,
   validateQuery,
@@ -16,6 +23,13 @@ const router = Router();
 
 // Apply rate limiting to all synapse routes
 router.use(authRateLimit);
+
+// Apply node ID middleware to all routes for automatic encoding/decoding
+// Temporarily disabled to test FK field removal
+// router.use(decodeNodeIdParams);
+// router.use(decodeNodeIdQuery);
+// router.use(decodeNodeIdBody);
+// router.use(encodeNodeIdResponseByType(DEFAULT_NODE_ID_CONFIG));
 
 // Synapse routes with validation
 router.post('/', 

@@ -12,8 +12,6 @@ export interface CreateSynapseRequest {
   order?: number;
   weight?: number;
   props?: Record<string, unknown>;
-  createdBy?: Types.ObjectId | undefined;
-  ownerId?: Types.ObjectId | undefined;
 }
 
 export interface UpdateSynapseRequest {
@@ -22,7 +20,6 @@ export interface UpdateSynapseRequest {
   order?: number;
   weight?: number;
   props?: Record<string, unknown>;
-  updatedBy?: Types.ObjectId | undefined;
 }
 
 export interface SynapseQuery {
@@ -41,7 +38,7 @@ export class SynapseService {
    * Create a new synapse
    */
   static async createSynapse(request: CreateSynapseRequest) {
-    const { from, to, role, dir = 'out', order, weight, props, createdBy, ownerId } = request;
+    const { from, to, role, dir = 'out', order, weight, props } = request;
     
     try {
       // Validate that from and to are different
@@ -58,8 +55,6 @@ export class SynapseService {
         order,
         weight,
         props,
-        createdBy,
-        ownerId: ownerId || createdBy,
       };
 
       const synapse = new SynapseNodeModel(synapseData);
@@ -86,7 +81,7 @@ export class SynapseService {
         const synapses = [];
         
         for (const request of requests) {
-          const { from, to, role, dir = 'out', order, weight, props, createdBy, ownerId } = request;
+          const { from, to, role, dir = 'out', order, weight, props } = request;
           
           // Validate that from and to are different
           if (from.equals(to)) {
@@ -102,8 +97,6 @@ export class SynapseService {
             order,
             weight,
             props,
-            createdBy,
-            ownerId: ownerId || createdBy,
           };
 
           const synapse = new SynapseNodeModel(synapseData);
@@ -149,7 +142,7 @@ export class SynapseService {
       throw createError('Invalid synapse ID', 400);
     }
 
-    const { role, dir, order, weight, props, updatedBy } = request;
+    const { role, dir, order, weight, props } = request;
 
     try {
       const synapse = await SynapseNodeModel.findById(id);
@@ -163,9 +156,6 @@ export class SynapseService {
       if (order !== undefined) synapse.order = order;
       if (weight !== undefined) synapse.weight = weight;
       if (props !== undefined) synapse.props = props;
-      if (updatedBy) {
-        synapse.updatedBy = updatedBy;
-      }
 
       await synapse.save();
       return synapse;
@@ -250,10 +240,7 @@ export class SynapseService {
         .skip(skip)
         .limit(limit)
         .populate('from', 'kind content')
-        .populate('to', 'kind content')
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email')
-        .populate('ownerId', 'name email');
+        .populate('to', 'kind content');
 
       const total = await SynapseNodeModel.countDocuments(filter);
 

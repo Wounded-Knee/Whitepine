@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { NODE_TYPES } from '@whitepine/types';
+import { NODE_TYPES, isValidEncodedNodeId } from '@whitepine/types';
+
+// Custom validation for encoded node IDs only
+const nodeIdValidation = z.string().refine((id) => {
+  return isValidEncodedNodeId(id);
+}, 'Invalid encoded node ID');
 
 // Base node validation schema
 const baseNodeSchema = z.object({
@@ -24,11 +29,11 @@ const userNodeSchema = baseNodeSchema.extend({
   }).optional(),
 });
 
-// Post node validation schema
+// Post node validation schema (for user input - publishedAt is handled by API)
 const postNodeSchema = baseNodeSchema.extend({
   kind: z.literal(NODE_TYPES.POST),
   content: z.string().min(1, 'Content is required').max(10000, 'Content too long'),
-  publishedAt: z.date().optional().nullable(),
+  publishImmediately: z.boolean().optional(), // UI flag, not stored in DB
 });
 
 // Synapse node validation schema
@@ -107,33 +112,22 @@ export const updateSynapseNodeWithSynapsesSchema = updateSynapseNodeSchema.exten
 });
 
 // General update schema (union of all update types)
-// Note: For discriminated unions, we need the kind field to be required
-const updateUserNodeWithKindSchema = updateUserNodeSchema.extend({
-  kind: z.literal(NODE_TYPES.USER),
-  synapses: synapseOperationsSchema.optional(),
-});
-
-const updatePostNodeWithKindSchema = updatePostNodeSchema.extend({
-  kind: z.literal(NODE_TYPES.POST),
-  synapses: synapseOperationsSchema.optional(),
-});
-
-const updateSynapseNodeWithKindSchema = updateSynapseNodeSchema.extend({
-  kind: z.literal(NODE_TYPES.SYNAPSE),
-  synapses: synapseOperationsSchema.optional(),
-});
-
-export const updateNodeSchema = z.discriminatedUnion('kind', [
-  updateUserNodeWithKindSchema,
-  updatePostNodeWithKindSchema,
-  updateSynapseNodeWithKindSchema,
+// Update schemas that don't require kind field (since it shouldn't be changed)
+export const updateNodeSchema = z.union([
+  updateUserNodeSchema.extend({
+    synapses: synapseOperationsSchema.optional(),
+  }),
+  updatePostNodeSchema.extend({
+    synapses: synapseOperationsSchema.optional(),
+  }),
+  updateSynapseNodeSchema.extend({
+    synapses: synapseOperationsSchema.optional(),
+  }),
 ]);
 
 // Query parameters validation schema
 export const listNodesQuerySchema = z.object({
   kind: z.string().optional(),
-  createdBy: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid createdBy ID').optional(),
-  ownerId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ownerId ID').optional(),
   includeDeleted: z.enum(['true', 'false']).optional(),
   limit: z.string().regex(/^\d+$/, 'Limit must be a number').optional(),
   skip: z.string().regex(/^\d+$/, 'Skip must be a number').optional(),
@@ -144,13 +138,13 @@ export const listNodesQuerySchema = z.object({
 // Bulk operations validation schema
 export const bulkOperationsSchema = z.object({
   operation: z.enum(['delete', 'restore', 'update']),
-  nodeIds: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid node ID')).min(1, 'At least one node ID is required'),
+  nodeIds: z.array(nodeIdValidation).min(1, 'At least one node ID is required'),
   data: z.record(z.any()).optional(),
 });
 
 // Node ID parameter validation schema
 export const nodeIdSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid node ID'),
+  id: nodeIdValidation,
 });
 
 // Synapse-specific validation schemas
@@ -178,6 +172,38 @@ export const bulkSynapseOperationsSchema = z.object({
   operation: z.enum(['delete', 'restore']),
   synapseIds: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid synapse ID')).min(1, 'At least one synapse ID is required'),
 });
+
+// Node creation validation function
+export function validateNodeCreation(nodeData: any): { success: boolean; error?: string } {
+  try {
+    // Determine which schema to use based on node kind
+    let schema;
+    switch (nodeData.kind) {
+      case 'user':
+        schema = userNodeSchema;
+        break;
+      case 'post':
+        schema = postNodeSchema;
+        break;
+      case 'synapse':
+        schema = synapseNodeSchema;
+        break;
+      default:
+        return { success: false, error: 'Unknown node kind' };
+    }
+    
+    schema.parse(nodeData);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map(err => 
+        `${err.path.join('.')}: ${err.message}`
+      ).join(', ');
+      return { success: false, error: errorMessage };
+    }
+    return { success: false, error: 'Validation failed' };
+  }
+}
 
 // Validation middleware factory
 export function validateRequest(schema: z.ZodSchema) {

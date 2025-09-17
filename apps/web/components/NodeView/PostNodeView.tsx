@@ -1,101 +1,54 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BaseNodeView } from './BaseNode';
 import type { BaseNodeViewProps, EditProps } from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X, Calendar, User } from 'lucide-react';
 import { Avatar } from '../avatar';
-import type { PostNode, UserNode } from '@whitepine/types';
+import type { PostNode, UserNode, BaseNode } from '@whitepine/types';
 import { NODE_TYPES } from '@shared/nodeTypes';
 import { useNodeById, useAppDispatch } from '@web/store/hooks';
+import { useNodeRequest } from '@web/hooks/useNodeRequest';
 import { fetchNodeById } from '@web/store/slices/nodesSlice';
+import { RelationshipSuggestions, type RelationshipSuggestion } from './RelationshipSuggestions';
+import CreateRelatedNode from './CreateRelatedNode';
 
 export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
-  children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[]) => React.ReactNode;
+  children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[], relationshipConfigs: any[]) => React.ReactNode;
   showAuthor?: boolean; // Whether to show author info (default: true)
   compact?: boolean; // Whether to use compact layout (default: false)
 }
 
 /**
  * Component to fetch and display author information using synaptic relationships
- * Specifically looks for the createdBy node connected via synapses
+ * Looks for author nodes connected via 'authored' synapses
  */
 const AuthorInfo: React.FC<{
   getRelatives: (selector: any) => any[];
   postNode: PostNode;
   compact?: boolean;
 }> = ({ getRelatives, postNode, compact = false }) => {
-  // Check if createdBy exists
-  if (!postNode.createdBy) {
-    return (
-      <div className="flex-shrink-0">
-        <Avatar
-          avatarUrl={null}
-          name="Unknown"
-          size={compact ? 'sm' : 'md'}
-        />
-      </div>
-    );
-  }
-
-  // First, try to find the createdBy node directly in relatives
-  const createdByNode = getRelatives({ 
+  // Look for author nodes connected via authored synapses
+  const authorNode = getRelatives({ 
     kind: NODE_TYPES.USER,
-    filter: (relative: any) => {
-      return relative._id.toString() === postNode.createdBy!.toString();
-    }
+    synaptic: { role: 'authored', direction: 'out' }
   })[0];
 
-  // If found directly, use it
-  if (createdByNode) {
+  // If found, use it
+  if (authorNode) {
     return (
       <div className="flex-shrink-0">
         <Avatar
-          avatarUrl={createdByNode.avatar}
-          name={createdByNode.name}
+          avatarUrl={authorNode.avatar}
+          name={authorNode.name}
           size={compact ? 'sm' : 'md'}
         />
       </div>
     );
   }
 
-  // Fallback: look for authored synapses that connect to the createdBy node
-  const authoredSynapses = getRelatives({ 
-    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
-  });
-  
-  // Find synapses that connect the createdBy node to this post
-  const createdBySynapses = authoredSynapses.filter((synapse: any) => 
-    synapse._relationshipType === 'synaptic' && 
-    synapse.role === 'authored' &&
-    synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
-  );
-
-  // If we have synapses connecting the createdBy node, try to find the node
-  if (createdBySynapses.length > 0) {
-    // The createdBy node should be in the relatives as a connected node
-    const author = getRelatives({ 
-      kind: NODE_TYPES.USER,
-      filter: (relative: any) => {
-        return relative._id.toString() === postNode.createdBy!.toString();
-      }
-    })[0];
-
-    if (author) {
-      return (
-        <div className="flex-shrink-0">
-          <Avatar
-            avatarUrl={author.avatar}
-            name={author.name}
-            size={compact ? 'sm' : 'md'}
-          />
-        </div>
-      );
-    }
-  }
-
-  // If no synaptic connection found, show unknown
+  // If no author found, show unknown
   return (
     <div className="flex-shrink-0">
       <Avatar
@@ -109,71 +62,29 @@ const AuthorInfo: React.FC<{
 
 /**
  * Component to display author name using synaptic relationships
- * Specifically looks for the createdBy node connected via synapses
+ * Looks for author nodes connected via 'authored' synapses
  */
 const AuthorName: React.FC<{
   getRelatives: (selector: any) => any[];
   postNode: PostNode;
   compact?: boolean;
 }> = ({ getRelatives, postNode, compact = false }) => {
-  // Check if createdBy exists
-  if (!postNode.createdBy) {
-    return (
-      <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-        Unknown Author
-      </span>
-    );
-  }
-
-  // First, try to find the createdBy node directly in relatives
-  const createdByNode = getRelatives({ 
+  // Look for author nodes connected via authored synapses
+  const authorNode = getRelatives({ 
     kind: NODE_TYPES.USER,
-    filter: (relative: any) => {
-      return relative._id.toString() === postNode.createdBy!.toString();
-    }
+    synaptic: { role: 'authored', direction: 'out' }
   })[0];
 
-  // If found directly, use it
-  if (createdByNode) {
+  // If found, use it
+  if (authorNode) {
     return (
       <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-        {createdByNode.name || 'Anonymous'}
+        {authorNode.name || 'Anonymous'}
       </span>
     );
   }
 
-  // Fallback: look for authored synapses that connect to the createdBy node
-  const authoredSynapses = getRelatives({ 
-    synaptic: { role: 'authored', dir: 'in' } // Incoming authored relationships
-  });
-  
-  // Find synapses that connect the createdBy node to this post
-  const createdBySynapses = authoredSynapses.filter((synapse: any) => 
-    synapse._relationshipType === 'synaptic' && 
-    synapse.role === 'authored' &&
-    synapse.from && synapse.from.toString() === postNode.createdBy!.toString()
-  );
-
-  // If we have synapses connecting the createdBy node, try to find the node
-  if (createdBySynapses.length > 0) {
-    // The createdBy node should be in the relatives as a connected node
-    const author = getRelatives({ 
-      kind: NODE_TYPES.USER,
-      filter: (relative: any) => {
-        return relative._id.toString() === postNode.createdBy!.toString();
-      }
-    })[0];
-
-    if (author) {
-      return (
-        <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
-          {author.name || 'Anonymous'}
-        </span>
-      );
-    }
-  }
-
-  // If no synaptic connection found, show unknown
+  // If no author found, show unknown
   return (
     <span className={`font-medium text-gray-900 ${compact ? 'text-sm' : 'text-base'} flex-shrink-0`}>
       Unknown Author
@@ -200,13 +111,54 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
   compact = false,
   children
 }) => {
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<RelationshipSuggestion | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [currentNode, setCurrentNode] = useState<BaseNode | null>(null);
+  
+  // Get the current node from BaseNodeView to use in dialogs
+  const { node: baseNode } = useNodeRequest(nodeId);
+  
+  // Update currentNode when baseNode changes
+  useEffect(() => {
+    if (baseNode && baseNode !== currentNode) {
+      setCurrentNode(baseNode);
+    }
+  }, [baseNode, currentNode]);
+
+  const handleCreateRelationship = (suggestion: RelationshipSuggestion) => {
+    setSelectedSuggestion(suggestion);
+    setShowCreateDialog(true);
+    setCreateError(null);
+  };
+
+  const handleCreateSuccess = (newNode: any) => {
+    setShowCreateDialog(false);
+    setSelectedSuggestion(null);
+    setCreateError(null);
+    // Optionally refresh the node data or show success message
+    console.log('Created new node:', newNode);
+  };
+
+  const handleCreateError = (error: string) => {
+    setCreateError(error);
+  };
+
+  const handleCancelCreate = () => {
+    setShowCreateDialog(false);
+    setSelectedSuggestion(null);
+    setCreateError(null);
+  };
+
   return (
-    <BaseNodeView nodeId={nodeId} className={className}>
-      {(node, isLoading, error, editProps, relatives, getRelatives) => {
+    <>
+      <BaseNodeView nodeId={nodeId} className={className}>
+        {(node, isLoading, error, editProps, relatives, getRelatives, relationshipConfigs) => {
+
         // If children is provided as a render prop, use it with typed PostNode
         if (children) {
           const postNode = node?.kind === NODE_TYPES.POST ? (node as PostNode) : null;
-          return children(postNode, isLoading, error, editProps, relatives, getRelatives);
+          return children(postNode, isLoading, error, editProps, relatives, getRelatives, relationshipConfigs);
         }
 
         // Default rendering for PostNode
@@ -284,7 +236,7 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
             
             <div className={`flex items-start space-x-3 px-3 ${compact ? 'min-h-[2rem]' : 'min-h-[2.5rem]'}`}>
               {/* Author Avatar */}
-              {showAuthor && postNode.createdBy && (
+              {showAuthor && (
                 <AuthorInfo 
                   getRelatives={getRelatives}
                   postNode={postNode}
@@ -296,7 +248,7 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline space-x-2">
                   {/* Author Name */}
-                  {showAuthor && postNode.createdBy && (
+                  {showAuthor && (
                     <AuthorName 
                       getRelatives={getRelatives}
                       postNode={postNode}
@@ -350,10 +302,51 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Relationship Suggestions */}
+            {!compact && (
+              <RelationshipSuggestions
+                node={postNode}
+                relationshipConfigs={relationshipConfigs}
+                onCreateRelationship={handleCreateRelationship}
+                className="mt-2"
+              />
+            )}
           </div>
         );
-      }}
-    </BaseNodeView>
+        }}
+      </BaseNodeView>
+
+    {/* Create Related Node Dialog */}
+    {showCreateDialog && selectedSuggestion && currentNode && (
+      <CreateRelatedNode
+        parentNode={currentNode}
+        suggestion={selectedSuggestion}
+        onCancel={handleCancelCreate}
+        onSuccess={handleCreateSuccess}
+        onError={handleCreateError}
+      />
+    )}
+
+    {/* Error Display */}
+    {createError && (
+      <div className="fixed top-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg z-50">
+        <div className="flex items-center justify-between">
+          <div className="text-red-800 text-sm">
+            {createError}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCreateError(null)}
+            className="ml-2 text-red-600 hover:text-red-800"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 

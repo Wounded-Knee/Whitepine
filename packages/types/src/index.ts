@@ -29,9 +29,7 @@ export interface BaseNode extends Document {
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;       // soft delete
-  createdBy?: Types.ObjectId;    // User _id
-  updatedBy?: Types.ObjectId;    // User _id
-  ownerId?: Types.ObjectId;      // canonical owner (often same as createdBy)
+  // Note: All relationships are now handled via SynapseNode connections
 }
 
 // UserNode interface extending BaseNode
@@ -96,3 +94,65 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     totalPages: number;
   };
 }
+
+// ---------- Relationship Configuration Types ----------
+export type { 
+  RelationshipConfig, 
+  FormFieldConfig 
+} from './relationshipConfig';
+
+export {
+  combineRelationshipConfigs,
+  filterApplicableConfigs
+} from './relationshipConfig';
+
+// ---------- Node Definitions and Relationship Configurations ----------
+export {
+  // Registry functions
+  NODE_RELATIONSHIP_REGISTRY,
+  getRelationshipConfigsForNodeType,
+  getAllRelationshipConfigs,
+  validateRelationshipCreation,
+  hasRelationshipConfig,
+  
+  // Node-specific functions
+  getUserNodeRelationshipConfigs,
+  validateUserNodeRelationship,
+  getPostNodeRelationshipConfigs,
+  validatePostNodeRelationship,
+  getSynapseNodeRelationshipConfigs,
+  validateSynapseNodeRelationship,
+  
+  // Relationship configurations
+  USER_NODE_RELATIONSHIP_CONFIGS,
+  POST_NODE_RELATIONSHIP_CONFIGS,
+  SYNAPSE_NODE_RELATIONSHIP_CONFIGS,
+} from './nodes';
+
+// ---------- Node ID Encoding/Decoding Utilities ----------
+export {
+  encodeNodeId,
+  decodeNodeId,
+  isValidEncodedNodeId,
+  isRawObjectId,
+  normalizeToEncodedId,
+  normalizeToObjectId,
+  encodeObjectIds,
+  decodeObjectIds,
+} from './nodeId';
+
+// ---------- Node ID Utilities ----------
+export {
+  encodeNodeResponse,
+  encodeNodesResponse,
+  encodeObjectFields,
+  decodeObjectFields,
+} from './nodeIdUtils';
+
+// ---------- Node ID Configuration ----------
+export {
+  CUSTOM_NODE_ID_CONFIG,
+  createNodeIdConfig,
+  addFieldsToNodeType,
+  removeFieldsFromNodeType,
+} from './nodeIdConfig';

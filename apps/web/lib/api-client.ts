@@ -289,6 +289,37 @@ class ApiClient {
     
     return result.data;
   }
+
+  /**
+   * Create a new node with a relationship (synapse) to an existing node
+   */
+  async createNodeWithRelationship(nodeData: any, synapseData: any): Promise<{
+    node: BaseNode | UserNode;
+    synapse: any;
+  }> {
+    const headers = await this.getAuthHeaders();
+    
+    const response = await fetch(`${this.baseUrl}/nodes/with-relationship`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        node: nodeData,
+        synapse: synapseData
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Failed to create node with relationship: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    // Invalidate relevant caches
+    this.invalidateCache('/nodes/isolated-posts');
+    
+    return result.data;
+  }
 }
 
 // Create and export a singleton instance

@@ -414,14 +414,17 @@ export default function NodeViewDemo() {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {isolatedPostNodes.map((post) => (
-                      <PostNodeView 
-                        key={post._id} 
-                        nodeId={post._id} 
-                        compact={true}
-                        className="hover:bg-white/50 transition-colors"
-                      />
-                    ))}
+                    {isolatedPostNodes.map((post) => {
+                      const postId = typeof post._id === 'string' ? post._id : post._id.toString();
+                      return (
+                        <PostNodeView 
+                          key={postId} 
+                          nodeId={post._id} 
+                          compact={true}
+                          className="hover:bg-white/50 transition-colors"
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>

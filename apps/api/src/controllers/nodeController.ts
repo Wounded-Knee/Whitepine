@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { NodeService } from '../services/nodeService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { ApiResponse, PaginationParams } from '@whitepine/types';
+import { encodeNodeResponse, encodeNodesResponse, decodeNodeId } from '@whitepine/types';
 
 // Define our user type
 type AuthUser = {
@@ -36,21 +37,14 @@ export class NodeController {
         throw createError('Node kind is required', 400);
       }
 
-      // Ensure createdBy is always set for authenticated users
-      if (!userId) {
-        throw createError('Authentication required to create nodes', 401);
-      }
-
       const node = await NodeService.createNode({
         kind,
         data,
-        createdBy: new Types.ObjectId(userId), // UserNode's MongoDB ObjectId
-        ownerId: new Types.ObjectId(userId),   // UserNode's MongoDB ObjectId
       });
 
       const response: ApiResponse = {
         success: true,
-        data: node,
+        data: encodeNodeResponse(node.toObject()),
         message: 'Node created successfully',
       };
 
@@ -67,11 +61,15 @@ export class NodeController {
   static async getNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await NodeService.getNodeById(id);
+      const decodedId = decodeNodeId(id);
+      const result = await NodeService.getNodeById(decodedId.toString());
 
       const response: ApiResponse = {
         success: true,
-        data: result,
+        data: {
+          node: encodeNodeResponse(result.node),
+          relatives: encodeNodesResponse(result.relatives)
+        },
         message: 'Node retrieved with connected synapses and nodes',
       };
 
@@ -115,15 +113,15 @@ export class NodeController {
     try {
       const { id } = req.params;
       const userId = (req.user as AuthUser)?.id;
+      const decodedId = decodeNodeId(id);
 
-      const node = await NodeService.updateNode(id, {
+      const node = await NodeService.updateNode(decodedId.toString(), {
         data: req.body,
-        ...(userId && { updatedBy: new Types.ObjectId(userId) }),
       });
 
       const response: ApiResponse = {
         success: true,
-        data: node,
+        data: encodeNodeResponse(node.toObject()),
         message: 'Node updated successfully',
       };
 
@@ -140,7 +138,8 @@ export class NodeController {
   static async deleteNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const result = await NodeService.deleteNode(id);
+      const decodedId = decodeNodeId(id);
+      const result = await NodeService.deleteNode(decodedId.toString());
 
       const response: ApiResponse = {
         success: true,
@@ -160,7 +159,8 @@ export class NodeController {
   static async restoreNode(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const node = await NodeService.restoreNode(id);
+      const decodedId = decodeNodeId(id);
+      const node = await NodeService.restoreNode(decodedId.toString());
 
       const response: ApiResponse = {
         success: true,
@@ -182,8 +182,6 @@ export class NodeController {
     try {
       const {
         kind,
-        createdBy,
-        ownerId,
         includeDeleted = 'false',
         limit = '50',
         skip = '0',
@@ -198,8 +196,6 @@ export class NodeController {
 
       const query = {
         ...(kind && { kind: kind as string }),
-        ...(createdBy && { createdBy: new Types.ObjectId(createdBy as string) }),
-        ...(ownerId && { ownerId: new Types.ObjectId(ownerId as string) }),
         deletedAt: includeDeleted === 'true' ? undefined : null,
         limit: limitNum,
         skip: skipNum,
@@ -210,7 +206,7 @@ export class NodeController {
 
       const response = {
         success: true,
-        data: result.nodes,
+        data: encodeNodesResponse(result.nodes),
         pagination: {
           page: Math.floor(skipNum / limitNum) + 1,
           limit: limitNum,
@@ -281,21 +277,21 @@ export class NodeController {
 
       for (const nodeId of nodeIds) {
         try {
+          const decodedId = decodeNodeId(nodeId);
           let result;
           switch (operation) {
             case 'delete':
-              result = await NodeService.deleteNode(nodeId);
+              result = await NodeService.deleteNode(decodedId.toString());
               break;
             case 'restore':
-              result = await NodeService.restoreNode(nodeId);
+              result = await NodeService.restoreNode(decodedId.toString());
               break;
             case 'update':
               if (!data) {
                 throw createError('Data is required for update operation', 400);
               }
-              result = await NodeService.updateNode(nodeId, {
+              result = await NodeService.updateNode(decodedId.toString(), {
                 data,
-                ...(userId && { updatedBy: new Types.ObjectId(userId) }),
               });
               break;
             default:
@@ -334,7 +330,7 @@ export class NodeController {
 
       const response: ApiResponse = {
         success: true,
-        data: isolatedPostNodes,
+        data: encodeNodesResponse(isolatedPostNodes),
         message: 'Isolated post nodes retrieved successfully',
       };
 

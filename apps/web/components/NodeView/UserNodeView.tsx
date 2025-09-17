@@ -7,6 +7,7 @@ import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { Avatar } from '../avatar';
 import type { UserNode } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 
 export interface UserNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
   children?: (node: UserNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
@@ -32,7 +33,7 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
       {(node, isLoading, error, editProps) => {
         // If children is provided as a render prop, use it with typed UserNode
         if (children) {
-          const userNode = node?.kind === 'User' ? (node as UserNode) : null;
+          const userNode = node?.kind === NODE_TYPES.USER ? (node as UserNode) : null;
           return children(userNode, isLoading, error, editProps);
         }
 
@@ -60,7 +61,7 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
         }
 
         // Type guard to ensure we have a UserNode
-        if (node.kind !== 'User') {
+        if (node.kind !== NODE_TYPES.USER) {
           return (
             <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
               <p className="text-yellow-600">

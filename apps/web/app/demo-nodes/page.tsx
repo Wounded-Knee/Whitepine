@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAppDispatch } from '@web/store/hooks';
 import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
+import { NODE_TYPES } from '@whitepine/types';
 import { ExternalLink, Database, Plus, Users, FileText, Package } from 'lucide-react';
 
 type NodeType = 'BaseNode' | 'UserNode' | 'PostNode';
@@ -102,18 +103,18 @@ export default function NodeViewDemo() {
   const createSampleNode = async () => {
     try {
       let nodeData: any = {
-        createdBy: '507f1f77bcf86cd799439011',
-        ownerId: '507f1f77bcf86cd799439011',
+        // Note: All relationships are now handled via SynapseNode connections
       };
 
       switch (selectedNodeType) {
         case 'BaseNode':
-          nodeData.kind = 'BaseNode';
+          nodeData.kind = NODE_TYPES.POST; // Use post as default since BaseNode isn't a valid kind
+          nodeData.content = 'This is a sample base node created for testing.';
           break;
         case 'UserNode':
           nodeData = {
             ...nodeData,
-            kind: 'User',
+            kind: NODE_TYPES.USER,
             email: 'demo@example.com',
             name: 'Demo User',
             bio: 'This is a demo user created for testing the UserNodeView component.',
@@ -132,7 +133,7 @@ export default function NodeViewDemo() {
         case 'PostNode':
           nodeData = {
             ...nodeData,
-            kind: 'Post',
+            kind: NODE_TYPES.POST,
             content: 'This is a sample post created for testing the PostNodeView component.',
             title: 'Sample Post Title',
             tags: ['demo', 'sample', 'testing'],
@@ -201,10 +202,12 @@ export default function NodeViewDemo() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableNodes.map((node) => (
+                {availableNodes.map((node) => {
+                  const nodeId = typeof node._id === 'string' ? node._id : node._id.toString();
+                  return (
                   <Link
-                    key={node._id}
-                    href={`/demo-nodes/${node._id}`}
+                    key={nodeId}
+                    href={`/demo-nodes/${nodeId}`}
                     className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -220,7 +223,7 @@ export default function NodeViewDemo() {
                     </div>
                     
                     <div className="text-xs text-gray-500 font-mono mb-2">
-                      {node._id.toString().substring(0, 8)}...
+                      {nodeId.substring(0, 12)}...
                     </div>
                     
                     {node.name && (
@@ -241,7 +244,8 @@ export default function NodeViewDemo() {
                       </div>
                     )}
                   </Link>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

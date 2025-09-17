@@ -9,14 +9,11 @@ import { SynapseService, CreateSynapseRequest } from './synapseService.js';
 export interface CreateNodeRequest {
   kind: string;
   data: Record<string, any>;
-  createdBy?: Types.ObjectId;
-  ownerId?: Types.ObjectId;
   synapses?: CreateSynapseRequest[];
 }
 
 export interface UpdateNodeRequest {
   data: Record<string, any>;
-  updatedBy?: Types.ObjectId;
   synapses?: {
     create?: CreateSynapseRequest[];
     update?: Array<{ id: string; data: Partial<CreateSynapseRequest> }>;
@@ -26,8 +23,6 @@ export interface UpdateNodeRequest {
 
 export interface NodeQuery {
   kind?: string;
-  createdBy?: Types.ObjectId;
-  ownerId?: Types.ObjectId;
   deletedAt?: Date | null | undefined;
   limit?: number;
   skip?: number;
@@ -59,7 +54,7 @@ export class NodeService {
    * Create a new node with optional synapses
    */
   static async createNode(request: CreateNodeRequest) {
-    const { kind, data, createdBy, ownerId, synapses } = request;
+    const { kind, data, synapses } = request;
     
     const session = await BaseNodeModel.startSession();
     
@@ -70,8 +65,6 @@ export class NodeService {
         const nodeData = {
           kind,
           ...data,
-          createdBy,
-          ownerId: ownerId || createdBy,
         };
 
         const node = new Model(nodeData);
@@ -83,8 +76,6 @@ export class NodeService {
             ...synapse,
             from: synapse.from || node._id, // Default to the new node if not specified
             to: synapse.to || node._id,
-            createdBy: synapse.createdBy || createdBy || undefined,
-            ownerId: synapse.ownerId || ownerId || createdBy || undefined,
           }));
 
           await SynapseService.createMultipleSynapses(synapseRequests);
@@ -107,6 +98,31 @@ export class NodeService {
    * Get a node by ID with automatically included connected synapses
    */
   static async getNodeById(id: string) {
+    // Check if id is a stringified object and extract the actual ID
+    if (typeof id === 'string' && id.includes('_id')) {
+      try {
+        // Try to parse it as JSON and extract the _id
+        const parsed = JSON.parse(id);
+        if (parsed._id) {
+          id = parsed._id;
+        }
+      } catch (parseError) {
+        // If parsing fails, try to extract the ID using regex
+        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
+        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
+        if (objectIdMatch) {
+          id = objectIdMatch[1];
+        } else {
+          // Fallback to simple _id pattern
+          const idMatch = id.match(/([a-fA-F0-9]{24})/);
+          if (idMatch) {
+            id = idMatch[1];
+          }
+        }
+      }
+    }
+    
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -199,6 +215,30 @@ export class NodeService {
     dir?: SynapseDirection;
     includeDeleted?: boolean;
   } = {}) {
+    // Check if id is a stringified object and extract the actual ID
+    if (typeof id === 'string' && id.includes('_id')) {
+      try {
+        // Try to parse it as JSON and extract the _id
+        const parsed = JSON.parse(id);
+        if (parsed._id) {
+          id = parsed._id;
+        }
+      } catch (parseError) {
+        // If parsing fails, try to extract the ID using regex
+        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
+        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
+        if (objectIdMatch) {
+          id = objectIdMatch[1];
+        } else {
+          // Fallback to simple _id pattern
+          const idMatch = id.match(/([a-fA-F0-9]{24})/);
+          if (idMatch) {
+            id = idMatch[1];
+          }
+        }
+      }
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -225,11 +265,35 @@ export class NodeService {
    * Update a node with optional synapse operations
    */
   static async updateNode(id: string, request: UpdateNodeRequest) {
+    // Check if id is a stringified object and extract the actual ID
+    if (typeof id === 'string' && id.includes('_id')) {
+      try {
+        // Try to parse it as JSON and extract the _id
+        const parsed = JSON.parse(id);
+        if (parsed._id) {
+          id = parsed._id;
+        }
+      } catch (parseError) {
+        // If parsing fails, try to extract the ID using regex
+        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
+        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
+        if (objectIdMatch) {
+          id = objectIdMatch[1];
+        } else {
+          // Fallback to simple _id pattern
+          const idMatch = id.match(/([a-fA-F0-9]{24})/);
+          if (idMatch) {
+            id = idMatch[1];
+          }
+        }
+      }
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
 
-    const { data, updatedBy, synapses } = request;
+    const { data, synapses } = request;
 
     const session = await BaseNodeModel.startSession();
     
@@ -242,9 +306,6 @@ export class NodeService {
 
         // Update node fields
         Object.assign(node, data);
-        if (updatedBy) {
-          node.updatedBy = updatedBy;
-        }
         await node.save({ session });
 
         // Handle synapse operations if provided
@@ -257,8 +318,6 @@ export class NodeService {
               ...synapse,
               from: synapse.from || nodeId,
               to: synapse.to || nodeId,
-              createdBy: synapse.createdBy || updatedBy || undefined,
-              ownerId: synapse.ownerId || node.ownerId || undefined,
             }));
             await SynapseService.createMultipleSynapses(synapseRequests);
           }
@@ -266,10 +325,7 @@ export class NodeService {
           // Update existing synapses
           if (synapses.update && synapses.update.length > 0) {
             for (const update of synapses.update) {
-              await SynapseService.updateSynapse(update.id, {
-                ...update.data,
-                updatedBy: updatedBy || undefined,
-              });
+              await SynapseService.updateSynapse(update.id, update.data);
             }
           }
 
@@ -298,6 +354,30 @@ export class NodeService {
       throw createError('Write operations are only permitted on the 15th of any month', 403);
     }
 
+    // Check if id is a stringified object and extract the actual ID
+    if (typeof id === 'string' && id.includes('_id')) {
+      try {
+        // Try to parse it as JSON and extract the _id
+        const parsed = JSON.parse(id);
+        if (parsed._id) {
+          id = parsed._id;
+        }
+      } catch (parseError) {
+        // If parsing fails, try to extract the ID using regex
+        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
+        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
+        if (objectIdMatch) {
+          id = objectIdMatch[1];
+        } else {
+          // Fallback to simple _id pattern
+          const idMatch = id.match(/([a-fA-F0-9]{24})/);
+          if (idMatch) {
+            id = idMatch[1];
+          }
+        }
+      }
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -321,6 +401,30 @@ export class NodeService {
    * Restore a soft-deleted node
    */
   static async restoreNode(id: string) {
+    // Check if id is a stringified object and extract the actual ID
+    if (typeof id === 'string' && id.includes('_id')) {
+      try {
+        // Try to parse it as JSON and extract the _id
+        const parsed = JSON.parse(id);
+        if (parsed._id) {
+          id = parsed._id;
+        }
+      } catch (parseError) {
+        // If parsing fails, try to extract the ID using regex
+        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
+        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
+        if (objectIdMatch) {
+          id = objectIdMatch[1];
+        } else {
+          // Fallback to simple _id pattern
+          const idMatch = id.match(/([a-fA-F0-9]{24})/);
+          if (idMatch) {
+            id = idMatch[1];
+          }
+        }
+      }
+    }
+
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
     }
@@ -346,8 +450,6 @@ export class NodeService {
   static async listNodes(query: NodeQuery) {
     const {
       kind,
-      createdBy,
-      ownerId,
       deletedAt = null,
       limit = 50,
       skip = 0,
@@ -358,17 +460,12 @@ export class NodeService {
       const filter: any = { deletedAt };
       
       if (kind) filter.kind = kind;
-      if (createdBy) filter.createdBy = createdBy;
-      if (ownerId) filter.ownerId = ownerId;
 
       const nodes = await BaseNodeModel
         .find(filter)
         .sort(sort)
         .skip(skip)
-        .limit(limit)
-        .populate('createdBy', 'name email')
-        .populate('updatedBy', 'name email')
-        .populate('ownerId', 'name email');
+        .limit(limit);
 
       // Add computed readOnly field to each node
       const nodesWithComputedFields = nodes.map(node => {

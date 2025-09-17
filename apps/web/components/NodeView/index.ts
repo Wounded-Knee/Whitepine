@@ -6,3 +6,6 @@ export type { UserNodeViewProps } from './UserNodeView';
 
 export { PostNodeView, default as PostNodeViewDefault } from './PostNodeView';
 export type { PostNodeViewProps } from './PostNodeView';
+
+export { RelativeNodeView, default as RelativeNodeViewDefault } from './RelativeNodeView';
+export type { RelativeNodeViewProps } from './RelativeNodeView';

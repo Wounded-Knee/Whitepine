@@ -1,7 +1,15 @@
 import { Router } from 'express';
 import { NodeController } from '../controllers/nodeController.js';
+import { NodeWithRelationshipController } from '../controllers/nodeWithRelationshipController.js';
 import { authRateLimit } from '../middleware/rateLimiting.js';
 import { requireWritePermissions } from '../middleware/datePermissions.js';
+import { 
+  decodeNodeIdParams, 
+  decodeNodeIdQuery, 
+  decodeNodeIdBody,
+  encodeNodeIdResponseByType,
+  DEFAULT_NODE_ID_CONFIG
+} from '../middleware/nodeIdMiddleware.js';
 import {
   validateRequest,
   validateQuery,
@@ -17,6 +25,13 @@ const router = Router();
 
 // Apply rate limiting to all node routes
 router.use(authRateLimit);
+
+// Apply node ID middleware to all routes for automatic encoding/decoding
+// Temporarily disabled to test FK field removal
+// router.use(decodeNodeIdParams);
+// router.use(decodeNodeIdQuery);
+// router.use(decodeNodeIdBody);
+// router.use(encodeNodeIdResponseByType(DEFAULT_NODE_ID_CONFIG));
 
 
 // Node routes with validation
@@ -39,6 +54,17 @@ router.post('/bulk',
   validateRequest(bulkOperationsSchema),
   NodeController.bulkOperations
 ); // Bulk operations
+
+// Node with relationship routes
+router.post('/with-relationship', 
+  requireWritePermissions,
+  NodeWithRelationshipController.createNodeWithRelationship
+); // Create node with relationship
+
+router.post('/with-relationships', 
+  requireWritePermissions,
+  NodeWithRelationshipController.createNodesWithRelationships
+); // Create multiple nodes with relationships
 
 // Node by ID routes with validation
 router.get('/:id', 
