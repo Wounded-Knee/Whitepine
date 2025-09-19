@@ -40,11 +40,7 @@ export const fetchNodeById = createAsyncThunk<
     try {
       const result = await apiClient.getNode(nodeId);
       
-      // Store all related nodes in the Redux store
-      if (result.relatives && result.relatives.length > 0) {
-        // Store all relatives as nodes (including synapses)
-        dispatch(addNodes(result.relatives as Node[]));
-      }
+      // Note: Relatives will be stored in the fulfilled reducer to avoid timing issues
       
       return {
         node: result.node as Node,

@@ -5,6 +5,7 @@ import { pipeline } from 'stream/promises';
 import { createWriteStream, createReadStream } from 'fs';
 import { UserNodeModel } from '../models/index.js';
 import { config } from '../config/index.js';
+import { decodeNodeId } from '@whitepine/types';
 
 export interface AvatarCacheInfo {
   url: string;
@@ -38,7 +39,9 @@ export class AvatarService {
    */
   static async getAvatarUrl(userId: string): Promise<string | null> {
     try {
-      const user = await UserNodeModel.findById(userId);
+      // Decode branded user ID if needed
+      const decodedUserId = userId.startsWith('wp_') ? decodeNodeId(userId).toString() : userId;
+      const user = await UserNodeModel.findById(decodedUserId);
       if (!user || !user.avatar) {
         return null;
       }
@@ -63,7 +66,9 @@ export class AvatarService {
    */
   static async updateUserAvatar(userId: string, avatarUrl: string): Promise<boolean> {
     try {
-      const user = await UserNodeModel.findById(userId);
+      // Decode branded user ID if needed
+      const decodedUserId = userId.startsWith('wp_') ? decodeNodeId(userId).toString() : userId;
+      const user = await UserNodeModel.findById(decodedUserId);
       if (!user) {
         return false;
       }

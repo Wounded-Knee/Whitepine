@@ -110,23 +110,3 @@ export function useApiRequest<T>(
     isCached
   };
 }
-
-/**
- * Simplified version for basic API requests without Redux integration
- */
-export function useSimpleApiRequest<T>(
-  resourceType: string,
-  resourceId: string,
-  fetchFunction: (id: string) => Promise<T>,
-  options?: {
-    transform?: (data: any) => T;
-    enableCache?: boolean;
-  }
-): UseApiRequestResult<T> {
-  return useApiRequest(resourceType, resourceId, {
-    fetchAction: fetchFunction,
-    selector: () => null, // No Redux integration
-    transform: options?.transform,
-    enableCache: options?.enableCache
-  });
-}

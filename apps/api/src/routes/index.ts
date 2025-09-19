@@ -2,8 +2,6 @@ import express from 'express';
 import { authRateLimit } from '../middleware/rateLimiting.js';
 import { nextAuthMiddleware } from '../middleware/nextAuthMiddleware.js';
 import { nodeRoutes } from './nodes.js';
-import { synapseRoutes } from './synapses.js';
-import { isolatedPostsRoutes } from './isolatedPosts.js';
 import { avatarRoutes } from './avatars.js';
 
 export function setupRoutes(app: express.Application): void {
@@ -23,14 +21,8 @@ export function setupRoutes(app: express.Application): void {
   // Add NextAuth middleware to handle X-User-ID header
   apiRouter.use(nextAuthMiddleware);
 
-  // Isolated posts routes (must come before /nodes to avoid /:id conflict)
-  apiRouter.use('/nodes/isolated-posts', isolatedPostsRoutes);
-
-  // Node routes
+  // Node routes (includes synapse routes since synapses are nodes)
   apiRouter.use('/nodes', nodeRoutes);
-
-  // Synapse routes
-  apiRouter.use('/synapses', synapseRoutes);
 
   // Avatar routes
   apiRouter.use('/avatars', avatarRoutes);
@@ -55,7 +47,7 @@ export function setupRoutes(app: express.Application): void {
       try {
         const { NodeController } = await import('../controllers/nodeController.js');
         // Create a mock authenticated user for testing
-        req.user = { id: '507f1f77bcf86cd799439011' }; // Mock UserNode ID
+        req.user = { id: 'wp_UH8fd7z4bNeZQ5AR' }; // Mock UserNode ID (branded)
         await NodeController.createNode(req, res, (err) => {
           if (err) {
             res.status(500).json({ error: err.message });
@@ -93,18 +85,14 @@ export function setupRoutes(app: express.Application): void {
           restore: '/api/nodes/:id/restore',
           kinds: '/api/nodes/kinds',
           stats: '/api/nodes/stats',
+          isolatedPosts: '/api/nodes/isolated-posts',
           bulk: '/api/nodes/bulk',
-        },
-        synapses: {
-          list: '/api/synapses',
-          create: '/api/synapses',
-          get: '/api/synapses/:id',
-          update: '/api/synapses/:id',
-          delete: '/api/synapses/:id',
-          restore: '/api/synapses/:id/restore',
-          stats: '/api/synapses/stats',
-          bulk: '/api/synapses/bulk',
-          nodeSynapses: '/api/synapses/node/:nodeId',
+          // Synapse routes (synapses are nodes with kind='synapse')
+          synapses: {
+            list: '/api/nodes/synapses',
+            stats: '/api/nodes/synapses/stats',
+            nodeSynapses: '/api/nodes/synapses/node/:nodeId',
+          },
         },
         avatars: {
           serve: '/api/avatars/:filename',

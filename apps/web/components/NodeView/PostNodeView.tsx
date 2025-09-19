@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BaseNodeView } from './BaseNode';
-import type { BaseNodeViewProps, EditProps } from './BaseNode';
+import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X, Calendar, User } from 'lucide-react';
 import { Avatar } from '../avatar';

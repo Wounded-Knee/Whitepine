@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import { AvatarService } from '../services/avatarService.js';
 import { SchedulerService } from '../services/schedulerService.js';
 import { UserNodeModel } from '../models/index.js';
+import { decodeNodeId } from '@whitepine/types';
 
 const router = express.Router();
 
@@ -87,8 +88,9 @@ router.post('/upload', upload.single('avatar'), async (req, res) => {
     }
 
     const userId = (req.user as any).id;
+    const decodedUserId = decodeNodeId(userId).toString();
     const avatarUrl = await AvatarService.uploadCustomAvatar(
-      userId,
+      decodedUserId,
       req.file.buffer,
       req.file.mimetype
     );
@@ -125,7 +127,8 @@ router.put('/update', async (req, res) => {
     }
 
     const userId = (req.user as any).id;
-    const success = await AvatarService.updateUserAvatar(userId, avatarUrl);
+    const decodedUserId = decodeNodeId(userId).toString();
+    const success = await AvatarService.updateUserAvatar(decodedUserId, avatarUrl);
 
     if (!success) {
       return res.status(500).json({ error: 'Failed to update avatar' });
@@ -153,9 +156,10 @@ router.post('/refresh/:userId', async (req, res) => {
 
     const { userId } = req.params;
     const currentUserId = (req.user as any).id;
+    const decodedCurrentUserId = decodeNodeId(currentUserId).toString();
 
     // Users can only refresh their own avatars (or admin check could be added)
-    if (userId !== currentUserId) {
+    if (userId !== decodedCurrentUserId) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -187,7 +191,8 @@ router.delete('/remove', async (req, res) => {
     }
 
     const userId = (req.user as any).id;
-    const user = await UserNodeModel.findById(userId);
+    const decodedUserId = decodeNodeId(userId).toString();
+    const user = await UserNodeModel.findById(decodedUserId);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

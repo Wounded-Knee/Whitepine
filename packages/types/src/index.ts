@@ -150,6 +150,9 @@ export {
 } from './nodeIdUtils';
 
 // ---------- Node ID Configuration ----------
+export type { NodeIdEncodingConfig } from './nodeIdConfig';
+
+// ---------- Node ID Configuration ----------
 export {
   CUSTOM_NODE_ID_CONFIG,
   createNodeIdConfig,

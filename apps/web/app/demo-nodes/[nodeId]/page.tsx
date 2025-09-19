@@ -432,41 +432,6 @@ export default function NodeViewDemo() {
           </div>
         )}
 
-        {/* Component Information */}
-        <div className="mt-12 bg-white rounded-lg shadow-sm border p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Component Information</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-blue-600">Data Flow & Caching</h3>
-              <ol className="space-y-2 text-sm text-gray-600">
-                <li>1. Component checks Redux store for node data</li>
-                <li>2. If not found, dispatches fetchNodeById action</li>
-                <li>3. API client checks cache before making request</li>
-                <li>4. Redux store is updated with new data</li>
-                <li>5. All components using same node get updated data</li>
-              </ol>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-green-600">Performance Features</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>• <strong>Request Deduplication:</strong> Prevents duplicate API calls</li>
-                <li>• <strong>Smart Caching:</strong> 5-minute TTL for API responses</li>
-                <li>• <strong>Loading States:</strong> Shows loading only when fetching</li>
-                <li>• <strong>Error Handling:</strong> Graceful error display</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-semibold text-blue-800 mb-2">💡 Usage Examples</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>Basic:</strong> <code>&lt;{selectedNodeType === 'BaseNode' ? 'BaseNodeView' : selectedNodeType === 'UserNode' ? 'UserNodeView' : 'PostNodeView'} nodeId="your-node-id" /&gt;</code></p>
-              <p><strong>With Styling:</strong> Add <code>className</code> prop for custom CSS</p>
-              <p><strong>Custom Rendering:</strong> Use <code>children</code> render prop function</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

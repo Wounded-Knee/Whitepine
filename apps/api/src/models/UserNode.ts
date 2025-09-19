@@ -1,26 +1,7 @@
 import { Schema } from 'mongoose';
 import { BaseNodeModel } from './BaseNode.js';
-import type { BaseNode } from '@whitepine/types';
+import type { UserNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
-
-// UserNode interface extending BaseNode
-export interface UserNode extends BaseNode {
-  kind: typeof NODE_TYPES.USER;
-  email: string;
-  name: string;
-  avatar?: string;
-  bio?: string;
-  isActive: boolean;
-  lastLoginAt?: Date;
-  preferences?: {
-    theme?: 'light' | 'dark' | 'auto';
-    language?: string;
-    notifications?: {
-      email?: boolean;
-      push?: boolean;
-    };
-  };
-}
 
 // UserNode schema
 const userNodeSchema = new Schema<UserNode>({

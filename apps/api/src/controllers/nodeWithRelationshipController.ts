@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { NodeService } from '../services/nodeService.js';
-import { SynapseService } from '../services/synapseService.js';
 import { createError } from '../middleware/errorHandler.js';
 import { validateNodeCreation } from '../validation/nodeValidation.js';
 import { Types } from 'mongoose';
@@ -113,7 +112,10 @@ export class NodeWithRelationshipController {
         props: synapseData.props || {}
       };
 
-      const newSynapse = await SynapseService.createSynapse(synapse);
+      const newSynapse = await NodeService.createNode({
+        kind: 'synapse',
+        data: synapse
+      });
 
       // Return both the new node and synapse
       res.status(201).json({
@@ -178,7 +180,10 @@ export class NodeWithRelationshipController {
           props: synapseData.props || {}
         };
 
-        const newSynapse = await SynapseService.createSynapse(synapse);
+        const newSynapse = await NodeService.createNode({
+          kind: 'synapse',
+          data: synapse
+        });
 
         results.push({
           node: newNode,

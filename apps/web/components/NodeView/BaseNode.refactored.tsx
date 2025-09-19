@@ -8,7 +8,6 @@ import { useAppSelector } from '@web/store/hooks';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { RelativeNodeView } from './RelativeNodeView';
-import { GroupedRelativesView } from './GroupedRelativesView';
 import type { BaseNode } from '@whitepine/types';
 import type { RelationshipConfig } from '@whitepine/types';
 
@@ -201,11 +200,25 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
             Use the getRelatives() function to filter by relationship type.
           </p>
           
-          <div className="mt-4">
-            <GroupedRelativesView 
-              relatives={relatives}
-              renderNodeId={renderNodeId}
-            />
+          {relatives.length > 0 && (
+            <div className="mt-4 space-y-3">
+              {relatives.map((relative, index) => (
+                <div key={relative._id || index} className="bg-white border border-gray-200 rounded-lg p-4">
+                  <RelativeNodeView 
+                    relative={relative} 
+                    renderNodeId={renderNodeId}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800 font-medium">Enhanced API with getRelatives()</p>
+            <p className="text-blue-700 text-sm mt-1">
+              Use getRelatives() to filter by synaptic properties, attributes, or custom criteria.
+              Example: getRelatives({`{synaptic: {role: 'author'}}`})
+            </p>
           </div>
         </div>
       </div>
@@ -215,7 +228,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
         <h3 className="text-sm font-medium text-gray-700 mb-2">Debug Information</h3>
         <div className="text-xs text-gray-600 space-y-1">
           <p>Total nodes in store: {Object.keys(allNodes).length}</p>
-          <p>Current node ID: {node._id.toString()}</p>
+          <p>Current node ID: {node._id}</p>
           <p>Node kind: {node.kind}</p>
           <p>Relatives count: {relatives.length}</p>
           <p>Relationship configs: {relationshipConfigs.length}</p>

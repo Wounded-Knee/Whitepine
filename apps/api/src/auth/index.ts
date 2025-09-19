@@ -4,7 +4,7 @@ import session from 'cookie-session';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { config } from '../config/index.js';
 import { UserNodeModel } from '../models/index.js';
-import { NODE_TYPES } from '@whitepine/types';
+import { NODE_TYPES, encodeNodeId } from '@whitepine/types';
 
 export function setupAuth(app: express.Application): void {
   // Configure session middleware
@@ -63,9 +63,9 @@ export function setupAuth(app: express.Application): void {
           await userNode.save();
         }
 
-        // Return the UserNode's MongoDB ObjectId as the user ID
+        // Return the UserNode's MongoDB ObjectId as a branded user ID
         const user = {
-          id: userNode._id.toString(), // MongoDB ObjectId as string
+          id: encodeNodeId(userNode._id), // Branded node ID for consistency
           email: userNode.email,
           name: userNode.name,
           picture: userNode.avatar,
@@ -133,7 +133,7 @@ export function setupAuth(app: express.Application): void {
       if (err) {
         return res.status(500).json({ error: 'Logout failed' });
       }
-      res.redirect('/');
+      return res.redirect('/');
     });
   });
 

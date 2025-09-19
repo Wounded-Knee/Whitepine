@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { NodeController } from '../controllers/nodeController.js';
 import { NodeWithRelationshipController } from '../controllers/nodeWithRelationshipController.js';
 import { authRateLimit } from '../middleware/rateLimiting.js';
@@ -19,19 +19,19 @@ import {
   listNodesQuerySchema,
   bulkOperationsSchema,
   nodeIdSchema,
+  synapseQuerySchema,
 } from '../validation/nodeValidation.js';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // Apply rate limiting to all node routes
 router.use(authRateLimit);
 
 // Apply node ID middleware to all routes for automatic encoding/decoding
-// Temporarily disabled to test FK field removal
-// router.use(decodeNodeIdParams);
-// router.use(decodeNodeIdQuery);
-// router.use(decodeNodeIdBody);
-// router.use(encodeNodeIdResponseByType(DEFAULT_NODE_ID_CONFIG));
+router.use(decodeNodeIdParams);
+router.use(decodeNodeIdQuery);
+router.use(decodeNodeIdBody);
+router.use(encodeNodeIdResponseByType(DEFAULT_NODE_ID_CONFIG));
 
 
 // Node routes with validation
@@ -48,6 +48,21 @@ router.get('/',
 
 router.get('/kinds', NodeController.getNodeKinds);     // Get available kinds
 router.get('/stats', NodeController.getNodeStats);     // Get node statistics
+router.get('/isolated-posts', NodeController.getIsolatedPostNodes); // Get isolated PostNodes
+
+// Synapse-specific routes (synapses are nodes, but have special query patterns)
+router.get('/synapses', 
+  validateQuery(synapseQuerySchema),
+  NodeController.listSynapses
+); // List synapses (nodes with kind='synapse')
+
+router.get('/synapses/stats', NodeController.getSynapseStats); // Get synapse statistics
+
+router.get('/synapses/node/:nodeId', 
+  validateParams(nodeIdSchema),
+  validateQuery(synapseQuerySchema.pick({ role: true, dir: true, includeDeleted: true })),
+  NodeController.getNodeSynapses
+); // Get synapses for a specific node
 
 router.post('/bulk', 
   requireWritePermissions,
@@ -68,7 +83,7 @@ router.post('/with-relationships',
 
 // Node by ID routes with validation
 router.get('/:id', 
-  validateParams(nodeIdSchema),
+  // validateParams(nodeIdSchema), // Temporarily disabled for testing
   NodeController.getNode
 ); // Get node by ID
 

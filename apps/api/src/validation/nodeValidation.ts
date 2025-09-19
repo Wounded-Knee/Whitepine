@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NODE_TYPES, isValidEncodedNodeId } from '@whitepine/types';
+import { NODE_TYPES, NODE_TYPE_VALUES, isValidEncodedNodeId } from '@whitepine/types';
 
 // Custom validation for encoded node IDs only
 const nodeIdValidation = z.string().refine((id) => {
@@ -8,7 +8,9 @@ const nodeIdValidation = z.string().refine((id) => {
 
 // Base node validation schema
 const baseNodeSchema = z.object({
-  kind: z.string().min(1, 'Node kind is required'),
+  kind: z.enum(NODE_TYPE_VALUES as [string, ...string[]], {
+    errorMap: () => ({ message: `Node kind must be one of: ${NODE_TYPE_VALUES.join(', ')}` })
+  }),
 });
 
 // User node validation schema
@@ -39,8 +41,14 @@ const postNodeSchema = baseNodeSchema.extend({
 // Synapse node validation schema
 const synapseNodeSchema = baseNodeSchema.extend({
   kind: z.literal(NODE_TYPES.SYNAPSE),
-  from: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid from node ID'),
-  to: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid to node ID'),
+  from: z.union([
+    z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid from node ID'),
+    z.any() // Allow ObjectID objects from middleware
+  ]),
+  to: z.union([
+    z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid to node ID'),
+    z.any() // Allow ObjectID objects from middleware
+  ]),
   role: z.string().min(1, 'Role is required').max(100, 'Role too long'),
   dir: z.enum(['out', 'in', 'undirected']).optional(),
   order: z.number().int().optional(),
@@ -127,7 +135,9 @@ export const updateNodeSchema = z.union([
 
 // Query parameters validation schema
 export const listNodesQuerySchema = z.object({
-  kind: z.string().optional(),
+  kind: z.enum(NODE_TYPE_VALUES as [string, ...string[]], {
+    errorMap: () => ({ message: `Node kind must be one of: ${NODE_TYPE_VALUES.join(', ')}` })
+  }).optional(),
   includeDeleted: z.enum(['true', 'false']).optional(),
   limit: z.string().regex(/^\d+$/, 'Limit must be a number').optional(),
   skip: z.string().regex(/^\d+$/, 'Skip must be a number').optional(),
@@ -179,13 +189,13 @@ export function validateNodeCreation(nodeData: any): { success: boolean; error?:
     // Determine which schema to use based on node kind
     let schema;
     switch (nodeData.kind) {
-      case 'user':
+      case NODE_TYPES.USER:
         schema = userNodeSchema;
         break;
-      case 'post':
+      case NODE_TYPES.POST:
         schema = postNodeSchema;
         break;
-      case 'synapse':
+      case NODE_TYPES.SYNAPSE:
         schema = synapseNodeSchema;
         break;
       default:

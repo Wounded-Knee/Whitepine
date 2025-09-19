@@ -63,6 +63,20 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   // Get all nodes from Redux store to compute relationships
   const allNodes = useAppSelector((state) => state.nodes.byId);
   
+  // Get the count of nodes to ensure relatives computation re-runs when nodes are added
+  const nodeCount = useAppSelector((state) => Object.keys(state.nodes.byId).length);
+  
+  // Get a more specific selector that tracks when relatives might be available
+  const hasRelatives = useAppSelector((state) => {
+    const nodes = state.nodes.byId;
+    const mainNode = nodes[nodeId];
+    if (!mainNode) return false;
+    
+    // Check if there are any other nodes that could be relatives
+    const otherNodes = Object.values(nodes).filter(node => node._id.toString() !== nodeId);
+    return otherNodes.length > 0;
+  });
+  
   const fetchNode = useCallback(async () => {
     await refetch();
   }, [refetch]);
@@ -70,6 +84,11 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   // Get relatives from the API response (stored in Redux)
   const relatives = useMemo(() => {
     if (!node || !allNodes) return [];
+    
+    // Check if we have any nodes that could be relatives (excluding the main node)
+    const potentialRelatives = Object.values(allNodes).filter(otherNode => 
+      otherNode._id.toString() !== nodeId
+    );
     
     const relatedNodes: any[] = [];
     const seenNodeIds = new Set<string>();
@@ -157,7 +176,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     });
     
     return relatedNodes;
-  }, [node, allNodes, nodeId]);
+  }, [node, allNodes, nodeId, nodeCount, hasRelatives, Object.keys(allNodes).length]);
 
   // getRelatives function implementation
   const getRelatives = useCallback((selector: RelativesSelector): any[] => {

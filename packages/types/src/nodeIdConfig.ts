@@ -5,7 +5,12 @@
  * Customize this configuration to match your specific node types and their fields.
  */
 
-import type { NodeIdEncodingConfig } from './nodeIdMiddleware';
+/**
+ * Configuration for which fields to encode based on node type
+ */
+export interface NodeIdEncodingConfig {
+  [nodeType: string]: string[];
+}
 
 /**
  * Custom configuration for node ID encoding based on node types

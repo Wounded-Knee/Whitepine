@@ -14,6 +14,91 @@ import { Types } from 'mongoose';
 const NODE_ID_PREFIX = 'wp_';
 
 /**
+ * Convert hex string to base64url
+ */
+function hexToBase64url(hex: string): string {
+  // Convert hex to bytes
+  const bytes = [];
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes.push(parseInt(hex.substr(i, 2), 16));
+  }
+  
+  // Convert bytes to base64 manually
+  const base64 = bytesToBase64(bytes);
+  
+  // Convert base64 to base64url (replace + with -, / with _, remove padding)
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+/**
+ * Convert base64url to hex string
+ */
+function base64urlToHex(base64url: string): string {
+  // Convert base64url to base64 (replace - with +, _ with /, add padding)
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  
+  // Convert base64 to bytes manually
+  const bytes = base64ToBytes(base64);
+  
+  // Convert bytes to hex
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, '0');
+  }
+  
+  return hex;
+}
+
+/**
+ * Convert bytes array to base64 string
+ */
+function bytesToBase64(bytes: number[]): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  let result = '';
+  
+  for (let i = 0; i < bytes.length; i += 3) {
+    const a = bytes[i];
+    const b = bytes[i + 1] || 0;
+    const c = bytes[i + 2] || 0;
+    
+    const bitmap = (a << 16) | (b << 8) | c;
+    
+    result += chars.charAt((bitmap >> 18) & 63);
+    result += chars.charAt((bitmap >> 12) & 63);
+    result += i + 1 < bytes.length ? chars.charAt((bitmap >> 6) & 63) : '=';
+    result += i + 2 < bytes.length ? chars.charAt(bitmap & 63) : '=';
+  }
+  
+  return result;
+}
+
+/**
+ * Convert base64 string to bytes array
+ */
+function base64ToBytes(base64: string): number[] {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const bytes: number[] = [];
+  
+  for (let i = 0; i < base64.length; i += 4) {
+    const a = chars.indexOf(base64.charAt(i));
+    const b = chars.indexOf(base64.charAt(i + 1));
+    const c = chars.indexOf(base64.charAt(i + 2));
+    const d = chars.indexOf(base64.charAt(i + 3));
+    
+    const bitmap = (a << 18) | (b << 12) | (c << 6) | d;
+    
+    bytes.push((bitmap >> 16) & 255);
+    if (c !== 64) bytes.push((bitmap >> 8) & 255);
+    if (d !== 64) bytes.push(bitmap & 255);
+  }
+  
+  return bytes;
+}
+
+/**
  * Encodes a MongoDB ObjectID to a branded, URL-safe string
  * @param objectId - The MongoDB ObjectID to encode
  * @returns A branded, URL-safe node ID string
@@ -27,9 +112,8 @@ export function encodeNodeId(objectId: Types.ObjectId | string): string {
     throw new Error(`Invalid ObjectID: ${idString}`);
   }
   
-  // Convert hex string to buffer, then to base64url
-  const buffer = Buffer.from(idString, 'hex');
-  const base64url = buffer.toString('base64url');
+  // Convert hex string to base64url
+  const base64url = hexToBase64url(idString);
   
   // Add our brand prefix
   return `${NODE_ID_PREFIX}${base64url}`;
@@ -49,9 +133,8 @@ export function decodeNodeId(encodedId: string): Types.ObjectId {
   const base64url = encodedId.slice(NODE_ID_PREFIX.length);
   
   try {
-    // Convert base64url back to buffer, then to hex string
-    const buffer = Buffer.from(base64url, 'base64url');
-    const hexString = buffer.toString('hex');
+    // Convert base64url back to hex string
+    const hexString = base64urlToHex(base64url);
     
     // Validate and create ObjectID
     if (!Types.ObjectId.isValid(hexString)) {
@@ -73,7 +156,8 @@ export function isValidEncodedNodeId(id: string): boolean {
   try {
     decodeNodeId(id);
     return true;
-  } catch {
+  } catch (error) {
+    console.log('isValidEncodedNodeId error for', id, ':', error);
     return false;
   }
 }
@@ -136,7 +220,7 @@ export function encodeObjectIds<T extends Record<string, any>>(
   for (const field of objectIdFields) {
     if (result[field]) {
       // Handle ObjectID objects (from MongoDB)
-      if (result[field] instanceof Types.ObjectId) {
+      if (result[field] && typeof result[field] === 'object' && result[field].constructor === Types.ObjectId) {
         result[field] = encodeNodeId(result[field]) as any;
       }
       // Handle ObjectID strings

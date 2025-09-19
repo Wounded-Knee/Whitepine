@@ -60,9 +60,22 @@ export class NodeController {
    */
   static async getNode(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      const decodedId = decodeNodeId(id);
-      const result = await NodeService.getNodeById(decodedId.toString());
+      console.log('[CONTROLLER] getNode: FUNCTION CALLED - TEST LOG');
+      let { id } = req.params;
+      console.log('[CONTROLLER] getNode: id from params =', id, 'type =', typeof id);
+      console.log('[CONTROLLER] getNode: all params =', req.params);
+      
+      // Safety check: extract ObjectId from corrupted object strings
+      if (typeof id === 'string' && (id.includes('_id') || id.includes('ObjectId'))) {
+        console.log('[CONTROLLER] Detected corrupted object string, extracting ObjectId');
+        const idMatch = id.match(/([a-fA-F0-9]{24})/);
+        if (idMatch) {
+          id = idMatch[1];
+          console.log('[CONTROLLER] Extracted ObjectId:', id);
+        }
+      }
+      
+      const result = await NodeService.getNodeById(id);
 
       const response: ApiResponse = {
         success: true,
@@ -335,6 +348,87 @@ export class NodeController {
       };
 
       res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ===== SYNAPSE METHODS (synapses are nodes with kind='synapse') =====
+
+  /**
+   * List synapses (nodes with kind='synapse')
+   * GET /api/nodes/synapses
+   */
+  static async listSynapses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { from, to, role, dir, includeDeleted = 'false' } = req.query;
+      
+      const query: any = {
+        kind: 'synapse',
+        deletedAt: includeDeleted === 'true' ? undefined : null
+      };
+      
+      if (from) query.from = from;
+      if (to) query.to = to;
+      if (role) query.role = role;
+      if (dir) query.dir = dir;
+
+      const result = await NodeService.listNodes(query);
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+        message: 'Synapses retrieved successfully',
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get synapse statistics
+   * GET /api/nodes/synapses/stats
+   */
+  static async getSynapseStats(req: Request, res: Response, next: NextFunction) {
+    try {
+      const stats = await NodeService.getSynapseStats();
+
+      const response: ApiResponse = {
+        success: true,
+        data: stats,
+        message: 'Synapse statistics retrieved successfully',
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get synapses for a specific node
+   * GET /api/nodes/synapses/node/:nodeId
+   */
+  static async getNodeSynapses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { nodeId } = req.params;
+      const { role, dir, includeDeleted = 'false' } = req.query;
+
+      const synapses = await NodeService.getNodeSynapses(nodeId, {
+        role: role as string,
+        dir: dir as any,
+        includeDeleted: includeDeleted === 'true'
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: synapses,
+        message: 'Node synapses retrieved successfully',
+      };
+
+      res.json(response);
     } catch (error) {
       next(error);
     }
