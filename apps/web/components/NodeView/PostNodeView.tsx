@@ -6,11 +6,11 @@ import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X, Calendar, User } from 'lucide-react';
 import { Avatar } from '../avatar';
-import type { PostNode, UserNode, BaseNode } from '@whitepine/types';
-import { NODE_TYPES } from '@shared/nodeTypes';
+import type { PostNode, UserNode, BaseNode } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types/client';
 import { useNodeById, useAppDispatch } from '@web/store/hooks';
 import { useNodeRequest } from '@web/hooks/useNodeRequest';
-import { fetchNodeById } from '@web/store/slices/nodesSlice';
+import { fetchNodeById, createNode } from '@web/store/slices/nodesSlice';
 import { RelationshipSuggestions, type RelationshipSuggestion } from './RelationshipSuggestions';
 import CreateRelatedNode from './CreateRelatedNode';
 
@@ -18,7 +18,94 @@ export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
   children?: (node: PostNode | null, isLoading: boolean, error: string | null, editProps: EditProps, relatives: any[], getRelatives: (selector: any) => any[], relationshipConfigs: any[]) => React.ReactNode;
   showAuthor?: boolean; // Whether to show author info (default: true)
   compact?: boolean; // Whether to use compact layout (default: false)
+  mode?: 'view' | 'create';
+  onSuccess?: (nodeId: string) => void;
 }
+
+interface PostNodeCreateFormProps {
+  onSuccess?: (nodeId: string) => void;
+  className?: string;
+}
+
+const PostNodeCreateForm: React.FC<PostNodeCreateFormProps> = ({ onSuccess, className }) => {
+  const dispatch = useAppDispatch();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    kind: NODE_TYPES.POST,
+    content: 'New post content',
+    title: '',
+    tags: [],
+  });
+
+  const handleSave = async () => {
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await dispatch(createNode(formData)).unwrap();
+      onSuccess?.(result._id.toString());
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create post node';
+      setCreateError(errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <div className={`space-y-4 ${className || ''}`}>
+      <div className="bg-white border-l-4 border-gray-300 hover:bg-gray-50 transition-colors py-2">
+        {/* Edit/Save/Cancel buttons */}
+        <div className="flex items-center justify-end space-x-2 mb-2 px-3">
+          <Button
+            onClick={handleSave}
+            disabled={isCreating}
+            size="sm"
+            className="flex items-center space-x-1 h-6 text-xs"
+          >
+            <Save className="w-3 h-3" />
+            <span>{isCreating ? 'Creating...' : 'Create'}</span>
+          </Button>
+        </div>
+        
+        {/* Save error display */}
+        {createError && (
+          <div className="bg-red-50 border border-red-200 rounded p-2 mb-2 mx-3 text-red-600 text-xs">
+            {createError}
+          </div>
+        )}
+        
+        <div className="flex items-start space-x-3 px-3 min-h-[2.5rem]">
+          {/* Content Area */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline space-x-2">
+              {/* Title */}
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="border border-gray-300 rounded px-2 py-1 text-base font-medium w-full"
+                placeholder="Enter post title..."
+              />
+            </div>
+            
+            {/* Post Content */}
+            <div className="mt-1 text-base text-gray-800 leading-relaxed">
+              <textarea
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                className="w-full border border-gray-300 rounded px-2 py-1 text-sm resize-none"
+                rows={4}
+                placeholder="Enter post content..."
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Component to fetch and display author information using synaptic relationships
@@ -109,8 +196,14 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
   className,
   showAuthor = true,
   compact = false,
-  children
+  children,
+  mode = 'view',
+  onSuccess
 }) => {
+  // If in create mode, render the creation form directly
+  if (mode === 'create') {
+    return <PostNodeCreateForm onSuccess={onSuccess} className={className} />;
+  }
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<RelationshipSuggestion | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);

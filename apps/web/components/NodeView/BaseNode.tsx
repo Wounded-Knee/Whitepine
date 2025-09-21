@@ -9,8 +9,8 @@ import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { RelativeNodeView } from './RelativeNodeView';
 import { GroupedRelativesView } from './GroupedRelativesView';
-import type { BaseNode } from '@whitepine/types';
-import type { RelationshipConfig } from '@whitepine/types';
+import type { BaseNode } from '@whitepine/types/client';
+import type { RelationshipConfig } from '@whitepine/types/client';
 
 // Import extracted components
 import { generateNodeSchema } from './schema/generateNodeSchema';
@@ -27,38 +27,44 @@ import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
  * It supports only the BaseNode schema and can be extended by other views
  * like UserNodeView to support polymorphic derivative node schemas.
  * 
- * @param nodeId - The ID of the node to fetch and display
+ * @param nodeId - The ID of the node to fetch and display (optional for create mode)
+ * @param mode - The mode of operation: 'view' (read-only), 'edit' (editing existing), 'create' (new node)
  * @param className - Optional CSS class name for styling
  * @param children - Render prop function that receives (node, isLoading, error)
  */
 const BaseNodeView: React.FC<BaseNodeViewProps> = ({
   nodeId,
+  mode = 'view',
   className,
+  onSuccess,
   children
 }) => {
   // Use the custom hook for request management with deduplication
-  const { node, isLoading, error, fetchNode, relatives, relativesByRole, getRelatives } = useNodeRequest(nodeId);
+  const { node, isLoading, error, fetchNode, relatives, relativesByRole, getRelatives } = useNodeRequest(nodeId, mode);
   
   // Get all nodes for debug information
   const allNodes = useAppSelector((state) => state.nodes.byId);
 
   // Use extracted hooks
-  const editProps = useNodeEditing(node, fetchNode);
+  const editProps = useNodeEditing(node, fetchNode, mode, onSuccess);
   const { relationshipConfigs } = useNodeRelationships(node, relatives);
 
   useEffect(() => {
     const loadNodeData = async () => {
-      try {
-        await fetchNode();
-        // The fetchNode will now automatically populate the Redux store with
-        // the main node, synapses, and connected nodes
-      } catch (err) {
-        console.error('Error fetching node:', err);
+      // Only fetch node data if not in create mode and nodeId is provided
+      if (mode !== 'create' && nodeId) {
+        try {
+          await fetchNode();
+          // The fetchNode will now automatically populate the Redux store with
+          // the main node, synapses, and connected nodes
+        } catch (err) {
+          console.error('Error fetching node:', err);
+        }
       }
     };
     
     loadNodeData();
-  }, [nodeId, fetchNode]);
+  }, [nodeId, fetchNode, mode]);
 
   // If children render prop is provided, use it
   if (children) {
@@ -95,7 +101,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
     );
   }
 
-  if (!node) {
+  if (!node && mode !== 'create') {
     return (
       <div className={`p-6 ${className}`}>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -107,7 +113,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
   }
 
   // Generate dynamic schema and transform data
-  const { schema: dynamicSchema, uiSchema: dynamicUiSchema } = generateNodeSchema(node, editProps.isEditing);
+  const { schema: dynamicSchema, uiSchema: dynamicUiSchema } = generateNodeSchema(node, editProps.isEditing, mode);
   
   return (
     <div className={`space-y-6 ${className}`}>
@@ -115,27 +121,41 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {node.kind ? `${node.kind.charAt(0).toUpperCase() + node.kind.slice(1)} Node` : 'Node'}
+            {mode === 'create' ? 'Create New Node' : 
+             node?.kind ? `${node.kind.charAt(0).toUpperCase() + node.kind.slice(1)} Node` : 'Node'}
           </h1>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="text-sm text-gray-500">ID:</span>
-            {renderNodeId(node._id)}
-          </div>
+          {mode !== 'create' && node && (
+            <div className="flex items-center space-x-2 mt-1">
+              <span className="text-sm text-gray-500">ID:</span>
+              {renderNodeId(node._id)}
+            </div>
+          )}
         </div>
         
         {/* Edit/Save/Cancel buttons */}
         <div className="flex items-center justify-end space-x-2">
           {!editProps.isEditing ? (
-            !(node as any).readOnly && (
+            mode === 'create' ? (
               <Button
-                onClick={editProps.handleEdit}
-                variant="outline"
+                onClick={() => editProps.handleEdit()}
                 size="sm"
                 className="flex items-center space-x-1"
               >
                 <Edit className="w-4 h-4" />
-                <span>Edit</span>
+                <span>Start Creating</span>
               </Button>
+            ) : (
+              !(node as any)?.readOnly && (
+                <Button
+                  onClick={editProps.handleEdit}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-1"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Edit</span>
+                </Button>
+              )
             )
           ) : (
             <div className="flex items-center space-x-2">
@@ -146,7 +166,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
                 className="flex items-center space-x-1"
               >
                 <Save className="w-4 h-4" />
-                <span>{editProps.isSaving ? 'Saving...' : 'Save'}</span>
+                <span>{editProps.isSaving ? (mode === 'create' ? 'Creating...' : 'Saving...') : (mode === 'create' ? 'Create' : 'Save')}</span>
               </Button>
               <Button
                 onClick={editProps.handleCancel}
@@ -189,23 +209,27 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
         {/* Empty children since we're using readonly mode */}
       </Form>
 
-      {/* Related Nodes Section */}
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Nodes</h2>
-      
-      <div className="text-sm text-gray-600">
-        <p>
-          This node has {relatives.length} related elements (synapses and attribute-referenced nodes). 
-          Use the getRelatives() function to filter by relationship type.
-        </p>
-        
-        <div className="mt-4">
-          <GroupedRelativesView 
-            relatives={relatives}
-            relativesByRole={relativesByRole}
-            renderNodeId={renderNodeId}
-          />
-        </div>
-      </div>
+      {/* Related Nodes Section - Only show in view/edit modes */}
+      {mode !== 'create' && (
+        <>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Nodes</h2>
+          
+          <div className="text-sm text-gray-600">
+            <p>
+              This node has {relatives.length} related elements (synapses and attribute-referenced nodes). 
+              Use the getRelatives() function to filter by relationship type.
+            </p>
+            
+            <div className="mt-4">
+              <GroupedRelativesView 
+                relatives={relatives}
+                relativesByRole={relativesByRole || undefined}
+                renderNodeId={renderNodeId}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   );

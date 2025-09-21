@@ -1,17 +1,139 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BaseNodeView } from './BaseNode';
 import type { BaseNodeViewProps, EditProps } from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { Avatar } from '../avatar';
-import type { UserNode } from '@whitepine/types';
-import { NODE_TYPES } from '@whitepine/types';
+import type { UserNode } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types/client';
+import { useAppDispatch } from '@web/store/hooks';
+import { createNode } from '@web/store/slices/nodesSlice';
 
 export interface UserNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
   children?: (node: UserNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
+  mode?: 'view' | 'create';
+  onSuccess?: (nodeId: string) => void;
 }
+
+interface UserNodeCreateFormProps {
+  onSuccess?: (nodeId: string) => void;
+  className?: string;
+}
+
+const UserNodeCreateForm: React.FC<UserNodeCreateFormProps> = ({ onSuccess, className }) => {
+  const dispatch = useAppDispatch();
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    kind: NODE_TYPES.USER,
+    email: 'user@example.com',
+    name: 'New User',
+    bio: '',
+    isActive: true,
+    avatar: '',
+    preferences: {
+      theme: 'light',
+      language: 'en',
+      notifications: {
+        email: true,
+        push: false,
+      },
+    },
+  });
+
+  const handleSave = async () => {
+    setIsCreating(true);
+    setCreateError(null);
+
+    try {
+      const result = await dispatch(createNode(formData)).unwrap();
+      onSuccess?.(result._id.toString());
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create user node';
+      setCreateError(errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <div className={`space-y-4 ${className || ''}`}>
+      <div className="bg-white border border-blue-200 rounded p-4 shadow-sm">
+        {/* Edit/Save/Cancel buttons */}
+        <div className="flex items-center justify-end space-x-2 mb-4">
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={handleSave}
+              disabled={isCreating}
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <Save className="w-4 h-4" />
+              <span>{isCreating ? 'Creating...' : 'Create'}</span>
+            </Button>
+          </div>
+        </div>
+        
+        {/* Save error display */}
+        {createError && (
+          <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+            <p className="text-red-600 text-sm">{createError}</p>
+          </div>
+        )}
+        
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-gray-500 text-sm">Avatar</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-medium text-gray-900">
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="border border-gray-300 rounded px-2 py-1 text-lg font-medium w-full"
+                placeholder="Enter user name..."
+              />
+            </h3>
+            <p className="text-sm text-gray-600">
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="border border-gray-300 rounded px-2 py-1 text-sm w-full max-w-xs"
+                placeholder="Enter email address..."
+              />
+            </p>
+            <p className="text-sm text-gray-700 mt-1">
+              <textarea
+                value={formData.bio}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
+                rows={2}
+                placeholder="Enter user bio..."
+              />
+            </p>
+          </div>
+          <div className="text-right text-sm text-gray-500">
+            <div>
+              Status: 
+              <select
+                value={formData.isActive.toString()}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'true' })}
+                className="border border-gray-300 rounded px-2 py-1 text-sm ml-2"
+              >
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * UserNodeView component for displaying UserNode instances.
@@ -26,8 +148,15 @@ export interface UserNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
 export const UserNodeView: React.FC<UserNodeViewProps> = ({
   nodeId,
   className,
-  children
+  children,
+  mode = 'view',
+  onSuccess
 }) => {
+  // If in create mode, render the creation form directly
+  if (mode === 'create') {
+    return <UserNodeCreateForm onSuccess={onSuccess} className={className} />;
+  }
+
   return (
     <BaseNodeView nodeId={nodeId} className={className}>
       {(node, isLoading, error, editProps) => {

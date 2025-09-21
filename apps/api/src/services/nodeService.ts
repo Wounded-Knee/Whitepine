@@ -7,7 +7,11 @@ import {
   baseNodeSelectionCriteria,
   userNodeSelectionCriteria,
   postNodeSelectionCriteria,
-  synapseNodeSelectionCriteria
+  synapseNodeSelectionCriteria,
+  baseNodeHandlers,
+  userNodeHandlers,
+  postNodeHandlers,
+  synapseNodeHandlers
 } from '../models/index.js';
 import type { BaseNode, SynapseDirection, NodeType, SynapseRole } from '@whitepine/types';
 import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
@@ -20,6 +24,13 @@ const selectionCriteria = {
   [NODE_TYPES.POST]: postNodeSelectionCriteria,
   [NODE_TYPES.SYNAPSE]: synapseNodeSelectionCriteria
 };
+
+const nodeHandlers = {
+  [NODE_TYPES.BASE]: baseNodeHandlers,
+  [NODE_TYPES.USER]: userNodeHandlers,
+  [NODE_TYPES.POST]: postNodeHandlers,
+  [NODE_TYPES.SYNAPSE]: synapseNodeHandlers
+}
 
 /**
  * Nodes are the atomic unit of data structure.
@@ -53,6 +64,7 @@ export interface CreateNodeRequest {
   kind: string;
   data: Record<string, any>;
   synapses?: CreateSynapseRequest[];
+  userId?: string; // Optional authenticated user ID for automatic authorship synapse
 }
 
 export interface UpdateNodeRequest {
@@ -105,7 +117,7 @@ export class NodeService {
    * If the synapses are not created successfully, the node will not be created.
    */
   static async createNode(request: CreateNodeRequest) {
-    const { kind, data, synapses } = request;
+    const { kind, data, synapses, userId } = request;
     
     const session = await BaseNodeModel.startSession();
     
@@ -121,15 +133,30 @@ export class NodeService {
         const node = new Model(nodeData);
         await node.save({ session });
         
-        // Create synapses if provided (synapses are nodes with kind='synapse')
-        if (synapses && synapses.length > 0) {
-          const synapseRequests = synapses.map(synapse => ({
-            ...synapse,
-            from: synapse.from || node._id, // Default to the new node if not specified
-            to: synapse.to || node._id,
-          }));
+        // Prepare all synapses to create (including automatic authorship synapse)
+        const allSynapseRequests: CreateSynapseRequest[] = [];
 
-          await this.createMultipleSynapses(synapseRequests, session);
+        // Always create an authorship synapse if userId is provided
+        if (userId) {
+          // Handle both encoded (wp_*) and raw MongoDB ObjectId strings
+          const decodedUserId = userId.startsWith('wp_') ? this.normalizeNodeId(userId) : userId;
+
+          allSynapseRequests.push(nodeHandlers[kind as NodeKind].onCreate(node, decodedUserId, allSynapseRequests));
+        }
+
+        // Add any additional synapses provided in the request
+        if (synapses && synapses.length > 0) {
+          const additionalSynapses = synapses.map(synapse => ({
+            ...synapse,
+            from: synapse.from || new Types.ObjectId(node._id), // Default to the new node if not specified
+            to: synapse.to || new Types.ObjectId(node._id),
+          }));
+          allSynapseRequests.push(...additionalSynapses);
+        }
+
+        // Create all synapses if any exist
+        if (allSynapseRequests.length > 0) {
+          await this.createMultipleSynapses(allSynapseRequests, session);
         }
         
         return node;
@@ -149,7 +176,6 @@ export class NodeService {
    * Normalize a node ID - handle encoded IDs and corrupted object strings
    */
   static normalizeNodeId(id: string): string {
-    console.log('[NORMALIZE] normalizeNodeId: input =', id, 'type =', typeof id);
     // Handle encoded node IDs - decode manually to avoid import issues
     if (typeof id === 'string' && id.startsWith('wp_')) {
       try {
@@ -194,14 +220,9 @@ export class NodeService {
     
     // Handle corrupted object strings - extract ObjectId from any format
     if (typeof id === 'string') {
-      console.log('[NORMALIZE] Processing string:', id.substring(0, 100) + '...');
-      console.log('[NORMALIZE] Contains _id:', id.includes('_id'));
-      console.log('[NORMALIZE] Contains ObjectId:', id.includes('ObjectId'));
-      
       // Extract any 24-character hex string (MongoDB ObjectId format)
       const idMatch = id.match(/([a-fA-F0-9]{24})/);
       if (idMatch) {
-        console.log('[NORMALIZE] Extracted ObjectId:', idMatch[1]);
         return idMatch[1];
       }
     }
@@ -213,34 +234,24 @@ export class NodeService {
    * Get a node by ID with automatically included connected synapses using MongoDB aggregation
    */
   static async getNodeById(id: string) {
-    console.log('=== GETNODEBYID CALLED ===');
-    console.log('[SERVICE] getNodeById: input id =', id, 'type =', typeof id);
-    
     // Handle the specific case where an object string is passed
     if (typeof id === 'string' && id.includes('_id: new ObjectId(')) {
-      console.log('[SERVICE] Detected object string, extracting ObjectId');
-      console.log('[SERVICE] Object string:', id);
       const idMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
       if (idMatch) {
         id = idMatch[1];
-        console.log('[SERVICE] Extracted ObjectId:', id);
       }
     }
     
     // Additional check for the specific error pattern
     if (typeof id === 'string' && id.includes('_id: new ObjectId(')) {
-      console.log('[SERVICE] Additional check: Detected object string pattern');
       const idMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
       if (idMatch) {
         id = idMatch[1];
-        console.log('[SERVICE] Additional check: Extracted ObjectId:', id);
       }
     }
     
     // Normalize the ID - handle encoded IDs and corrupted object strings
     id = this.normalizeNodeId(id);
-    console.log('[SERVICE] getNodeById: after normalizeNodeId =', id, 'type =', typeof id);
-    
 
     if (!Types.ObjectId.isValid(id)) {
       throw createError('Invalid node ID', 400);
@@ -249,23 +260,18 @@ export class NodeService {
     try {
       // Additional safety check - if id still contains object string, extract it
       if (typeof id === 'string' && (id.includes('_id') || id.includes('ObjectId'))) {
-        console.log('Safety check: Detected object string, extracting ID');
         const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
         if (objectIdMatch) {
           id = objectIdMatch[1];
-          console.log('Safety check: Extracted ID:', id);
         } else {
           const idMatch = id.match(/([a-fA-F0-9]{24})/);
           if (idMatch) {
             id = idMatch[1];
-            console.log('Safety check: Extracted ID from hex pattern:', id);
           }
         }
       }
       
       // Use MongoDB aggregation pipeline to efficiently find the node and all related nodes through synapses
-      console.log('[DB_QUERY] Starting aggregation pipeline for node:', id);
-      
       const pipeline = [
         // Match the target node
         {
@@ -381,36 +387,11 @@ export class NodeService {
       // Remove aggregation fields from the node
       const { allSynapses, relatedNodes, relatedNodeIds, ...cleanNodeData } = nodeWithComputedFields;
       
-      // Group relatives by role and direction
-      const relativesByRole: Record<string, Record<string, string[]>> = {};
-      
-      if (nodeData.allSynapses && nodeData.allSynapses.length > 0) {
-        nodeData.allSynapses.forEach((synapse: any) => {
-          const role = synapse.role;
-          const dir = synapse.dir;
-          
-          if (!relativesByRole[role]) {
-            relativesByRole[role] = {};
-          }
-          if (!relativesByRole[role][dir]) {
-            relativesByRole[role][dir] = [];
-          }
-          
-          // Add the related node ID (either from or to, whichever is not the current node)
-          const relatedId = synapse.from.toString() === id ? synapse.to.toString() : synapse.from.toString();
-          if (!relativesByRole[role][dir].includes(relatedId)) {
-            relativesByRole[role][dir].push(relatedId);
-          }
-        });
-      }
-      
-      console.log('[DB_QUERY] Aggregation completed. Found node with', nodeData.relatedNodes?.length || 0, 'relatives');
-      
       return {
         node: cleanNodeData,
         allRelatives: nodeData.relatedNodes || [],
         allRelativeIds: nodeData.relatedNodeIds || [],
-        relativesByRole
+        allSynapses: nodeData.allSynapses || []
       };
     } catch (error: any) {
       if (error.statusCode) throw error;
@@ -761,11 +742,8 @@ export class NodeService {
     dir?: SynapseDirection;
     includeDeleted?: boolean;
   } = {}) {
-    console.log('[SERVICE] getNodeSynapses: Input nodeId =', nodeId, 'type =', typeof nodeId);
-    
     // Normalize the node ID first
     nodeId = this.normalizeNodeId(nodeId);
-    console.log('[SERVICE] getNodeSynapses: After normalizeNodeId =', nodeId, 'type =', typeof nodeId);
     
     if (!Types.ObjectId.isValid(nodeId)) {
       throw createError('Invalid node ID', 400);
@@ -789,18 +767,12 @@ export class NodeService {
 
       if (role) filter.role = role;
       if (dir) filter.dir = dir;
-
-      console.log('[DB_QUERY] About to query BaseNodeModel.find with filter:', JSON.stringify(filter, null, 2));
-      console.log('[DB_QUERY] objectId value:', objectId, 'type:', typeof objectId);
-      console.log('[DB_QUERY] nodeId value:', nodeId, 'type:', typeof nodeId);
       
       const synapses = await BaseNodeModel
         .find(filter)
         .populate('from', 'kind content')
         .populate('to', 'kind content')
         .sort({ createdAt: -1 });
-        
-      console.log('[DB_QUERY] BaseNodeModel.find result count:', synapses.length);
 
       return synapses as any[]; // Cast to any[] since these are synapse nodes with additional properties
     } catch (error: any) {

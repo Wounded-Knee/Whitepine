@@ -147,7 +147,6 @@ export class AvatarService {
         
         if (now - stats.mtime.getTime() > this.MAX_CACHE_AGE) {
           await fs.unlink(filePath);
-          console.log(`Cleaned up old avatar: ${file}`);
         }
       }
     } catch (error) {
@@ -215,8 +214,6 @@ export class AvatarService {
       // Download and save the file
       const fileStream = createWriteStream(filePath);
       await pipeline(response.body!, fileStream);
-
-      console.log(`Cached Google avatar: ${filename}`);
     } catch (error) {
       console.error('Error caching Google avatar:', error);
       throw error;

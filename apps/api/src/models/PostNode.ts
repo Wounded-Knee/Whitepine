@@ -1,19 +1,10 @@
 import { Schema } from 'mongoose';
-import { BaseNodeModel, baseNodeSelectionCriteria } from './BaseNode.js';
+import { model as BaseNodeModel } from './BaseNode.js';
 import type { PostNode } from '@whitepine/types';
 import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
 
-// PostNode selection criteria that inherits from BaseNode
-const postNodeSelectionCriteria = {
-  ...baseNodeSelectionCriteria,
-  relatives: {
-    ...baseNodeSelectionCriteria.relatives,
-    publishedAt: { $ne: null }
-  }
-};
-
 // PostNode schema
-const postNodeSchema = new Schema<PostNode>({
+const schema = new Schema<PostNode>({
   content: {
     type: String,
     required: true,
@@ -30,13 +21,13 @@ const postNodeSchema = new Schema<PostNode>({
 });
 
 // Text search index for content
-postNodeSchema.index({ content: 'text' });
+schema.index({ content: 'text' });
 
 // Additional indexes for efficient querying
-postNodeSchema.index({ publishedAt: -1 });
+schema.index({ publishedAt: -1 });
 
 // Pre-save middleware to ensure kind is set
-postNodeSchema.pre('save', function(next) {
+schema.pre('save', function(next) {
   if (!this.kind) {
     this.kind = NODE_TYPES.POST;
   }
@@ -44,12 +35,12 @@ postNodeSchema.pre('save', function(next) {
 });
 
 // Static method to find published posts
-postNodeSchema.statics.findPublished = function() {
+schema.statics.findPublished = function() {
   return this.find({ publishedAt: { $ne: null }, deletedAt: null });
 };
 
 // Static method to find posts by content search
-postNodeSchema.statics.searchContent = function(searchTerm: string) {
+schema.statics.searchContent = function(searchTerm: string) {
   return this.find({
     $text: { $search: searchTerm },
     deletedAt: null,
@@ -57,19 +48,19 @@ postNodeSchema.statics.searchContent = function(searchTerm: string) {
 };
 
 // Instance method to publish a post
-postNodeSchema.methods.publish = function() {
+schema.methods.publish = function() {
   this.publishedAt = new Date();
   return this.save();
 };
 
 // Instance method to unpublish a post
-postNodeSchema.methods.unpublish = function() {
+schema.methods.unpublish = function() {
   this.publishedAt = null;
   return this.save();
 };
 
 // Create the PostNode discriminator model
-const PostNodeModel = BaseNodeModel.discriminator<PostNode>(NODE_TYPES.POST, postNodeSchema);
+const model = BaseNodeModel.discriminator<PostNode>(NODE_TYPES.POST, schema);
 
 // Export the model, schema, and selection criteria
-export { PostNodeModel, postNodeSchema, postNodeSelectionCriteria };
+export { model, schema };

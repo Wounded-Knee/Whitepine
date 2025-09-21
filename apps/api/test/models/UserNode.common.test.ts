@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { UserNodeModel, userNodeSchema, userNodeSelectionCriteria } from '../../src/models/UserNode.js';
+import { UserNodeModel, userNodeSchema, userNodeSelectionCriteria } from '../../src/models/index.js';
 import { NODE_TYPES } from '@whitepine/types';
 import { runNodeModelCommonTests, runDiscriminatorModelTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 

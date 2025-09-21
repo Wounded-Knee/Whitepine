@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { Button } from '@web/components/ui/button';
 import { Plus, MessageSquare, User, FileText, Link } from 'lucide-react';
-import { NODE_TYPES } from '@shared/nodeTypes';
-import type { BaseNode } from '@whitepine/types';
-import type { RelationshipConfig } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types/client';
+import type { BaseNode } from '@whitepine/types/client';
+import type { RelationshipConfig } from '@whitepine/types/client';
 
 export interface RelationshipSuggestion {
   id: string;

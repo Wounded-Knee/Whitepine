@@ -5,18 +5,23 @@ import Link from 'next/link';
 import { useAppDispatch } from '@web/store/hooks';
 import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
-import { NODE_TYPES } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types/client';
 import { ExternalLink, Database, Plus, Users, FileText, Package } from 'lucide-react';
-
-type NodeType = 'BaseNode' | 'UserNode' | 'PostNode';
+import { CreateSampleNodeDialog, type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
+import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeView';
 
 export default function NodeViewDemo() {
   const dispatch = useAppDispatch();
   const [selectedNodeType, setSelectedNodeType] = useState<NodeType>('BaseNode');
+  const [selectedMode, setSelectedMode] = useState<'view' | 'edit' | 'create'>('view');
   const [createdNodeId, setCreatedNodeId] = useState<string | null>(null);
   const [availableNodes, setAvailableNodes] = useState<any[]>([]);
   const [isLoadingNodes, setIsLoadingNodes] = useState(true);
   const [nodesError, setNodesError] = useState<string | null>(null);
+  
+  // Dialog state
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   
   // State for isolated PostNodes
   const [isolatedPostNodes, setIsolatedPostNodes] = useState<any[]>([]);
@@ -99,53 +104,27 @@ export default function NodeViewDemo() {
     fetchAvailableNodes();
   }, []);
 
-  // Create a sample node based on selected type
-  const createSampleNode = async () => {
-    try {
-      let nodeData: any = {
-        // Note: All relationships are now handled via SynapseNode connections
-      };
+  // Dialog handlers
+  const handleOpenCreateDialog = () => {
+    setShowCreateDialog(true);
+    setCreateError(null);
+  };
 
-      switch (selectedNodeType) {
-        case 'BaseNode':
-          nodeData.kind = NODE_TYPES.POST; // Use post as default since BaseNode isn't a valid kind
-          nodeData.content = 'This is a sample base node created for testing.';
-          break;
-        case 'UserNode':
-          nodeData = {
-            ...nodeData,
-            kind: NODE_TYPES.USER,
-            email: 'demo@example.com',
-            name: 'Demo User',
-            bio: 'This is a demo user created for testing the UserNodeView component.',
-            isActive: true,
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-            preferences: {
-              theme: 'dark',
-              language: 'en',
-              notifications: {
-                email: true,
-                push: false,
-              },
-            },
-          };
-          break;
-        case 'PostNode':
-          nodeData = {
-            ...nodeData,
-            kind: NODE_TYPES.POST,
-            content: 'This is a sample post created for testing the PostNodeView component.',
-            title: 'Sample Post Title',
-            tags: ['demo', 'sample', 'testing'],
-          };
-          break;
-      }
-      
-      const result = await dispatch(createNode(nodeData)).unwrap();
-      setCreatedNodeId(result._id.toString());
-    } catch (error) {
-      console.error('Failed to create sample node:', error);
-    }
+  const handleCloseCreateDialog = () => {
+    setShowCreateDialog(false);
+    setCreateError(null);
+  };
+
+  const handleCreateSuccess = (nodeId: string) => {
+    setCreatedNodeId(nodeId);
+    setShowCreateDialog(false);
+    setCreateError(null);
+    // Refresh the nodes list by dispatching the fetchNodes action
+    dispatch(fetchNodes({}));
+  };
+
+  const handleCreateError = (error: string) => {
+    setCreateError(error);
   };
 
   return (
@@ -278,8 +257,27 @@ export default function NodeViewDemo() {
               </div>
             </div>
             
+            <div className="bg-gray-50 rounded-lg p-1">
+              <div className="flex">
+                {(['view', 'edit', 'create'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setSelectedMode(mode)}
+                    className={`px-4 py-2 rounded-md font-medium transition-all duration-200 text-sm ${
+                      selectedMode === mode
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    {mode === 'view' ? 'View' : 
+                     mode === 'edit' ? 'Edit' : 'Create'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             <button
-              onClick={createSampleNode}
+              onClick={handleOpenCreateDialog}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -302,6 +300,39 @@ export default function NodeViewDemo() {
             </div>
           )}
         </div>
+
+        {/* Mode Demonstration */}
+        {availableNodes.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              {selectedMode === 'view' ? 'View Mode' : 
+               selectedMode === 'edit' ? 'Edit Mode' : 'Create Mode'} Demonstration
+            </h2>
+            
+            <div className="border border-gray-200 rounded-lg p-4">
+              {selectedMode === 'create' ? (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    Create Mode: Shows an empty form for creating a new {selectedNodeType === 'BaseNode' ? 'Base' : 
+                    selectedNodeType === 'UserNode' ? 'User' : 'Post'} Node.
+                  </p>
+                  {selectedNodeType === 'BaseNode' && <BaseNodeView mode="create" />}
+                  {selectedNodeType === 'UserNode' && <UserNodeView mode="create" />}
+                  {selectedNodeType === 'PostNode' && <PostNodeView mode="create" />}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-gray-600 mb-4">
+                    {selectedMode === 'view' ? 'View Mode' : 'Edit Mode'}: Displaying the first available node in {selectedMode === 'view' ? 'read-only' : 'editable'} mode.
+                  </p>
+                  {selectedNodeType === 'BaseNode' && <BaseNodeView nodeId={availableNodes[0]._id} mode={selectedMode} />}
+                  {selectedNodeType === 'UserNode' && <UserNodeView nodeId={availableNodes[0]._id} mode={selectedMode} />}
+                  {selectedNodeType === 'PostNode' && <PostNodeView nodeId={availableNodes[0]._id} mode={selectedMode} />}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Quick Start Guide */}
         <div className="bg-white rounded-lg shadow-sm border p-6">
@@ -338,6 +369,15 @@ export default function NodeViewDemo() {
           </div>
         </div>
       </div>
+
+      {/* Create Sample Node Dialog */}
+      <CreateSampleNodeDialog
+        isOpen={showCreateDialog}
+        onClose={handleCloseCreateDialog}
+        nodeType={selectedNodeType}
+        onSuccess={handleCreateSuccess}
+        onError={handleCreateError}
+      />
     </div>
   );
 }

@@ -37,29 +37,19 @@ export const DEFAULT_NODE_ID_CONFIG: NodeIdEncodingConfig = {
  * for database operations
  */
 export function decodeNodeIdParams(req: Request, res: Response, next: NextFunction) {
-  try {
-    console.log('[MIDDLEWARE] decodeNodeIdParams middleware called');
-    console.log('[MIDDLEWARE] req.params:', req.params);
-    
+  try {    
     // Decode any node IDs in the params
     const decodedParams = { ...req.params };
     
     for (const [key, value] of Object.entries(req.params)) {
-      console.log(`[MIDDLEWARE] decodeNodeIdParams: processing ${key} = ${value} (type: ${typeof value})`);
       if (typeof value === 'string' && isValidEncodedNodeId(value)) {
-        console.log(`[MIDDLEWARE] decodeNodeIdParams: decoding ${key} = ${value}`);
         decodedParams[key] = decodeNodeId(value).toString();
-        console.log(`[MIDDLEWARE] decodeNodeIdParams: decoded ${key} = ${decodedParams[key]}`);
-      } else {
-        console.log(`[MIDDLEWARE] decodeNodeIdParams: not decoding ${key} = ${value} (isValid: ${isValidEncodedNodeId(value)})`);
       }
     }
     
     req.params = decodedParams;
-    console.log('[MIDDLEWARE] decodeNodeIdParams: final params:', req.params);
     next();
   } catch (error) {
-    console.log('decodeNodeIdParams error:', error);
     next(error);
   }
 }

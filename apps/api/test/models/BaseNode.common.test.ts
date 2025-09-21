@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { BaseNodeModel, baseNodeSchema, baseNodeSelectionCriteria } from '../../src/models/BaseNode.js';
+import { BaseNodeModel, baseNodeSchema } from '../../src/models/index.js';
+import { baseNodeSelectionCriteria } from '../../src/models/index.js';
 import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
 import { runNodeModelCommonTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 

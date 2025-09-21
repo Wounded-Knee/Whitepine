@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { SynapseNodeModel, synapseNodeSchema, synapseNodeSelectionCriteria } from '../../src/models/SynapseNode.js';
+import { SynapseNodeModel, synapseNodeSchema, synapseNodeSelectionCriteria } from '../../src/models/index.js';
 import { NODE_TYPES, SYNAPSE_ROLES, SYNAPSE_DIRECTIONS } from '@whitepine/types';
 import { runNodeModelCommonTests, runDiscriminatorModelTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 

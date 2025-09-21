@@ -98,6 +98,8 @@
       "Port configuration is managed via environment variables (DEV_WEB_PORT, DEV_API_PORT, PROD_WEB_PORT, PROD_API_PORT) with fallback defaults.",
       "Don't create documentation files unless asked to do so.",
 
+      "Don't you DARE EVER commit to git without asking permission. NEVER. I will kill you.",
+
       "Feel free to curse openly when you are performing tasks which are not working out. Your use of profanity at such times helps the user to understand the frustration and the need to find a solution."
     ]
 }

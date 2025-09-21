@@ -23,6 +23,14 @@ const nextConfig = {
       '@api': path.resolve(__dirname, '../api/src'),
       '@web': path.resolve(__dirname, '.'),
     };
+
+    // Provide fallbacks for server-side dependencies in client bundle
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      'lodash-es': false,
+      'mongoose': false,
+    };
+
     return config;
   },
 };

@@ -3,8 +3,9 @@ import { useAppDispatch, useAppSelector } from '@web/store/hooks';
 import { fetchNodeById } from '@web/store/slices/nodesSlice';
 import { useApiRequest } from './useApiRequest';
 import type { UseApiRequestResult } from './useApiRequest';
-import type { BaseNode } from '@whitepine/types';
-import { NODE_TYPES } from '@whitepine/types';
+import type { BaseNode } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types/client';
+import type { NodeViewMode } from '@web/components/NodeView/types/BaseNodeView.types';
 
 interface RelativesSelector {
   // Synaptic selectors
@@ -34,13 +35,13 @@ interface UseNodeRequestResult extends Omit<UseApiRequestResult<BaseNode>, 'data
  * Custom hook for managing node requests with built-in deduplication
  * This prevents multiple components from making the same API request
  */
-export function useNodeRequest(nodeId: string): UseNodeRequestResult {
+export function useNodeRequest(nodeId: string | undefined, mode: NodeViewMode = 'view'): UseNodeRequestResult {
   const dispatch = useAppDispatch();
   
-  // Use the generic API request hook for basic request management
+  // Use the generic API request hook for basic request management (only if not in create mode)
   const { data: node, refetch } = useApiRequest(
     'nodes',
-    nodeId,
+    nodeId || '',
     {
       fetchAction: async (id) => {
         // This won't be called since we use dispatchAction
@@ -48,16 +49,19 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
       },
       selector: (state, id) => state.nodes.byId[id] || null,
       dispatchAction: (id) => fetchNodeById(id),
-      enableCache: true
+      enableCache: true,
+      enabled: mode !== 'create' && !!nodeId // Don't fetch in create mode
     }
   );
   
   // Get loading and error state from Redux (node-specific)
   const isLoading = useAppSelector((state) => {
+    if (mode === 'create' || !nodeId) return false;
     return state.nodes.loading?.operations?.[`fetchNodeById-${nodeId}`] || false;
   });
   
   const error = useAppSelector((state) => {
+    if (mode === 'create' || !nodeId) return null;
     return state.nodes.error?.[`fetchNodeById-${nodeId}`] || null;
   });
   
@@ -82,12 +86,13 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   });
   
   const fetchNode = useCallback(async () => {
+    if (mode === 'create' || !nodeId) return;
     await refetch();
-  }, [refetch]);
+  }, [refetch, mode, nodeId]);
   
   // Get relatives from the API response (stored in Redux)
   const relatives = useMemo(() => {
-    if (!node || !allNodes) return [];
+    if (!node || !allNodes || mode === 'create') return [];
     
     // Check if we have any nodes that could be relatives (excluding the main node)
     const potentialRelatives = Object.values(allNodes).filter(otherNode => 
@@ -180,11 +185,11 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
     });
     
     return relatedNodes;
-  }, [node, allNodes, nodeId, nodeCount, hasRelatives, Object.keys(allNodes).length]);
+  }, [node, allNodes, nodeId, nodeCount, hasRelatives, mode, Object.keys(allNodes).length]);
 
   // getRelatives function implementation
   const getRelatives = useCallback((selector: RelativesSelector): any[] => {
-    if (!relatives || relatives.length === 0) {
+    if (!relatives || relatives.length === 0 || mode === 'create') {
       return [];
     }
     
@@ -247,7 +252,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
       // If no specific selector, return all
       return true;
     });
-  }, [relatives]);
+  }, [relatives, mode]);
   
   return {
     node,

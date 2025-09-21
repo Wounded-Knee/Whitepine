@@ -8,7 +8,7 @@ import nodesReducer, {
   fetchNodes 
 } from '@/store/slices/nodesSlice';
 import type { Node } from '@/store/types';
-import { NODE_TYPES } from '@shared/nodeTypes';
+import { NODE_TYPES } from '@whitepine/types/client';
 
 // Mock node data
 const mockNode: Node = {

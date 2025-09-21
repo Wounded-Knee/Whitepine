@@ -1,4 +1,4 @@
-import type { BaseNode, UserNode } from '@whitepine/types';
+import type { BaseNode, UserNode } from '@whitepine/types/client';
 import { getSession } from 'next-auth/react';
 
 // API client for node operations

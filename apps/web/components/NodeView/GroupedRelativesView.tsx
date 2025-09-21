@@ -162,7 +162,8 @@ const RoleGroup: React.FC<{
                       <div key={nodeId} className="bg-white border border-gray-200 rounded-lg p-3">
                         <RelativeNodeView 
                           relative={relative} 
-                          showRelationshipInfo={true}
+                          compact={false}
+                          showRelationshipInfo={false}
                         />
                       </div>
                     );
@@ -221,7 +222,8 @@ const FallbackRoleGroup: React.FC<{
             <div key={relative._id || index} className="bg-white border border-gray-200 rounded-lg p-3">
               <RelativeNodeView 
                 relative={relative} 
-                showRelationshipInfo={true}
+                compact={false}
+                showRelationshipInfo={false}
               />
             </div>
           ))}

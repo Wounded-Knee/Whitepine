@@ -1,8 +1,8 @@
 /**
  * Dynamic schema generator for any node type
  */
-export const generateNodeSchema = (node: any, isEditing: boolean = false) => {
-  if (!node) return { type: 'object', properties: {} };
+export const generateNodeSchema = (node: any, isEditing: boolean = false, mode: 'view' | 'edit' | 'create' = 'view') => {
+  if (!node && mode !== 'create') return { type: 'object', properties: {} };
 
   const properties: Record<string, any> = {};
   const uiSchema: Record<string, any> = {};
@@ -95,8 +95,8 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false) => {
   };
 
   // Process each property in the node
-  // Create a safe copy of the node object to avoid enumeration issues
-  const safeNode = { ...node };
+  // For create mode, provide default properties if no node exists
+  const safeNode = node ? { ...node } : (mode === 'create' ? { kind: 'post' } : {});
   
   // Use Object.keys to avoid potential enumeration issues with Object.entries
   Object.keys(safeNode).forEach((key) => {
@@ -110,7 +110,7 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false) => {
     const description = generateDescription(key, value);
 
     // Determine if this field should be read-only
-    const isFieldReadOnly = !isEditing || key === '_id' || key === 'kind' || key === 'createdAt' || key === 'updatedAt' || key === 'deletedAt' || key === 'readOnly';
+    const isFieldReadOnly = !isEditing || (mode !== 'create' && (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === 'deletedAt' || key === 'readOnly'));
 
     // Generate schema property
     properties[key] = {
@@ -131,7 +131,7 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false) => {
     };
 
     // Special handling for specific field types
-    if (key === '_id' || key === 'kind') {
+    if (key === '_id' || (key === 'kind' && mode !== 'create')) {
       uiSchema[key]['ui:widget'] = 'hidden';
     } else if (typeInfo.format === 'date-time') {
       uiSchema[key]['ui:widget'] = 'datetime';
@@ -147,8 +147,8 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false) => {
   return {
     schema: {
       type: 'object',
-      title: `${node.kind || 'Node'} Information`,
-      description: `Complete information about this ${node.kind || 'node'}`,
+      title: mode === 'create' ? 'Create New Node' : `${node?.kind || 'Node'} Information`,
+      description: mode === 'create' ? 'Create a new node with the following properties' : `Complete information about this ${node?.kind || 'node'}`,
       properties
     },
     uiSchema

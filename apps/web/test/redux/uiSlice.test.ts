@@ -10,7 +10,7 @@ import uiReducer, {
   setError,
   clearError
 } from '@/store/slices/uiSlice';
-import { NODE_TYPES } from '@shared/nodeTypes';
+import { NODE_TYPES } from '@whitepine/types/client';
 
 describe('uiSlice', () => {
   let store: ReturnType<typeof configureStore>;

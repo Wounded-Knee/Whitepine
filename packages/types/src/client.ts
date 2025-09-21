@@ -1,4 +1,6 @@
-// Shared types for the Whitepine application
+// Client-safe types for the Whitepine application
+// This file excludes server-side dependencies like Mongoose
+
 // Note: Using string instead of Types.ObjectId for client compatibility
 type ObjectId = string;
 
@@ -139,33 +141,18 @@ export {
   SYNAPSE_NODE_RELATIONSHIP_CONFIGS,
 } from './nodes';
 
-// ---------- Node ID Encoding/Decoding Utilities ----------
-export {
-  encodeNodeId,
-  decodeNodeId,
-  isValidEncodedNodeId,
-  isRawObjectId,
-  normalizeToEncodedId,
-  normalizeToObjectId,
-  encodeObjectIds,
-  decodeObjectIds,
-} from './nodeId';
+// Client-safe versions of node ID utilities (without Mongoose dependencies)
+export function isValidEncodedNodeId(id: string): boolean {
+  // Simple validation for encoded node IDs
+  return typeof id === 'string' && id.length > 0;
+}
 
-// ---------- Node ID Utilities ----------
-export {
-  encodeNodeResponse,
-  encodeNodesResponse,
-  encodeObjectFields,
-  decodeObjectFields,
-} from './nodeIdUtils';
+export function isRawObjectId(id: string): boolean {
+  // Simple validation for raw ObjectId strings
+  return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
+}
 
-// ---------- Node ID Configuration ----------
-export type { NodeIdEncodingConfig } from './nodeIdConfig';
-
-// ---------- Node ID Configuration ----------
-export {
-  CUSTOM_NODE_ID_CONFIG,
-  createNodeIdConfig,
-  addFieldsToNodeType,
-  removeFieldsFromNodeType,
-} from './nodeIdConfig';
+// Client-safe type for NodeIdEncodingConfig
+export interface NodeIdEncodingConfig {
+  [nodeType: string]: string[];
+}

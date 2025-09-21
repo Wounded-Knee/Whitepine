@@ -1,18 +1,9 @@
-import { Schema, model, Model, Document } from 'mongoose';
+import { Schema, model as Model } from 'mongoose';
 import type { BaseNode } from '@whitepine/types';
 import { discriminatorKey } from '@whitepine/types';
 
-const baseNodeSelectionCriteria = {
-  cardinal: {
-    deletedAt: null
-  },
-  relatives: {
-    deletedAt: null
-  }
-};
-
 // Base Node Schema
-const baseNodeSchema = new Schema<BaseNode>({
+const schema = new Schema<BaseNode>({
   [discriminatorKey]: {
     type: String,
     required: true,
@@ -40,46 +31,46 @@ const baseNodeSchema = new Schema<BaseNode>({
 });
 
 // Indexes for efficient querying
-baseNodeSchema.index({ [discriminatorKey]: 1, deletedAt: 1 });
+schema.index({ [discriminatorKey]: 1, deletedAt: 1 });
 
 // Compound index for soft delete queries
-baseNodeSchema.index({ deletedAt: 1, [discriminatorKey]: 1, createdAt: -1 });
+schema.index({ deletedAt: 1, [discriminatorKey]: 1, createdAt: -1 });
 
 // Pre-save middleware to update updatedAt
-baseNodeSchema.pre('save', function(next) {
+schema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Pre-update middleware to update updatedAt
-baseNodeSchema.pre(['updateOne', 'updateMany', 'findOneAndUpdate'], function(next) {
+schema.pre(['updateOne', 'updateMany', 'findOneAndUpdate'], function(next) {
   this.set({ updatedAt: new Date() });
   next();
 });
 
 // Static method to find non-deleted nodes
-baseNodeSchema.statics.findActive = function() {
-  return this.find(baseNodeSelectionCriteria.relatives);
+schema.statics.findActive = function() {
+  return this.find({ deletedAt: null });
 };
 
 // Static method to find by kind and slug
-baseNodeSchema.statics.findByKindAndSlug = function(kind: string, slug: string) {
-  return this.findOne({ [discriminatorKey]: kind, slug, ...baseNodeSelectionCriteria.relatives });
+schema.statics.findByKindAndSlug = function(kind: string, slug: string) {
+  return this.findOne({ [discriminatorKey]: kind, slug, deletedAt: null });
 };
 
 // Instance method for soft delete
-baseNodeSchema.methods.softDelete = function() {
+schema.methods.softDelete = function() {
   this.deletedAt = new Date();
   return this.save();
 };
 
 // Instance method to restore from soft delete
-baseNodeSchema.methods.restore = function() {
+schema.methods.restore = function() {
   this.deletedAt = null;
   return this.save();
 };
 
 // Create the base model
-const BaseNodeModel = model<BaseNode>('BaseNode', baseNodeSchema);
+const model = Model<BaseNode>('BaseNode', schema);
 
-export { BaseNodeModel, baseNodeSchema, baseNodeSelectionCriteria };
+export { model, schema };

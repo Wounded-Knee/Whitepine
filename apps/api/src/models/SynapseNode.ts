@@ -1,16 +1,10 @@
-import { Schema } from 'mongoose';
-import { BaseNodeModel, baseNodeSelectionCriteria } from './BaseNode.js';
+import { Schema, Types } from 'mongoose';
+import { model as BaseNodeModel } from './BaseNode.js';
 import type { SynapseNode } from '@whitepine/types';
 import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
 
-// SynapseNode selection criteria that inherits from BaseNode
-const synapseNodeSelectionCriteria = {
-  ...baseNodeSelectionCriteria
-  // No additional criteria for synapses - inherits base criteria only
-};
-
 // SynapseNode schema
-const synapseNodeSchema = new Schema<SynapseNode>({
+const schema = new Schema({
   from: {
     type: Schema.Types.ObjectId,
     ref: 'BaseNode',
@@ -49,53 +43,53 @@ const synapseNodeSchema = new Schema<SynapseNode>({
 });
 
 // Uniqueness guard to prevent duplicate synapses unless soft-deleted
-synapseNodeSchema.index(
+schema.index(
   { from: 1, to: 1, role: 1, deletedAt: 1 },
   { unique: true }
 );
 
 // Additional indexes for efficient querying
-synapseNodeSchema.index({ from: 1, role: 1 });
-synapseNodeSchema.index({ to: 1, role: 1 });
-synapseNodeSchema.index({ role: 1, dir: 1 });
-synapseNodeSchema.index({ order: 1 });
-synapseNodeSchema.index({ weight: -1 });
+schema.index({ from: 1, role: 1 });
+schema.index({ to: 1, role: 1 });
+schema.index({ role: 1, dir: 1 });
+schema.index({ order: 1 });
+schema.index({ weight: -1 });
 
 // Pre-save middleware to ensure kind is set
-synapseNodeSchema.pre('save', function(next) {
-  if (!this.kind) {
-    this.kind = NODE_TYPES.SYNAPSE;
+schema.pre('save', function(next) {
+  if (!(this as any).kind) {
+    (this as any).kind = NODE_TYPES.SYNAPSE;
   }
   next();
 });
 
 // Static method to find synapses by role
-synapseNodeSchema.statics.findByRole = function(role: string) {
+schema.statics.findByRole = function(role: string) {
   return this.find({ role, deletedAt: null });
 };
 
 // Static method to find synapses from a specific node
-synapseNodeSchema.statics.findFrom = function(nodeId: string) {
+schema.statics.findFrom = function(nodeId: string) {
   return this.find({ from: nodeId, deletedAt: null });
 };
 
 // Static method to find synapses to a specific node
-synapseNodeSchema.statics.findTo = function(nodeId: string) {
+schema.statics.findTo = function(nodeId: string) {
   return this.find({ to: nodeId, deletedAt: null });
 };
 
 // Static method to find synapses between two nodes
-synapseNodeSchema.statics.findBetween = function(fromId: string, toId: string) {
+schema.statics.findBetween = function(fromId: string, toId: string) {
   return this.find({ from: fromId, to: toId, deletedAt: null });
 };
 
 // Static method to find synapses by direction
-synapseNodeSchema.statics.findByDirection = function(direction: 'out' | 'in' | 'undirected') {
+schema.statics.findByDirection = function(direction: 'out' | 'in' | 'undirected') {
   return this.find({ dir: direction, deletedAt: null });
 };
 
 // Instance method to reverse the synapse direction
-synapseNodeSchema.methods.reverse = function() {
+schema.methods.reverse = function() {
   const temp = this.from;
   this.from = this.to;
   this.to = temp;
@@ -112,19 +106,19 @@ synapseNodeSchema.methods.reverse = function() {
 };
 
 // Instance method to update weight
-synapseNodeSchema.methods.updateWeight = function(weight: number) {
+schema.methods.updateWeight = function(weight: number) {
   this.weight = weight;
   return this.save();
 };
 
 // Instance method to update order
-synapseNodeSchema.methods.updateOrder = function(order: number) {
+schema.methods.updateOrder = function(order: number) {
   this.order = order;
   return this.save();
 };
 
 // Create the SynapseNode discriminator model
-const SynapseNodeModel = BaseNodeModel.discriminator<SynapseNode>(NODE_TYPES.SYNAPSE, synapseNodeSchema);
+const model = BaseNodeModel.discriminator<SynapseNode>(NODE_TYPES.SYNAPSE, schema);
 
 // Export the model, schema, and selection criteria
-export { SynapseNodeModel, synapseNodeSchema, synapseNodeSelectionCriteria };
+export { model, schema };

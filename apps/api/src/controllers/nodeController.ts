@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 import { NodeService } from '../services/nodeService.js';
 import { createError } from '../middleware/errorHandler.js';
 import type { ApiResponse, PaginationParams } from '@whitepine/types';
-import { encodeNodeResponse, encodeNodesResponse, decodeNodeId } from '@whitepine/types';
+import { encodeNodeResponse, encodeNodesResponse, decodeNodeId, encodeNodeId } from '@whitepine/types';
 
 // Define our user type
 type AuthUser = {
@@ -24,14 +24,6 @@ export class NodeController {
       const { kind, ...data } = req.body;
       const userId = (req.user as AuthUser)?.id;
 
-      // Debug logging
-      console.log('Node creation request:', {
-        hasUser: !!req.user,
-        userId: userId,
-        isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : 'method not available',
-        sessionId: (req as any).sessionID,
-        session: req.session ? Object.keys(req.session) : 'no session'
-      });
 
       if (!kind) {
         throw createError('Node kind is required', 400);
@@ -40,6 +32,7 @@ export class NodeController {
       const node = await NodeService.createNode({
         kind,
         data,
+        userId, // Pass the authenticated user ID for automatic authorship synapse
       });
 
       const response: ApiResponse = {
@@ -60,30 +53,64 @@ export class NodeController {
    */
   static async getNode(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log('[CONTROLLER] getNode: FUNCTION CALLED - TEST LOG');
       let { id } = req.params;
-      console.log('[CONTROLLER] getNode: id from params =', id, 'type =', typeof id);
-      console.log('[CONTROLLER] getNode: all params =', req.params);
       
       // Safety check: extract ObjectId from corrupted object strings
       if (typeof id === 'string' && (id.includes('_id') || id.includes('ObjectId'))) {
-        console.log('[CONTROLLER] Detected corrupted object string, extracting ObjectId');
         const idMatch = id.match(/([a-fA-F0-9]{24})/);
         if (idMatch) {
           id = idMatch[1];
-          console.log('[CONTROLLER] Extracted ObjectId:', id);
         }
       }
       
       const result = await NodeService.getNodeById(id);
 
+      // Encode the node and relatives first
+      const encodedNode = encodeNodeResponse(result.node);
+      const encodedRelatives = encodeNodesResponse(result.allRelatives);
+      
+      // Build relativesByRole mapping using encoded IDs
+      const relativesByRole: Record<string, Record<string, string[]>> = {};
+      
+      if (result.allSynapses && result.allSynapses.length > 0) {
+        result.allSynapses.forEach((synapse: any) => {
+          const role = synapse.role;
+          const dir = synapse.dir;
+          
+          if (!relativesByRole[role]) {
+            relativesByRole[role] = {};
+          }
+          if (!relativesByRole[role][dir]) {
+            relativesByRole[role][dir] = [];
+          }
+          
+          // Add the related node ID (either from or to, whichever is not the current node)
+          const relatedRawId = synapse.from.toString() === id ? synapse.to.toString() : synapse.from.toString();
+          
+          // Find the corresponding relative node and use its encoded ID
+          const relative = result.allRelatives?.find((rel: any) => {
+            return rel._id?.toString() === relatedRawId;
+          });
+          
+          if (relative && relative._id) {
+            const encodedId = encodeNodeId(relative._id);
+            if (!relativesByRole[role][dir].includes(encodedId)) {
+              relativesByRole[role][dir].push(encodedId);
+            }
+          }
+        });
+      }
+      
+      // Encode the allRelativeIds array
+      const encodedRelativeIds = result.allRelativeIds?.map((id: any) => encodeNodeId(id)) || [];
+
       const response: ApiResponse = {
         success: true,
         data: {
-          node: encodeNodeResponse(result.node),
-          allRelatives: encodeNodesResponse(result.allRelatives),
-          allRelativeIds: result.allRelativeIds,
-          relativesByRole: result.relativesByRole
+          node: encodedNode,
+          allRelatives: encodedRelatives,
+          allRelativeIds: encodedRelativeIds,
+          relativesByRole: relativesByRole
         },
         message: 'Node retrieved with connected synapses and nodes',
       };
