@@ -31,7 +31,7 @@ export const fetchNodes = createAsyncThunk<
 );
 
 export const fetchNodeById = createAsyncThunk<
-  { node: Node; relatives: any[] },
+  { node: Node; allRelatives: any[]; allRelativeIds: string[]; relativesByRole: Record<string, Record<string, string[]>> },
   string,
   AsyncThunkConfig
 >(
@@ -44,7 +44,9 @@ export const fetchNodeById = createAsyncThunk<
       
       return {
         node: result.node as Node,
-        relatives: result.relatives
+        allRelatives: result.allRelatives,
+        allRelativeIds: result.allRelativeIds,
+        relativesByRole: result.relativesByRole
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch node';
@@ -252,7 +254,7 @@ const nodesSlice = createSlice({
         }
       })
       .addCase(fetchNodeById.fulfilled, (state, action) => {
-        const { node, relatives } = action.payload;
+        const { node, allRelatives, allRelativeIds, relativesByRole } = action.payload;
         const nodeId = node._id.toString();
         
         // Store the main node
@@ -262,13 +264,19 @@ const nodesSlice = createSlice({
         state.byId[nodeId] = node;
         
         // Store all related nodes (including synapses - they should already be added by the thunk)
-        relatives.forEach(relative => {
+        allRelatives.forEach(relative => {
           const relativeNodeId = relative._id.toString();
           if (!state.byId[relativeNodeId]) {
             state.allIds.push(relativeNodeId);
           }
           state.byId[relativeNodeId] = relative;
         });
+        
+        // Store relativesByRole data for this node
+        if (!state.relativesByRole) {
+          state.relativesByRole = {};
+        }
+        state.relativesByRole[nodeId] = relativesByRole;
         
         // Clear any error for this node
         if (state.error) {

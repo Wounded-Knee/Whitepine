@@ -1,46 +1,38 @@
 'use client';
 
 import React from 'react';
-import { CollapsibleGroup } from './SynapticRoleGroup';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@web/components/ui/collapsible';
+import { Button } from '@web/components/ui/button';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { RelativeNodeView } from './RelativeNodeView';
-import { renderNodeId } from './utils/renderNodeId';
 
 interface GroupedRelativesViewProps {
   relatives: any[];
+  relativesByRole?: Record<string, Record<string, string[]>>;
   renderNodeId: (nodeId: string | any, className?: string) => React.ReactNode;
 }
 
 /**
  * Component that groups relatives by their synaptic role using collapsible containers
+ * Each group shows a summary of its contents and is collapsible
  */
 export const GroupedRelativesView: React.FC<GroupedRelativesViewProps> = ({
   relatives,
+  relativesByRole,
   renderNodeId
 }) => {
   // Debug: Log the relatives data structure
   console.log('GroupedRelativesView - relatives data:', relatives);
+  console.log('GroupedRelativesView - relativesByRole data:', relativesByRole);
   
-  // Group relatives by synaptic role
-  const relativesByRole = relatives.reduce((acc, relative) => {
-    // Extract role from synapse data
-    // For synapse nodes, the role is directly on the object
-    // For connected nodes, we need to look at the synapse relationship
-    let role = 'unknown';
-    
-    if (relative.kind === 'synapse') {
-      // This is a synapse node, role is directly available
-      role = relative.role || 'unknown';
-    } else {
-      // This is a connected node, look for role in relationship metadata
-      role = relative.role || relative._role || 'connected';
+  // Create a lookup map for relatives by ID for quick access
+  const relativesById = relatives.reduce((acc, relative) => {
+    const id = relative._id?.toString();
+    if (id) {
+      acc[id] = relative;
     }
-    
-    if (!acc[role]) {
-      acc[role] = [];
-    }
-    acc[role].push(relative);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, any>);
 
   // If no relatives, show empty state
   if (relatives.length === 0) {
@@ -51,49 +43,191 @@ export const GroupedRelativesView: React.FC<GroupedRelativesViewProps> = ({
     );
   }
 
+  // If we have relativesByRole data, use it for proper grouping
+  if (relativesByRole && Object.keys(relativesByRole).length > 0) {
+    return (
+      <div className="space-y-3">
+        {Object.entries(relativesByRole).map(([role, directions]) => (
+          <RoleGroup
+            key={role}
+            role={role}
+            directions={directions}
+            relativesById={relativesById}
+            renderNodeId={renderNodeId}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback: Group by synaptic role from relatives data
+  const relativesByRoleFallback = relatives.reduce((acc, relative) => {
+    let role = 'unknown';
+    
+    if (relative.kind === 'synapse') {
+      role = relative.role || 'unknown';
+    } else {
+      role = relative.role || relative._role || 'connected';
+    }
+    
+    if (!acc[role]) {
+      acc[role] = [];
+    }
+    acc[role].push(relative);
+    return acc;
+  }, {} as Record<string, any[]>);
+
   return (
-    <div className="space-y-4">
-      {Object.entries(relativesByRole).map(([role, roleRelatives]) => (
-        <div key={role} className="border border-gray-200 rounded-lg bg-white">
-          {/* Synaptic Role Header */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 px-4 py-3 rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-900">
-                  Synaptic Role: {role.charAt(0).toUpperCase() + role.slice(1)}
-                </h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  {(roleRelatives as any[]).length} {(roleRelatives as any[]).length === 1 ? 'node' : 'nodes'} connected via this role
-                </p>
-              </div>
-              <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                {role}
-              </div>
-            </div>
-          </div>
-          
-          {/* Collapsible Content */}
-          <div className="p-4">
-            <CollapsibleGroup
-              title={`${role.charAt(0).toUpperCase() + role.slice(1)} Nodes`}
-              items={roleRelatives as any[]}
-              renderItem={(relative, index) => (
-                <RelativeNodeView 
-                  relative={relative} 
-                  showRelationshipInfo={true}
-                />
-              )}
-              groupBy={(relative) => relative.kind || 'unknown'}
-              groupByLabel={(type, items) => type}
-              maxOpenItems={3}
-              showGroupCounts={true}
-              showItemCounts={true}
-              className="mb-0"
-            />
-          </div>
-        </div>
+    <div className="space-y-3">
+      {Object.entries(relativesByRoleFallback).map(([role, roleRelatives]) => (
+        <FallbackRoleGroup
+          key={role}
+          role={role}
+          relatives={roleRelatives as any[]}
+          renderNodeId={renderNodeId}
+        />
       ))}
     </div>
+  );
+};
+
+/**
+ * Component for a single role group with direction-based sub-grouping
+ */
+const RoleGroup: React.FC<{
+  role: string;
+  directions: Record<string, string[]>;
+  relativesById: Record<string, any>;
+  renderNodeId: (nodeId: string | any, className?: string) => React.ReactNode;
+}> = ({ role, directions, relativesById, renderNodeId }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  // Calculate total nodes across all directions
+  const totalNodes = Object.values(directions).reduce((sum, nodeIds) => sum + nodeIds.length, 0);
+  const directionCounts = Object.entries(directions).map(([dir, nodeIds]) => ({
+    direction: dir,
+    count: nodeIds.length
+  }));
+
+  // Create summary text
+  const summaryText = directionCounts
+    .filter(d => d.count > 0)
+    .map(d => `${d.count} ${d.direction}`)
+    .join(', ');
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="w-full justify-between h-auto border border-gray-200 rounded-lg p-3 hover:bg-gray-50"
+        >
+          <div className="flex flex-col items-start text-left">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-900 capitalize">
+                {role.replace(/_/g, ' ')}
+              </span>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                {totalNodes} {totalNodes === 1 ? 'node' : 'nodes'}
+              </span>
+            </div>
+            <span className="text-sm text-gray-500 mt-1">
+              {summaryText}
+            </span>
+          </div>
+          {isOpen ? (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          )}
+        </Button>
+      </CollapsibleTrigger>
+      
+      <CollapsibleContent className="mt-2">
+        <div className="space-y-3 pl-4 border-l-2 border-gray-100">
+          {Object.entries(directions).map(([direction, nodeIds]) => {
+            if (nodeIds.length === 0) return null;
+            
+            return (
+              <div key={direction} className="space-y-2">
+                <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  {direction} ({nodeIds.length})
+                </div>
+                <div className="space-y-2">
+                  {nodeIds.map((nodeId) => {
+                    const relative = relativesById[nodeId];
+                    if (!relative) return null;
+                    
+                    return (
+                      <div key={nodeId} className="bg-white border border-gray-200 rounded-lg p-3">
+                        <RelativeNodeView 
+                          relative={relative} 
+                          showRelationshipInfo={true}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+/**
+ * Fallback component for when we don't have relativesByRole data
+ */
+const FallbackRoleGroup: React.FC<{
+  role: string;
+  relatives: any[];
+  renderNodeId: (nodeId: string | any, className?: string) => React.ReactNode;
+}> = ({ role, relatives, renderNodeId }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="w-full justify-between h-auto border border-gray-200 rounded-lg p-3 hover:bg-gray-50"
+        >
+          <div className="flex flex-col items-start text-left">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-gray-900 capitalize">
+                {role.replace(/_/g, ' ')}
+              </span>
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                {relatives.length} {relatives.length === 1 ? 'node' : 'nodes'}
+              </span>
+            </div>
+            <span className="text-sm text-gray-500 mt-1">
+              Connected via this relationship
+            </span>
+          </div>
+          {isOpen ? (
+            <ChevronDown className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          )}
+        </Button>
+      </CollapsibleTrigger>
+      
+      <CollapsibleContent className="mt-2">
+        <div className="space-y-2 pl-4 border-l-2 border-gray-100">
+          {relatives.map((relative, index) => (
+            <div key={relative._id || index} className="bg-white border border-gray-200 rounded-lg p-3">
+              <RelativeNodeView 
+                relative={relative} 
+                showRelationshipInfo={true}
+              />
+            </div>
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
 

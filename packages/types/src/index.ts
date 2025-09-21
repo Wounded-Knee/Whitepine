@@ -21,6 +21,17 @@ export {
 
 // Import for use in type definitions
 import { NODE_TYPES } from './nodeTypes';
+import { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole } from './synapseTypes';
+
+// ---------- Synapse Types ----------
+export {
+  SYNAPSE_DIRECTIONS,
+  SYNAPSE_ROLES,
+  type SynapseRole
+};
+
+// Re-export SynapseDirection type for convenience
+export type SynapseDirection = typeof SYNAPSE_DIRECTIONS[keyof typeof SYNAPSE_DIRECTIONS];
 
 // Base Node interface for polymorphic nodes
 export interface BaseNode extends Document {
@@ -59,13 +70,11 @@ export interface PostNode extends BaseNode {
 }
 
 // SynapseNode interface extending BaseNode
-export type SynapseDirection = "out" | "in" | "undirected";
-
 export interface SynapseNode extends BaseNode {
   kind: typeof NODE_TYPES.SYNAPSE;
   from: Types.ObjectId;               // reference to Node
   to:   Types.ObjectId;               // reference to Node
-  role: string;                       // relationship type
+  role: SynapseRole;                  // relationship type
   dir:  SynapseDirection;             // direction of relation
   order?: number;                     // optional ordering
   weight?: number;                    // optional weighting

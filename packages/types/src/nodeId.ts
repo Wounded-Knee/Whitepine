@@ -157,7 +157,7 @@ export function isValidEncodedNodeId(id: string): boolean {
     decodeNodeId(id);
     return true;
   } catch (error) {
-    console.log('isValidEncodedNodeId error for', id, ':', error);
+    // Silently return false for invalid IDs
     return false;
   }
 }

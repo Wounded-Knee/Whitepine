@@ -37,7 +37,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
   children
 }) => {
   // Use the custom hook for request management with deduplication
-  const { node, isLoading, error, fetchNode, relatives, getRelatives } = useNodeRequest(nodeId);
+  const { node, isLoading, error, fetchNode, relatives, relativesByRole, getRelatives } = useNodeRequest(nodeId);
   
   // Get all nodes for debug information
   const allNodes = useAppSelector((state) => state.nodes.byId);
@@ -171,56 +171,42 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
       )}
 
       {/* Node Form */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <Form
-          schema={dynamicSchema}
-          uiSchema={dynamicUiSchema}
-          formData={editProps.isEditing ? (editProps.editData || editProps.formData) : editProps.formData}
-          validator={validator}
-          readonly={!editProps.isEditing}
-          showErrorList={false}
-          liveValidate={false}
-          noHtml5Validate={true}
-          className={`rjsf-form space-y-4 ${!editProps.isEditing ? 'read-only' : ''}`}
-          templates={{
-            ObjectFieldTemplate: CollapsibleObjectFieldTemplate
-          }}
-          onChange={editProps.isEditing ? editProps.handleFormChange : undefined}
-        >
-          {/* Empty children since we're using readonly mode */}
-        </Form>
-      </div>
+      <Form
+        schema={dynamicSchema}
+        uiSchema={dynamicUiSchema}
+        formData={editProps.isEditing ? (editProps.editData || editProps.formData) : editProps.formData}
+        validator={validator}
+        readonly={!editProps.isEditing}
+        showErrorList={false}
+        liveValidate={false}
+        noHtml5Validate={true}
+        className={`rjsf-form space-y-4 ${!editProps.isEditing ? 'read-only' : ''}`}
+        templates={{
+          ObjectFieldTemplate: CollapsibleObjectFieldTemplate
+        }}
+        onChange={editProps.isEditing ? editProps.handleFormChange : undefined}
+      >
+        {/* Empty children since we're using readonly mode */}
+      </Form>
 
       {/* Related Nodes Section */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Nodes</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Related Nodes</h2>
+      
+      <div className="text-sm text-gray-600">
+        <p>
+          This node has {relatives.length} related elements (synapses and attribute-referenced nodes). 
+          Use the getRelatives() function to filter by relationship type.
+        </p>
         
-        <div className="text-sm text-gray-600">
-          <p>
-            This node has {relatives.length} related elements (synapses and attribute-referenced nodes). 
-            Use the getRelatives() function to filter by relationship type.
-          </p>
-          
-          <div className="mt-4">
-            <GroupedRelativesView 
-              relatives={relatives}
-              renderNodeId={renderNodeId}
-            />
-          </div>
+        <div className="mt-4">
+          <GroupedRelativesView 
+            relatives={relatives}
+            relativesByRole={relativesByRole}
+            renderNodeId={renderNodeId}
+          />
         </div>
       </div>
 
-      {/* Debug Information */}
-      <div className="bg-gray-100 border border-gray-300 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Debug Information</h3>
-        <div className="text-xs text-gray-600 space-y-1">
-          <p>Total nodes in store: {Object.keys(allNodes).length}</p>
-          <p>Current node ID: {node._id.toString()}</p>
-          <p>Node kind: {node.kind}</p>
-          <p>Relatives count: {relatives.length}</p>
-          <p>Relationship configs: {relationshipConfigs.length}</p>
-        </div>
-      </div>
     </div>
   );
 };

@@ -1,10 +1,43 @@
 import { Types } from 'mongoose';
-import { BaseNodeModel, UserNodeModel, PostNodeModel, SynapseNodeModel } from '../models/index.js';
-import type { BaseNode, SynapseDirection } from '@whitepine/types';
-import { NODE_TYPES } from '@whitepine/types';
+import { 
+  BaseNodeModel, 
+  UserNodeModel, 
+  PostNodeModel, 
+  SynapseNodeModel,
+  baseNodeSelectionCriteria,
+  userNodeSelectionCriteria,
+  postNodeSelectionCriteria,
+  synapseNodeSelectionCriteria
+} from '../models/index.js';
+import type { BaseNode, SynapseDirection, NodeType, SynapseRole } from '@whitepine/types';
+import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
 import { createError } from '../middleware/errorHandler.js';
 import { isWritePermitted } from '../middleware/datePermissions.js';
-// Synapse creation logic moved inline since synapses are nodes
+
+const selectionCriteria = {
+  [NODE_TYPES.BASE]: baseNodeSelectionCriteria,
+  [NODE_TYPES.USER]: userNodeSelectionCriteria,
+  [NODE_TYPES.POST]: postNodeSelectionCriteria,
+  [NODE_TYPES.SYNAPSE]: synapseNodeSelectionCriteria
+};
+
+/**
+ * Nodes are the atomic unit of data structure.
+ * Relationships between nodes are represented by synapses.
+ * Synapses are nodes with kind='synapse'.
+ * 
+ * Synapses contain attributes indicating:
+ *    IDs of the nodes they connect.
+ *    The type of relationship they represent.
+ *    The direction of the relationship.
+ *    The order of the relationship.
+ * 
+ * Synapses can be created with or without nodes. If they are created with nodes,
+ * the nodes will be created in the same transaction as the synapses.
+ * If they are created without nodes, the nodes the synapse references must already exist.
+ * 
+ * 
+ */
 
 export interface CreateSynapseRequest {
   from: Types.ObjectId;
@@ -62,6 +95,14 @@ export class NodeService {
 
   /**
    * Create a new node with optional synapses
+   * 
+   * If synapses are specified, they will be created in the same transaction as the node.
+   * If synapses are not specified, they will not be created.
+   * 
+   * If the node is created successfully, the synapses will be created successfully.
+   * If the node is not created successfully, the synapses will not be created.
+   * 
+   * If the synapses are not created successfully, the node will not be created.
    */
   static async createNode(request: CreateNodeRequest) {
     const { kind, data, synapses } = request;
@@ -169,7 +210,7 @@ export class NodeService {
   }
 
   /**
-   * Get a node by ID with automatically included connected synapses
+   * Get a node by ID with automatically included connected synapses using MongoDB aggregation
    */
   static async getNodeById(id: string) {
     console.log('=== GETNODEBYID CALLED ===');
@@ -222,178 +263,162 @@ export class NodeService {
         }
       }
       
-      console.log('[DB_QUERY] About to query BaseNodeModel.findById with id:', id, 'type:', typeof id);
-      const node = await BaseNodeModel.findById(id);
-      console.log('[DB_QUERY] BaseNodeModel.findById result:', node ? 'found' : 'not found');
-      if (!node) {
+      // Use MongoDB aggregation pipeline to efficiently find the node and all related nodes through synapses
+      console.log('[DB_QUERY] Starting aggregation pipeline for node:', id);
+      
+      const pipeline = [
+        // Match the target node
+        {
+          $match: {
+            _id: new Types.ObjectId(id)
+          }
+        },
+        // Lookup all synapses connected to this node (any direction)
+        {
+          $lookup: {
+            from: 'nodes',
+            let: { nodeId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$kind', NODE_TYPES.SYNAPSE] },
+                      // Use synapse selection criteria for relatives
+                      ...Object.entries(selectionCriteria[NODE_TYPES.SYNAPSE].relatives).map(([key, value]) => ({
+                        $eq: [`$${key}`, value]
+                      })),
+                      {
+                        $or: [
+                          { $eq: ['$from', '$$nodeId'] },
+                          { $eq: ['$to', '$$nodeId'] }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'allSynapses'
+          }
+        },
+        // Extract unique related node IDs from all synapses by:
+        // 1. Using $reduce to iterate over all synapses
+        // 2. For each synapse, getting both 'from' and 'to' IDs
+        // 3. Filtering out the current node's ID and any nulls
+        // 4. Using $setUnion to ensure uniqueness of IDs
+        // 5. Accumulating the unique IDs into relatedNodeIds array
+        {
+          $addFields: {
+            relatedNodeIds: {
+              $reduce: {
+                input: '$allSynapses',
+                initialValue: [],
+                in: {
+                  $setUnion: [
+                    '$$value',
+                    {
+                      $filter: {
+                        input: [
+                          '$$this.from',
+                          '$$this.to'
+                        ],
+                        as: 'nodeId',
+                        cond: {
+                          $and: [
+                            { $ne: ['$$nodeId', '$_id'] },
+                            { $ne: ['$$nodeId', null] }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        // Lookup all related nodes with dynamic filtering based on node kind
+        {
+          $lookup: {
+            from: 'nodes',
+            localField: 'relatedNodeIds',
+            foreignField: '_id',
+            pipeline: [
+              {
+                $match: {
+                  // Base filter applies to all node types
+                  ...selectionCriteria[NODE_TYPES.BASE].relatives,
+                  // Dynamic filtering based on node kind
+                  $or: Object.values(NODE_TYPES).map((kind: NodeType) => ({
+                    $and: [
+                      { kind },
+                      selectionCriteria[kind].relatives
+                    ]
+                  }))
+                },
+              }
+            ],
+            as: 'relatedNodes'
+          }
+        }
+      ];
+
+      const result = await BaseNodeModel.aggregate(pipeline);
+      
+      if (!result || result.length === 0) {
         throw createError('Node not found', 404);
       }
+
+      const nodeData = result[0];
       
       // Add computed readOnly field based on write permissions
-      const nodeWithComputedFields = node.toObject() as any;
-      nodeWithComputedFields.readOnly = !isWritePermitted();
-      
-      // Automatically fetch all connected synapses
-      console.log('About to call getNodeSynapses with id:', id, 'type:', typeof id);
-      const synapses = await this.getNodeSynapses(id, {
-        includeDeleted: false
-      });
-      
-      // Extract all connected node IDs from synapses
-      const connectedNodeIds = new Set<string>();
-      synapses.forEach(synapse => {
-        const synapseObj = synapse as any; // Cast to access synapse-specific properties
-        if (synapseObj.from && synapseObj.from.toString() !== id) {
-          connectedNodeIds.add(synapseObj.from.toString());
-        }
-        if (synapseObj.to && synapseObj.to.toString() !== id) {
-          connectedNodeIds.add(synapseObj.to.toString());
-        }
-      });
-      
-      // Extract ObjectID references from node attributes
-      const attributeNodeIds = new Set<string>();
-      const extractObjectIds = (obj: any, path: string = '') => {
-        if (obj && typeof obj === 'object') {
-          if (Array.isArray(obj)) {
-            obj.forEach((item, index) => extractObjectIds(item, `${path}[${index}]`));
-          } else {
-            Object.keys(obj).forEach(key => {
-              const value = obj[key];
-              if (value && typeof value === 'object' && value.constructor && value.constructor.name === 'ObjectId') {
-                // This is actually a MongoDB ObjectId - but exclude the node's own _id
-                const objectIdString = value.toString();
-                if (objectIdString !== id) {
-                  attributeNodeIds.add(objectIdString);
-                }
-              } else {
-                extractObjectIds(value, path ? `${path}.${key}` : key);
-              }
-            });
-          }
-        }
+      const nodeWithComputedFields = {
+        ...nodeData,
+        readOnly: !isWritePermitted()
       };
       
-      extractObjectIds(nodeWithComputedFields);
+      // Remove aggregation fields from the node
+      const { allSynapses, relatedNodes, relatedNodeIds, ...cleanNodeData } = nodeWithComputedFields;
       
-      // Combine all related node IDs
-      const allRelatedNodeIds = new Set([...connectedNodeIds, ...attributeNodeIds]);
-      // Debug logging removed
+      // Group relatives by role and direction
+      const relativesByRole: Record<string, Record<string, string[]>> = {};
       
-      // Fetch all related nodes
-      const relatives: any[] = [];
-      if (allRelatedNodeIds.size > 0) {
-        const relatedNodeIdsArray = Array.from(allRelatedNodeIds);
-        
-        // Filter out any stringified objects - only keep valid ObjectId strings
-        const validObjectIds = relatedNodeIdsArray.filter(id => {
-          if (typeof id === 'string' && id.includes('_id: new ObjectId(')) {
-            return false; // Remove stringified objects
+      if (nodeData.allSynapses && nodeData.allSynapses.length > 0) {
+        nodeData.allSynapses.forEach((synapse: any) => {
+          const role = synapse.role;
+          const dir = synapse.dir;
+          
+          if (!relativesByRole[role]) {
+            relativesByRole[role] = {};
           }
-          return typeof id === 'string' && /^[0-9a-fA-F]{24}$/.test(id);
-        });
-        const relatedNodesData = await BaseNodeModel.find({
-          _id: { $in: validObjectIds },
-          deletedAt: null
-        });
-        // Query successful
-        
-        // Add computed readOnly field to each related node
-        relatedNodesData.forEach(relatedNode => {
-          const nodeObj = relatedNode.toObject() as any;
-          nodeObj.readOnly = !isWritePermitted();
-          relatives.push(nodeObj);
+          if (!relativesByRole[role][dir]) {
+            relativesByRole[role][dir] = [];
+          }
+          
+          // Add the related node ID (either from or to, whichever is not the current node)
+          const relatedId = synapse.from.toString() === id ? synapse.to.toString() : synapse.from.toString();
+          if (!relativesByRole[role][dir].includes(relatedId)) {
+            relativesByRole[role][dir].push(relatedId);
+          }
         });
       }
       
-      // Add synapses to relatives array as well (convert to plain objects)
-      synapses.forEach(synapse => {
-        const synapseObj = synapse.toObject ? synapse.toObject() : synapse;
-        synapseObj.readOnly = !isWritePermitted();
-        relatives.push(synapseObj);
-      });
+      console.log('[DB_QUERY] Aggregation completed. Found node with', nodeData.relatedNodes?.length || 0, 'relatives');
       
       return {
-        node: nodeWithComputedFields,
-        relatives
+        node: cleanNodeData,
+        allRelatives: nodeData.relatedNodes || [],
+        allRelativeIds: nodeData.relatedNodeIds || [],
+        relativesByRole
       };
     } catch (error: any) {
       if (error.statusCode) throw error;
-      
-      /**
-       * MYSTERY OF THE OBJECT STRING: A Tale of Debugging Despair
-       * 
-       * We suffered through a MongoDB ObjectId casting error that defied all logic:
-       * - The error: "Cast to ObjectId failed for value '{\n  _id: new ObjectId('68cab54d01161646f868bb68'),\n  kind: 'post',\n  content: 'Test complete encoding flow'\n}'"
-       * - The mystery: This stringified JavaScript object was being passed to MongoDB's ObjectId constructor
-       * - The investigation: We traced the data flow through middleware, controller, and service layers
-       * - The revelation: Our ID processing pipeline worked perfectly - the encoded ID was correctly decoded
-       * - The frustration: Despite perfect ID normalization, the object string persisted
-       * - The surrender: We never found the root cause, but we caught the error and denied service
-       * 
-       * This error catch serves as a defensive measure against whatever mysterious force
-       * is converting objects to strings in our system. We may never know the truth,
-       * but at least we can prevent it from crashing our API.
-       */
-      // Error catch removed - issue has been fixed
       
       throw createError(`Failed to get node: ${error.message}`, 500);
     }
   }
 
-  /**
-   * Get a node by ID with its synapses
-   */
-  static async getNodeWithSynapses(id: string, options: {
-    role?: string;
-    dir?: SynapseDirection;
-    includeDeleted?: boolean;
-  } = {}) {
-    // Check if id is a stringified object and extract the actual ID
-    if (typeof id === 'string' && id.includes('_id')) {
-      try {
-        // Try to parse it as JSON and extract the _id
-        const parsed = JSON.parse(id);
-        if (parsed._id) {
-          id = parsed._id;
-        }
-      } catch (parseError) {
-        // If parsing fails, try to extract the ID using regex
-        // Handle formats like: "_id: new ObjectId('68ca022613c8b0337b4a3cdb')"
-        const objectIdMatch = id.match(/ObjectId\(['"]([a-fA-F0-9]{24})['"]\)/);
-        if (objectIdMatch) {
-          id = objectIdMatch[1];
-        } else {
-          // Fallback to simple _id pattern
-          const idMatch = id.match(/([a-fA-F0-9]{24})/);
-          if (idMatch) {
-            id = idMatch[1];
-          }
-        }
-      }
-    }
-
-    if (!Types.ObjectId.isValid(id)) {
-      throw createError('Invalid node ID', 400);
-    }
-
-    try {
-      const node = await BaseNodeModel.findById(id);
-      if (!node) {
-        throw createError('Node not found', 404);
-      }
-
-      const synapses = await this.getNodeSynapses(id, options);
-      
-      return {
-        node,
-        synapses,
-      };
-    } catch (error: any) {
-      if (error.statusCode) throw error;
-      throw createError(`Failed to get node with synapses: ${error.message}`, 500);
-    }
-  }
 
   /**
    * Update a node with optional synapse operations

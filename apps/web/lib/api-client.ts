@@ -77,7 +77,9 @@ class ApiClient {
    */
   async getNode(nodeId: string): Promise<{
     node: BaseNode | UserNode;
-    relatives: any[];
+    allRelatives: any[];
+    allRelativeIds: string[];
+    relativesByRole: Record<string, Record<string, string[]>>;
   }> {
     const url = `${this.baseUrl}/nodes/${nodeId}`;
     
@@ -112,7 +114,9 @@ class ApiClient {
    */
   private async makeHttpRequest(url: string): Promise<{
     node: BaseNode | UserNode;
-    relatives: any[];
+    allRelatives: any[];
+    allRelativeIds: string[];
+    relativesByRole: Record<string, Record<string, string[]>>;
   }> {
     const response = await fetch(url, {
       method: 'GET',

@@ -2,6 +2,15 @@ import { Schema, model, Model, Document } from 'mongoose';
 import type { BaseNode } from '@whitepine/types';
 import { discriminatorKey } from '@whitepine/types';
 
+const baseNodeSelectionCriteria = {
+  cardinal: {
+    deletedAt: null
+  },
+  relatives: {
+    deletedAt: null
+  }
+};
+
 // Base Node Schema
 const baseNodeSchema = new Schema<BaseNode>({
   [discriminatorKey]: {
@@ -50,12 +59,12 @@ baseNodeSchema.pre(['updateOne', 'updateMany', 'findOneAndUpdate'], function(nex
 
 // Static method to find non-deleted nodes
 baseNodeSchema.statics.findActive = function() {
-  return this.find({ deletedAt: null });
+  return this.find(baseNodeSelectionCriteria.relatives);
 };
 
 // Static method to find by kind and slug
 baseNodeSchema.statics.findByKindAndSlug = function(kind: string, slug: string) {
-  return this.findOne({ [discriminatorKey]: kind, slug, deletedAt: null });
+  return this.findOne({ [discriminatorKey]: kind, slug, ...baseNodeSelectionCriteria.relatives });
 };
 
 // Instance method for soft delete
@@ -73,4 +82,4 @@ baseNodeSchema.methods.restore = function() {
 // Create the base model
 const BaseNodeModel = model<BaseNode>('BaseNode', baseNodeSchema);
 
-export { BaseNodeModel, baseNodeSchema };
+export { BaseNodeModel, baseNodeSchema, baseNodeSelectionCriteria };

@@ -1,7 +1,16 @@
 import { Schema } from 'mongoose';
-import { BaseNodeModel } from './BaseNode.js';
+import { BaseNodeModel, baseNodeSelectionCriteria } from './BaseNode.js';
 import type { UserNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
+
+// UserNode selection criteria that inherits from BaseNode
+const userNodeSelectionCriteria = {
+  ...baseNodeSelectionCriteria,
+  relatives: {
+    ...baseNodeSelectionCriteria.relatives,
+    isActive: true
+  }
+};
 
 // UserNode schema
 const userNodeSchema = new Schema<UserNode>({
@@ -107,6 +116,6 @@ userNodeSchema.methods.activate = function() {
 // Create the UserNode discriminator model
 const UserNodeModel = BaseNodeModel.discriminator<UserNode>(NODE_TYPES.USER, userNodeSchema);
 
-// Export the model and schema
-export { UserNodeModel, userNodeSchema };
+// Export the model, schema, and selection criteria
+export { UserNodeModel, userNodeSchema, userNodeSelectionCriteria };
 

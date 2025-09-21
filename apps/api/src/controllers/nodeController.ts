@@ -81,7 +81,9 @@ export class NodeController {
         success: true,
         data: {
           node: encodeNodeResponse(result.node),
-          relatives: encodeNodesResponse(result.relatives)
+          allRelatives: encodeNodesResponse(result.allRelatives),
+          allRelativeIds: result.allRelativeIds,
+          relativesByRole: result.relativesByRole
         },
         message: 'Node retrieved with connected synapses and nodes',
       };
@@ -92,31 +94,6 @@ export class NodeController {
     }
   }
 
-  /**
-   * Get a node by ID with its synapses
-   * GET /api/nodes/:id/synapses
-   */
-  static async getNodeWithSynapses(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      const { role, dir, includeDeleted = 'false' } = req.query;
-
-      const result = await NodeService.getNodeWithSynapses(id, {
-        role: role as string,
-        dir: dir as 'out' | 'in' | 'undirected',
-        includeDeleted: includeDeleted === 'true',
-      });
-
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
-
-      res.json(response);
-    } catch (error) {
-      next(error);
-    }
-  }
 
   /**
    * Update a node

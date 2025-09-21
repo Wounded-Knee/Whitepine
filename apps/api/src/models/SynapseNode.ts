@@ -1,7 +1,13 @@
 import { Schema } from 'mongoose';
-import { BaseNodeModel } from './BaseNode.js';
+import { BaseNodeModel, baseNodeSelectionCriteria } from './BaseNode.js';
 import type { SynapseNode } from '@whitepine/types';
-import { NODE_TYPES } from '@whitepine/types';
+import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
+
+// SynapseNode selection criteria that inherits from BaseNode
+const synapseNodeSelectionCriteria = {
+  ...baseNodeSelectionCriteria
+  // No additional criteria for synapses - inherits base criteria only
+};
 
 // SynapseNode schema
 const synapseNodeSchema = new Schema<SynapseNode>({
@@ -21,11 +27,12 @@ const synapseNodeSchema = new Schema<SynapseNode>({
     type: String,
     required: true,
     index: true,
+    enum: Object.values(SYNAPSE_ROLES),
   },
   dir: {
     type: String,
-    enum: ['out', 'in', 'undirected'],
-    default: 'out',
+    enum: Object.values(SYNAPSE_DIRECTIONS),
+    default: SYNAPSE_DIRECTIONS.OUT,
   },
   order: {
     type: Number,
@@ -119,5 +126,5 @@ synapseNodeSchema.methods.updateOrder = function(order: number) {
 // Create the SynapseNode discriminator model
 const SynapseNodeModel = BaseNodeModel.discriminator<SynapseNode>(NODE_TYPES.SYNAPSE, synapseNodeSchema);
 
-// Export the model and schema
-export { SynapseNodeModel, synapseNodeSchema };
+// Export the model, schema, and selection criteria
+export { SynapseNodeModel, synapseNodeSchema, synapseNodeSelectionCriteria };

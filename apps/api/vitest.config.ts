@@ -6,6 +6,9 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['./test/setup.ts'],
     globals: true,
+    // Configure test file patterns
+    include: ['test/**/*.test.ts'],
+    exclude: ['node_modules/**', 'dist/**'],
   },
   resolve: {
     alias: {

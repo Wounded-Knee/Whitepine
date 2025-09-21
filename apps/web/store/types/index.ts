@@ -14,6 +14,7 @@ export type Node = BaseNode | UserNode;
 export interface NormalizedNodes {
   byId: Record<string, Node>;
   allIds: string[];
+  relativesByRole?: Record<string, Record<string, Record<string, string[]>>>;
   loading?: {
     nodes: boolean;
     operations: Record<string, boolean>;

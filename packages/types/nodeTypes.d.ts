@@ -13,6 +13,7 @@ export declare const DISCRIMINATOR_KEY: "kind";
  * Node type discriminator strings
  */
 export declare const NODE_TYPES: {
+    readonly BASE: "base";
     readonly USER: "User";
     readonly POST: "post";
     readonly SYNAPSE: "synapse";
@@ -24,7 +25,7 @@ export type NodeType = typeof NODE_TYPES[keyof typeof NODE_TYPES];
 /**
  * Array of all node type discriminator strings
  */
-export declare const NODE_TYPE_VALUES: ("User" | "post" | "synapse")[];
+export declare const NODE_TYPE_VALUES: ("base" | "User" | "post" | "synapse")[];
 /**
  * Type guard to check if a string is a valid node type
  */

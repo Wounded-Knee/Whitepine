@@ -1,7 +1,16 @@
 import { Schema } from 'mongoose';
-import { BaseNodeModel } from './BaseNode.js';
+import { BaseNodeModel, baseNodeSelectionCriteria } from './BaseNode.js';
 import type { PostNode } from '@whitepine/types';
 import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
+
+// PostNode selection criteria that inherits from BaseNode
+const postNodeSelectionCriteria = {
+  ...baseNodeSelectionCriteria,
+  relatives: {
+    ...baseNodeSelectionCriteria.relatives,
+    publishedAt: { $ne: null }
+  }
+};
 
 // PostNode schema
 const postNodeSchema = new Schema<PostNode>({
@@ -62,5 +71,5 @@ postNodeSchema.methods.unpublish = function() {
 // Create the PostNode discriminator model
 const PostNodeModel = BaseNodeModel.discriminator<PostNode>(NODE_TYPES.POST, postNodeSchema);
 
-// Export the model and schema
-export { PostNodeModel, postNodeSchema };
+// Export the model, schema, and selection criteria
+export { PostNodeModel, postNodeSchema, postNodeSelectionCriteria };

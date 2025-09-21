@@ -25,6 +25,7 @@ interface RelativesSelector {
 interface UseNodeRequestResult extends Omit<UseApiRequestResult<BaseNode>, 'data' | 'refetch'> {
   node: BaseNode | null;
   relatives: any[];
+  relativesByRole: Record<string, Record<string, string[]>> | null;
   getRelatives: (selector: RelativesSelector) => any[];
   fetchNode: () => Promise<void>;
 }
@@ -62,6 +63,9 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   
   // Get all nodes from Redux store to compute relationships
   const allNodes = useAppSelector((state) => state.nodes.byId);
+  
+  // Get relativesByRole data from Redux store
+  const relativesByRole = useAppSelector((state) => state.nodes.relativesByRole?.[nodeId] || null);
   
   // Get the count of nodes to ensure relatives computation re-runs when nodes are added
   const nodeCount = useAppSelector((state) => Object.keys(state.nodes.byId).length);
@@ -248,6 +252,7 @@ export function useNodeRequest(nodeId: string): UseNodeRequestResult {
   return {
     node,
     relatives,
+    relativesByRole,
     getRelatives,
     isLoading,
     error,

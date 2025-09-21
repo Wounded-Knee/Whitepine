@@ -8,6 +8,9 @@ export interface User {
 }
 export { DISCRIMINATOR_KEY as discriminatorKey, NODE_TYPES, type NodeType, NODE_TYPE_VALUES, isNodeType, NODE_TYPE_MODEL_MAP } from './nodeTypes';
 import { NODE_TYPES } from './nodeTypes';
+import { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole, SYNAPSE_DIRECTION_VALUES, SYNAPSE_ROLE_VALUES } from './synapseTypes';
+export { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole, SYNAPSE_DIRECTION_VALUES, SYNAPSE_ROLE_VALUES };
+export type SynapseDirection = typeof SYNAPSE_DIRECTIONS[keyof typeof SYNAPSE_DIRECTIONS];
 export interface BaseNode extends Document {
     _id: Types.ObjectId;
     kind: string;
@@ -37,12 +40,11 @@ export interface PostNode extends BaseNode {
     content: string;
     publishedAt?: Date | null;
 }
-export type SynapseDirection = "out" | "in" | "undirected";
 export interface SynapseNode extends BaseNode {
     kind: typeof NODE_TYPES.SYNAPSE;
     from: Types.ObjectId;
     to: Types.ObjectId;
-    role: string;
+    role: SynapseRole;
     dir: SynapseDirection;
     order?: number;
     weight?: number;

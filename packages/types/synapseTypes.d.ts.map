@@ -1,0 +1,1 @@
+{"version":3,"file":"synapseTypes.d.ts","sourceRoot":"","sources":["src/synapseTypes.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,eAAO,MAAM,kBAAkB;;;;CAIrB,CAAC;AAIX;;;GAGG;AACH,eAAO,MAAM,aAAa;;;;;;;;;;;;;;;;CAyBhB,CAAC;AAEX,MAAM,MAAM,WAAW,GAAG,OAAO,aAAa,CAAC,MAAM,OAAO,aAAa,CAAC,CAAC;AAE3E;;GAEG;AACH,eAAO,MAAM,wBAAwB,iCAAoC,CAAC;AAE1E;;GAEG;AACH,eAAO,MAAM,mBAAmB,+KAA+B,CAAC"}

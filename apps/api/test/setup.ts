@@ -18,6 +18,7 @@ beforeAll(() => {
   // Setup before all tests
 })
 
-afterAll(() => {
-  // Cleanup after all tests
+afterAll(async () => {
+  // Cleanup after all tests - ensure any lingering async operations are resolved
+  await new Promise(resolve => setTimeout(resolve, 100));
 })

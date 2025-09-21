@@ -15,6 +15,7 @@ export const DISCRIMINATOR_KEY = "kind" as const;
  * Node type discriminator strings
  */
 export const NODE_TYPES = {
+  BASE: 'base',
   USER: 'User',
   POST: 'post', 
   SYNAPSE: 'synapse',

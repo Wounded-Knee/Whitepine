@@ -87,10 +87,6 @@ router.get('/:id',
   NodeController.getNode
 ); // Get node by ID
 
-router.get('/:id/synapses', 
-  validateParams(nodeIdSchema),
-  NodeController.getNodeWithSynapses
-); // Get node with synapses
 
 router.put('/:id', 
   requireWritePermissions,
