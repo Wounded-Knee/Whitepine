@@ -228,8 +228,8 @@ export function encodeObjectIds<T extends Record<string, any>>(
         result[field] = encodeNodeId(result[field]) as any;
       }
       // Handle ObjectID-like objects with buffer property
-      else if (result[field] && typeof result[field] === 'object' && result[field].buffer) {
-        const objectId = new Types.ObjectId(result[field].buffer);
+      else if (result[field] && typeof result[field] === 'object' && result[field].buffer && result[field].buffer.type === 'Buffer') {
+        const objectId = new Types.ObjectId(Buffer.from(result[field].buffer.data));
         result[field] = encodeNodeId(objectId) as any;
       }
     }

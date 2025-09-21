@@ -28,6 +28,15 @@ const navigation = [
   },
 ]
 
+navigation.push({
+  name: "Nodes",
+  href: "/demo-nodes",
+});
+navigation.push({
+  name: "Tree",
+  href: "/demo-tree",
+});
+
 export function Navigation() {
   const pathname = usePathname()
 

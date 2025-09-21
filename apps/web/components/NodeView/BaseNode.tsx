@@ -6,7 +6,7 @@ import validator from '@rjsf/validator-ajv8';
 import { useNodeRequest } from '@web/hooks/useNodeRequest';
 import { useAppSelector } from '@web/store/hooks';
 import { Button } from '@web/components/ui/button';
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Save, X, Trash2 } from 'lucide-react';
 import { RelativeNodeView } from './RelativeNodeView';
 import { GroupedRelativesView } from './GroupedRelativesView';
 import type { BaseNode } from '@whitepine/types/client';
@@ -145,16 +145,28 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
                 <span>Start Creating</span>
               </Button>
             ) : (
-              !(node as any)?.readOnly && (
-                <Button
-                  onClick={editProps.handleEdit}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center space-x-1"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Edit</span>
-                </Button>
+              !(node as any)?.readOnly && mode !== 'create' && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={editProps.handleEdit}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Edit</span>
+                  </Button>
+                  <Button
+                    onClick={editProps.handleDelete}
+                    disabled={editProps.isDeleting}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{editProps.isDeleting ? 'Deleting...' : 'Delete'}</span>
+                  </Button>
+                </div>
               )
             )
           ) : (
@@ -187,6 +199,14 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="text-red-800 font-medium">Save Error</h3>
           <p className="text-red-700 text-sm mt-1">{editProps.saveError}</p>
+        </div>
+      )}
+
+      {/* Delete Error */}
+      {editProps.deleteError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-red-800 font-medium">Delete Error</h3>
+          <p className="text-red-700 text-sm mt-1">{editProps.deleteError}</p>
         </div>
       )}
 

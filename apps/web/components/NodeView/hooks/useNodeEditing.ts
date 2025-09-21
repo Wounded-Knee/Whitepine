@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch } from '@web/store/hooks';
-import { updateNode } from '@web/store/slices/nodesSlice';
+import { updateNode, deleteNode } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
 import type { BaseNode } from '@whitepine/types/client';
 import type { EditProps, NodeViewMode } from '../types/BaseNodeView.types';
@@ -13,6 +13,10 @@ export const useNodeEditing = (node: BaseNode | null, fetchNode: () => Promise<v
   const [editData, setEditData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  
+  // Delete state
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Reset edit state when node changes (but not in create mode)
   useEffect(() => {
@@ -153,6 +157,37 @@ export const useNodeEditing = (node: BaseNode | null, fetchNode: () => Promise<v
     setEditData(data.formData);
   };
 
+  const handleDelete = async () => {
+    if (!node) return;
+    
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this node? This action cannot be undone.\n\nNode ID: ${node._id}\nNode Kind: ${node.kind || 'Unknown'}`
+    );
+    
+    if (!confirmed) return;
+    
+    setIsDeleting(true);
+    setDeleteError(null);
+    
+    try {
+      // Dispatch the delete action to Redux
+      await dispatch(deleteNode(node._id.toString())).unwrap();
+      
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess(node._id.toString());
+      }
+      
+      console.log('Node deleted successfully');
+    } catch (error) {
+      console.error('Error deleting node:', error);
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete node');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const editProps: EditProps = {
     isEditing,
     isSaving,
@@ -162,7 +197,11 @@ export const useNodeEditing = (node: BaseNode | null, fetchNode: () => Promise<v
     handleSave,
     handleFormChange,
     editData,
-    formData
+    formData,
+    // Delete functionality
+    isDeleting,
+    deleteError,
+    handleDelete
   };
 
   return editProps;

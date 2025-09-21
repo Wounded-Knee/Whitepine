@@ -1,7 +1,7 @@
 import { Schema, Types } from 'mongoose';
 import { model as BaseNodeModel } from './BaseNode.js';
 import type { SynapseNode } from '@whitepine/types';
-import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
+import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, SynapseDirection } from '@whitepine/types';
 
 // SynapseNode schema
 const schema = new Schema({
@@ -84,7 +84,7 @@ schema.statics.findBetween = function(fromId: string, toId: string) {
 };
 
 // Static method to find synapses by direction
-schema.statics.findByDirection = function(direction: 'out' | 'in' | 'undirected') {
+schema.statics.findByDirection = function(direction: SynapseDirection) {
   return this.find({ dir: direction, deletedAt: null });
 };
 
@@ -95,10 +95,10 @@ schema.methods.reverse = function() {
   this.to = temp;
   
   // Update direction based on current direction
-  if (this.dir === 'out') {
-    this.dir = 'in';
-  } else if (this.dir === 'in') {
-    this.dir = 'out';
+  if (this.dir === SYNAPSE_DIRECTIONS.OUT) {
+    this.dir = SYNAPSE_DIRECTIONS.IN;
+  } else if (this.dir === SYNAPSE_DIRECTIONS.IN) {
+    this.dir = SYNAPSE_DIRECTIONS.OUT;
   }
   // 'undirected' remains unchanged
   

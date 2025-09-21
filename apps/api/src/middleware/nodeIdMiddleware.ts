@@ -303,13 +303,35 @@ export function nodeIdMiddleware(req: Request, res: Response, next: NextFunction
 
 /**
  * Utility function to manually encode a node's _id field
+ * For synapse nodes, also encodes the from and to fields
  * Useful for custom response handling
  */
-export function encodeNodeResponse<T extends { _id: Types.ObjectId }>(node: T): T & { _id: string } {
-  return {
-    ...node,
-    _id: encodeNodeId(node._id as string | Types.ObjectId)
+export function encodeNodeResponse<T extends { _id: Types.ObjectId; kind?: string }>(node: T): T & { _id: string } {
+  // Helper function to convert buffer objects to ObjectId
+  const convertToObjectId = (value: any): Types.ObjectId => {
+    if (value && typeof value === 'object' && value.buffer && value.buffer.type === 'Buffer') {
+      // This is a buffer object, convert to ObjectId
+      return new Types.ObjectId(Buffer.from(value.buffer.data));
+    }
+    return value;
   };
+
+  const encoded = {
+    ...node,
+    _id: encodeNodeId(convertToObjectId(node._id))
+  };
+
+  // Handle synapse nodes - encode from and to fields as well
+  if (node.kind === 'synapse' && 'from' in node && 'to' in node) {
+    const synapseNode = node as T & { from: any; to: any };
+    return {
+      ...encoded,
+      from: encodeNodeId(convertToObjectId(synapseNode.from)),
+      to: encodeNodeId(convertToObjectId(synapseNode.to))
+    } as T & { _id: string; from: string; to: string };
+  }
+
+  return encoded;
 }
 
 /**

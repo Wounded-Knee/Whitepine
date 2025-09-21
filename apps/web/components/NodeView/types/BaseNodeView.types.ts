@@ -22,4 +22,8 @@ export interface EditProps {
   handleFormChange: (data: any) => void;
   editData: any;
   formData: any;
+  // Delete functionality
+  isDeleting: boolean;
+  deleteError: string | null;
+  handleDelete: () => Promise<void>;
 }

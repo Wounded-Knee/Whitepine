@@ -221,9 +221,17 @@ export class NodeController {
 
       const result = await NodeService.listNodes(query);
 
+      // Encode nodes with appropriate fields based on node type
+      const encodedNodes = result.nodes.map((node: any) => {
+        if (node.kind === 'synapse') {
+          return encodeNodeResponse(node, ['_id', 'from', 'to']);
+        }
+        return encodeNodeResponse(node, ['_id']);
+      });
+
       const response = {
         success: true,
-        data: encodeNodesResponse(result.nodes),
+        data: encodedNodes,
         pagination: {
           page: Math.floor(skipNum / limitNum) + 1,
           limit: limitNum,

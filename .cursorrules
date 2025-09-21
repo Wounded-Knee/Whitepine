@@ -97,6 +97,7 @@
       "All secrets come from GitHub Actions Environments, mapped to /var/www/whitepine/shared/env/{prod|dev}.env on server.",
       "Port configuration is managed via environment variables (DEV_WEB_PORT, DEV_API_PORT, PROD_WEB_PORT, PROD_API_PORT) with fallback defaults.",
       "Don't create documentation files unless asked to do so.",
+      "Sometimes you'll add console.log to the code, in the expectation that the user will copy and paste the output into the chat. This is fine. When doing so, if you are including an Object or Array, please JSON stringify it so that it can be easily copied with surrounding context.",
 
       "Don't you DARE EVER commit to git without asking permission. NEVER. I will kill you.",
 
