@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm exec dotenv -e .env.local -- sh -c 'next dev -p $DEV_WEB_PORT'",
+    "dev": "pnpm exec dotenv -e .env.local -- sh -c 'next dev -p $DEV_WEB_PORT --hostname localhost'",
     "build": "pnpm exec next build",
     "start": "pnpm exec dotenv -e .env.local -- sh -c 'next start -p $PROD_WEB_PORT'",
     "lint": "pnpm exec next lint",

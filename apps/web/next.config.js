@@ -15,6 +15,17 @@ const nextConfig = {
   typedRoutes: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['@whitepine/types'],
+  
+  // HMR WebSocket Bug Workaround for Next.js 15.5.3
+  // Explicitly allow development origins for HMR connections
+  allowedDevOrigins: [
+    'localhost:3001',
+    '127.0.0.1:3001', 
+    '0.0.0.0:3001',
+    // Add any custom domains you use for development
+    // 'mydev.local:3001',
+    // '*.mydevnetwork.local'
+  ],
   webpack: (config) => {
     // Handle monorepo path resolution
     config.resolve.alias = {
