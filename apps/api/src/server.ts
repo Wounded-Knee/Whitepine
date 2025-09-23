@@ -35,13 +35,29 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
-app.use(cors({
-  origin: config.corsOrigins,
+// CORS configuration - simplified approach
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001', 
+  'http://localhost:4000',
+  'http://localhost:5000',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:4000',
+  'http://127.0.0.1:5000'
+];
+
+const corsOptions = {
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-User-ID', 'X-User-Email', 'X-User-Name', 'X-User-Picture']
-}));
+};
+
+// Log CORS configuration for debugging
+logger.info('CORS origins configured:', allowedOrigins);
+
+app.use(cors(corsOptions));
 
 // Compression
 app.use(compression());

@@ -16,17 +16,35 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   transpilePackages: ['@whitepine/types'],
   
+  // HMR WebSocket Configuration
+  // Custom HMR WebSocket port support
+  devIndicators: {
+    position: 'bottom-right',
+  },
+  
   // HMR WebSocket Bug Workaround for Next.js 15.5.3
   // Explicitly allow development origins for HMR connections
   allowedDevOrigins: [
-    'localhost:3001',
-    '127.0.0.1:3001', 
-    '0.0.0.0:3001',
+    `localhost:${process.env.DEV_WEB_PORT || 3000}`,
+    `127.0.0.1:${process.env.DEV_WEB_PORT || 3000}`, 
+    `0.0.0.0:${process.env.DEV_WEB_PORT || 3000}`,
+    // Add HMR WebSocket port if different from web port
+    ...(process.env.DEV_HMR_PORT && process.env.DEV_HMR_PORT !== process.env.DEV_WEB_PORT ? [
+      `localhost:${process.env.DEV_HMR_PORT}`,
+      `127.0.0.1:${process.env.DEV_HMR_PORT}`,
+      `0.0.0.0:${process.env.DEV_HMR_PORT}`,
+    ] : []),
+    // Add API port if different from web port
+    ...(process.env.DEV_API_PORT && process.env.DEV_API_PORT !== process.env.DEV_WEB_PORT ? [
+      `localhost:${process.env.DEV_API_PORT}`,
+      `127.0.0.1:${process.env.DEV_API_PORT}`,
+      `0.0.0.0:${process.env.DEV_API_PORT}`,
+    ] : []),
     // Add any custom domains you use for development
-    // 'mydev.local:3001',
+    // `mydev.local:${process.env.DEV_WEB_PORT || 3000}`,
     // '*.mydevnetwork.local'
   ],
-  webpack: (config) => {
+  webpack: (config, { dev, isServer }) => {
     // Handle monorepo path resolution
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -43,6 +61,17 @@ const nextConfig = {
       'lodash-es': false,
       'mongoose': false,
     };
+
+    // Configure HMR WebSocket port for development
+    if (dev && !isServer && process.env.DEV_HMR_PORT) {
+      config.devServer = {
+        ...config.devServer,
+        client: {
+          ...config.devServer?.client,
+          webSocketURL: `ws://localhost:${process.env.DEV_HMR_PORT}/ws`,
+        },
+      };
+    }
 
     return config;
   },

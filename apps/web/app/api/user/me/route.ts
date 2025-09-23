@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { findUserById } from '@/lib/user-service'
+import { withCors, handleCorsPreflight } from '@/lib/cors'
 
-export async function GET(request: NextRequest) {
+async function getUserHandler(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -32,3 +33,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+// Export the handler wrapped with CORS
+export const GET = withCors(getUserHandler)
