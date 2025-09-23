@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { PostNodeModel, postNodeSchema, postNodeSelectionCriteria } from '../../src/models/index.js';
+import { PostNodeModel, postNodeSchema } from '../../src/models/index.js';
+import { POST_NODE_CONFIG } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
 import { runNodeModelCommonTests, runDiscriminatorModelTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 
@@ -47,7 +48,7 @@ describe('PostNode Model', () => {
     nodeType: NODE_TYPES.POST,
     schema: postNodeSchema,
     model: PostNodeModel,
-    selectionCriteria: postNodeSelectionCriteria,
+    selectionCriteria: POST_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       content: 'String',
     },
@@ -131,12 +132,12 @@ describe('PostNode Model', () => {
 
         describe('PostNode Selection Criteria', () => {
           it('should extend base selection criteria with publishedAt filter', () => {
-            expect(postNodeSelectionCriteria.relatives.publishedAt).toEqual({ $ne: null });
-            expect(postNodeSelectionCriteria.relatives.deletedAt).toBeNull();
+            expect(POST_NODE_CONFIG.selectionCriteria.relatives.publishedAt).toEqual({ $ne: null });
+            expect(POST_NODE_CONFIG.selectionCriteria.relatives.deletedAt).toBeNull();
           });
 
           it('should inherit cardinal criteria from base', () => {
-            expect(postNodeSelectionCriteria.cardinal.deletedAt).toBeNull();
+            expect(POST_NODE_CONFIG.selectionCriteria.cardinal.deletedAt).toBeNull();
           });
         });
 
@@ -221,7 +222,7 @@ describe('PostNode Model', () => {
     nodeType: NODE_TYPES.POST,
     schema: postNodeSchema,
     model: PostNodeModel,
-    selectionCriteria: postNodeSelectionCriteria,
+    selectionCriteria: POST_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       content: 'String',
     },

@@ -1,11 +1,11 @@
 import React from 'react';
-import type { BaseNode } from '@whitepine/types/client';
+import type { BaseNode, RelationshipConfig } from '@whitepine/types';
 import { 
   combineRelationshipConfigs, 
   filterApplicableConfigs,
-  type RelationshipConfig 
-} from '@whitepine/types/client';
-import { POST_NODE_RELATIONSHIP_CONFIGS, USER_NODE_RELATIONSHIP_CONFIGS } from '@whitepine/types/client';
+  POST_NODE_RELATIONSHIP_CONFIGS, 
+  USER_NODE_RELATIONSHIP_CONFIGS 
+} from '@whitepine/types';
 
 export const useNodeRelationships = (node: BaseNode | null, relatives: any[]) => {
   // Determine relationship configurations based on node type and context

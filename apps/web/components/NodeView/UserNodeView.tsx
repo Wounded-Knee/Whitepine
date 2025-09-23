@@ -6,8 +6,8 @@ import type { BaseNodeViewProps, EditProps } from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { Avatar } from '../avatar';
-import type { UserNode } from '@whitepine/types/client';
-import { NODE_TYPES } from '@whitepine/types/client';
+import type { UserNode } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 import { useAppDispatch } from '@web/store/hooks';
 import { createNode } from '@web/store/slices/nodesSlice';
 

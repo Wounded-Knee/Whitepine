@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { SynapseNodeModel, synapseNodeSchema, synapseNodeSelectionCriteria } from '../../src/models/index.js';
+import { SynapseNodeModel, synapseNodeSchema } from '../../src/models/index.js';
+import { SYNAPSE_NODE_CONFIG } from '@whitepine/types';
 import { NODE_TYPES, SYNAPSE_ROLES, SYNAPSE_DIRECTIONS } from '@whitepine/types';
 import { runNodeModelCommonTests, runDiscriminatorModelTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 
@@ -51,7 +52,7 @@ describe('SynapseNode Model', () => {
     nodeType: NODE_TYPES.SYNAPSE,
     schema: synapseNodeSchema,
     model: SynapseNodeModel,
-    selectionCriteria: synapseNodeSelectionCriteria,
+    selectionCriteria: SYNAPSE_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       from: 'ObjectId',
       to: 'ObjectId',
@@ -260,11 +261,11 @@ describe('SynapseNode Model', () => {
 
         describe('SynapseNode Selection Criteria', () => {
           it('should inherit base selection criteria without additional filters', () => {
-            expect(synapseNodeSelectionCriteria.relatives.deletedAt).toBeNull();
-            expect(synapseNodeSelectionCriteria.cardinal.deletedAt).toBeNull();
+            expect(SYNAPSE_NODE_CONFIG.selectionCriteria.relatives.deletedAt).toBeNull();
+            expect(SYNAPSE_NODE_CONFIG.selectionCriteria.cardinal.deletedAt).toBeNull();
             
             // Should not have additional criteria beyond base
-            const keys = Object.keys(synapseNodeSelectionCriteria.relatives);
+            const keys = Object.keys(SYNAPSE_NODE_CONFIG.selectionCriteria.relatives);
             expect(keys).toEqual(['deletedAt']);
           });
         });
@@ -403,7 +404,7 @@ describe('SynapseNode Model', () => {
     nodeType: NODE_TYPES.SYNAPSE,
     schema: synapseNodeSchema,
     model: SynapseNodeModel,
-    selectionCriteria: synapseNodeSelectionCriteria,
+    selectionCriteria: SYNAPSE_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       from: 'ObjectId',
       to: 'ObjectId',

@@ -2,10 +2,16 @@
  * PostNode - Complete definition including types, validation, and relationships
  */
 
-import type { RelationshipConfig } from '../../relationshipConfig';
+import type { RelationshipConfig } from '../relationshipConfig';
+import { NODE_TYPES } from '../nodeTypes';
+import { CONFIG as BASE_NODE_CONFIG, generateSchema, type BaseNode } from './BaseNode';
 
-// Re-export the main PostNode type (if it exists elsewhere)
-export type { PostNode } from '../..';
+// PostNode interface extending BaseNode
+export interface PostNode extends BaseNode {
+  kind: typeof NODE_TYPES.POST;
+  content: string;
+  publishedAt?: Date | null;
+}
 
 /**
  * PostNode relationship configurations
@@ -188,3 +194,36 @@ export function validatePostNodeRelationship(
   
   return { valid: true };
 }
+
+const cfg = {
+  ...BASE_NODE_CONFIG,
+  type: NODE_TYPES.POST,
+  selectionCriteria: {
+    ...BASE_NODE_CONFIG.selectionCriteria,
+    relatives: {
+      ...BASE_NODE_CONFIG.selectionCriteria.relatives,
+      publishedAt: { $ne: null }
+    }
+  },
+  viewSchema: {
+    ...BASE_NODE_CONFIG.viewSchema,
+    content: {
+      name: 'Content',
+      description: 'Post content',
+      type: String,
+      required: true,
+      trim: true,
+    },
+    publishedAt: {
+      name: 'Published At',
+      description: 'Publication timestamp',
+      type: Date,
+      default: null,
+      index: true,
+    },
+  },
+};
+
+cfg.schema = generateSchema(cfg.viewSchema) as any;
+
+export const CONFIG = cfg;

@@ -28,7 +28,7 @@ import {
   setError,
   clearError
 } from '@/store/slices/uiSlice';
-import { NODE_TYPES } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types';
 
 // Mock node data for demo
 const mockNodes = [

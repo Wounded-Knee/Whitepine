@@ -1,6 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb'
-import type { BaseNode } from '@whitepine/types/client'
-import { NODE_TYPES } from '@whitepine/types/client'
+import type { BaseNode } from '@whitepine/types'
+import { NODE_TYPES } from '@whitepine/types'
 
 // Define UserNode interface extending BaseNode
 interface UserNode extends BaseNode {

@@ -1,30 +1,10 @@
 import { Schema, model as Model } from 'mongoose';
 import type { BaseNode } from '@whitepine/types';
 import { discriminatorKey } from '@whitepine/types';
+import { CONFIG as BASE_NODE_CONFIG } from '@whitepine/types/nodes/BaseNode';
 
 // Base Node Schema
-const schema = new Schema<BaseNode>({
-  [discriminatorKey]: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-  deletedAt: {
-    type: Date,
-    default: null,
-  },
-  // Note: All relationships are now handled via SynapseNode connections
-}, {
+const schema = new Schema<BaseNode>((BASE_NODE_CONFIG as any).schema, {
   timestamps: true, // This will automatically manage createdAt and updatedAt
   discriminatorKey: discriminatorKey,
   collection: 'nodes', // All node types will be stored in the same collection

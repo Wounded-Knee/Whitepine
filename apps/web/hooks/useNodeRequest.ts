@@ -3,8 +3,8 @@ import { useAppDispatch, useAppSelector } from '@web/store/hooks';
 import { fetchNodeById } from '@web/store/slices/nodesSlice';
 import { useApiRequest } from './useApiRequest';
 import type { UseApiRequestResult } from './useApiRequest';
-import type { BaseNode } from '@whitepine/types/client';
-import { NODE_TYPES } from '@whitepine/types/client';
+import type { BaseNode } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
 import type { NodeViewMode } from '@web/components/NodeView/types/BaseNodeView.types';
 
 interface RelativesSelector {

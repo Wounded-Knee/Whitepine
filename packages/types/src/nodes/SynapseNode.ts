@@ -2,10 +2,23 @@
  * SynapseNode - Complete definition including types, validation, and relationships
  */
 
-import type { RelationshipConfig } from '../../relationshipConfig';
+import type { RelationshipConfig } from '../relationshipConfig';
+import { NODE_TYPES } from '../nodeTypes';
+import { CONFIG as BASE_NODE_CONFIG, generateSchema, type BaseNode } from './BaseNode';
+import type { ObjectId } from '../shared';
+import { SYNAPSE_ROLES, SYNAPSE_DIRECTIONS, type SynapseRole, type SynapseDirection } from '../synapseTypes';
 
-// Re-export the main SynapseNode type (if it exists elsewhere)
-export type { SynapseNode } from '../..';
+// SynapseNode interface extending BaseNode
+export interface SynapseNode extends BaseNode {
+  kind: typeof NODE_TYPES.SYNAPSE;
+  from: ObjectId;               // reference to Node
+  to:   ObjectId;               // reference to Node
+  role: SynapseRole;                  // relationship type
+  dir:  SynapseDirection;             // direction of relation
+  order?: number;                     // optional ordering
+  weight?: number;                    // optional weighting
+  props?: Record<string, unknown>;    // freeform metadata
+}
 
 /**
  * SynapseNode relationship configurations
@@ -85,3 +98,66 @@ export function validateSynapseNodeRelationship(
   
   return { valid: true };
 }
+
+const cfg = {
+  ...BASE_NODE_CONFIG,
+  type: NODE_TYPES.SYNAPSE,
+  viewSchema: {
+    ...BASE_NODE_CONFIG.viewSchema,
+    from: {
+      name: 'From Node',
+      description: 'The source node of this relationship',
+      type: 'ObjectId',
+      ref: 'BaseNode',
+      required: true,
+      index: true,
+      id: true,
+    },
+    to: {
+      name: 'To Node', 
+      description: 'The target node of this relationship',
+      type: 'ObjectId',
+      ref: 'BaseNode',
+      required: true,
+      index: true,
+      id: true,
+    },
+    role: {
+      name: 'Role',
+      description: 'The role of this relationship',
+      type: String,
+      enum: Object.values(SYNAPSE_ROLES),
+      required: true,
+      index: true,
+    },
+    dir: {
+      name: 'Direction',
+      description: 'The direction of this relationship',
+      type: String,
+      enum: Object.values(SYNAPSE_DIRECTIONS),
+      default: SYNAPSE_DIRECTIONS.OUT,
+    },
+    order: {
+      name: 'Order',
+      description: 'Optional ordering for this relationship',
+      type: Number,
+    },
+    weight: {
+      name: 'Weight',
+      description: 'Optional weighting for this relationship',
+      type: Number,
+    },
+    props: {
+      name: 'Properties',
+      description: 'Additional properties for this relationship',
+      type: 'Mixed',
+    },
+  },
+}
+
+cfg.schema = generateSchema(cfg.viewSchema) as any;
+
+/**
+ * SynapseNode configuration
+ */
+export const CONFIG = cfg;

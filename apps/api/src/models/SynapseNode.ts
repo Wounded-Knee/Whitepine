@@ -2,42 +2,10 @@ import { Schema, Types } from 'mongoose';
 import { model as BaseNodeModel } from './BaseNode.js';
 import type { SynapseNode } from '@whitepine/types';
 import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, SynapseDirection } from '@whitepine/types';
+import { CONFIG as SYNAPSE_NODE_CONFIG } from '@whitepine/types/nodes/SynapseNode';
 
 // SynapseNode schema
-const schema = new Schema({
-  from: {
-    type: Schema.Types.ObjectId,
-    ref: 'BaseNode',
-    required: true,
-    index: true,
-  },
-  to: {
-    type: Schema.Types.ObjectId,
-    ref: 'BaseNode',
-    required: true,
-    index: true,
-  },
-  role: {
-    type: String,
-    required: true,
-    index: true,
-    enum: Object.values(SYNAPSE_ROLES),
-  },
-  dir: {
-    type: String,
-    enum: Object.values(SYNAPSE_DIRECTIONS),
-    default: SYNAPSE_DIRECTIONS.OUT,
-  },
-  order: {
-    type: Number,
-  },
-  weight: {
-    type: Number,
-  },
-  props: {
-    type: Schema.Types.Mixed,
-  },
-}, {
+const schema = new Schema<SynapseNode>((SYNAPSE_NODE_CONFIG as any).schema, {
   // Inherit discriminatorKey and collection from BaseNode
   discriminatorKey: 'kind',
 });

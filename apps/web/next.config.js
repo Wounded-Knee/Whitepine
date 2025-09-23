@@ -22,6 +22,8 @@ const nextConfig = {
       '@shared': path.resolve(__dirname, '../../packages/types/src'),
       '@api': path.resolve(__dirname, '../api/src'),
       '@web': path.resolve(__dirname, '.'),
+      // Point @whitepine/types to source files for proper transpilation
+      '@whitepine/types': path.resolve(__dirname, '../../packages/types/src'),
     };
 
     // Provide fallbacks for server-side dependencies in client bundle

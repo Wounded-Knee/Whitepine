@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAppDispatch } from '@web/store/hooks';
 import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
-import { NODE_TYPES } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types';
 import { ExternalLink, Database, Plus, Users, FileText, Package } from 'lucide-react';
 import { CreateSampleNodeDialog, type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
 import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeView';

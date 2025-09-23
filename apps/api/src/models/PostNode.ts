@@ -1,23 +1,13 @@
 import { Schema } from 'mongoose';
 import { model as BaseNodeModel } from './BaseNode.js';
 import type { PostNode } from '@whitepine/types';
-import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
+import { NODE_TYPES } from '@whitepine/types';
+import { CONFIG as POST_NODE_CONFIG } from '@whitepine/types/nodes/PostNode';
 
 // PostNode schema
-const schema = new Schema<PostNode>({
-  content: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  publishedAt: {
-    type: Date,
-    default: null,
-    index: true,
-  },
-}, {
+const schema = new Schema<PostNode>((POST_NODE_CONFIG as any).schema, {
   // Inherit discriminatorKey and collection from BaseNode
-  discriminatorKey: discriminatorKey,
+  discriminatorKey: 'kind',
 });
 
 // Text search index for content

@@ -1,6 +1,5 @@
 import React from 'react';
-import type { BaseNode } from '@whitepine/types/client';
-import type { RelationshipConfig } from '@whitepine/types/client';
+import type { BaseNode, RelationshipConfig } from '@whitepine/types';
 
 export type NodeViewMode = 'view' | 'edit' | 'create';
 

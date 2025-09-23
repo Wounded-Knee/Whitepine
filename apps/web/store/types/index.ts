@@ -1,4 +1,4 @@
-import type { BaseNode, UserNode } from '@whitepine/types/client';
+import type { BaseNode, UserNode } from '@whitepine/types';
 
 // These will be properly typed in the store index file
 export type RootState = any; // Will be overridden in store/index.ts

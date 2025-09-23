@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitest/config'
 import path from 'path'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
     environment: 'node',
     setupFiles: ['./test/setup.ts'],
@@ -15,6 +17,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@shared': path.resolve(__dirname, '../../packages/types/src'),
       '@api': path.resolve(__dirname, './src'),
+      '@whitepine/types': path.resolve(__dirname, '../../packages/types/src'),
     },
   },
 })

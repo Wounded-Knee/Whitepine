@@ -3,10 +3,9 @@
 import React, { useState } from 'react';
 import { Button } from '@web/components/ui/button';
 import { X, Save, Loader2 } from 'lucide-react';
-import { NODE_TYPES } from '@whitepine/types/client';
-import type { BaseNode } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types';
+import type { BaseNode, RelationshipConfig, FormFieldConfig } from '@whitepine/types';
 import type { RelationshipSuggestion } from './RelationshipSuggestions';
-import type { RelationshipConfig, FormFieldConfig } from '@whitepine/types/client';
 import { apiClient } from '@web/lib/api-client';
 
 export interface CreateRelatedNodeProps {

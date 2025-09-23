@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
-import { UserNodeModel, userNodeSchema, userNodeSelectionCriteria } from '../../src/models/index.js';
+import { UserNodeModel, userNodeSchema } from '../../src/models/index.js';
+import { USER_NODE_CONFIG } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
 import { runNodeModelCommonTests, runDiscriminatorModelTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 
@@ -46,7 +47,7 @@ describe('UserNode Model', () => {
     nodeType: NODE_TYPES.USER,
     schema: userNodeSchema,
     model: UserNodeModel,
-    selectionCriteria: userNodeSelectionCriteria,
+    selectionCriteria: USER_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       email: 'String',
       name: 'String',
@@ -173,12 +174,12 @@ describe('UserNode Model', () => {
 
         describe('UserNode Selection Criteria', () => {
           it('should extend base selection criteria with isActive filter', () => {
-            expect(userNodeSelectionCriteria.relatives.isActive).toBe(true);
-            expect(userNodeSelectionCriteria.relatives.deletedAt).toBeNull();
+            expect(USER_NODE_CONFIG.selectionCriteria.relatives.isActive).toBe(true);
+            expect(USER_NODE_CONFIG.selectionCriteria.relatives.deletedAt).toBeNull();
           });
 
           it('should inherit cardinal criteria from base', () => {
-            expect(userNodeSelectionCriteria.cardinal.deletedAt).toBeNull();
+            expect(USER_NODE_CONFIG.selectionCriteria.cardinal.deletedAt).toBeNull();
           });
         });
 
@@ -226,7 +227,7 @@ describe('UserNode Model', () => {
     nodeType: NODE_TYPES.USER,
     schema: userNodeSchema,
     model: UserNodeModel,
-    selectionCriteria: userNodeSelectionCriteria,
+    selectionCriteria: USER_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       email: 'String',
       name: 'String',

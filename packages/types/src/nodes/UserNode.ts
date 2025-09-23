@@ -2,10 +2,28 @@
  * UserNode - Complete definition including types, validation, and relationships
  */
 
-import type { RelationshipConfig } from '../../relationshipConfig';
+import type { RelationshipConfig } from '../relationshipConfig';
+import { NODE_TYPES } from '../nodeTypes';
+import { CONFIG as BASE_NODE_CONFIG, generateSchema, type BaseNode } from './BaseNode';
 
-// Re-export the main UserNode type (if it exists elsewhere)
-export type { UserNode } from '../..';
+// UserNode interface extending BaseNode
+export interface UserNode extends BaseNode {
+  kind: typeof NODE_TYPES.USER;
+  email: string;
+  name: string;
+  avatar?: string;
+  bio?: string;
+  isActive: boolean;
+  lastLoginAt?: Date;
+  preferences?: {
+    theme?: 'light' | 'dark' | 'auto';
+    language?: string;
+    notifications?: {
+      email?: boolean;
+      push?: boolean;
+    };
+  };
+}
 
 /**
  * UserNode relationship configurations
@@ -193,3 +211,69 @@ export function validateUserNodeRelationship(
   
   return { valid: true };
 }
+
+const cfg = {
+  ...BASE_NODE_CONFIG,
+  type: NODE_TYPES.USER,
+  selectionCriteria: {
+    ...BASE_NODE_CONFIG.selectionCriteria,
+    relatives: {
+      ...BASE_NODE_CONFIG.selectionCriteria.relatives,
+      isActive: true
+    }
+  },
+  viewSchema: {
+    ...BASE_NODE_CONFIG.viewSchema,
+    email: {
+      name: 'Email',
+      description: 'User email address',
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    name: {
+      name: 'Name',
+      description: 'User display name',
+      type: String,
+      required: true,
+      maxlength: 100,
+      trim: true,
+    },
+    avatar: {
+      name: 'Avatar',
+      description: 'Profile picture',
+      type: String,
+    },
+    bio: {
+      name: 'Bio',
+      description: 'User biography',
+      type: String,
+      maxlength: 500,
+      trim: true,
+    },
+    lastLoginAt: {
+      name: 'Last Login',
+      description: 'Last login timestamp',
+      type: Date,
+    },
+    isActive: {
+      name: (value: any) => value ? 'Active' : 'Inactive',
+      value: (value: any) => value ? 'Yep' : 'Nope',
+      description: (value: any) => value ? 'This user is active.' : 'This user is inactive.',
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    preferences: {
+      name: 'Preferences',
+      description: 'User preferences',
+      type: Object,
+    },
+  },
+};
+
+cfg.schema = generateSchema(cfg.viewSchema) as any;
+
+export const CONFIG = cfg;

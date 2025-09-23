@@ -2,63 +2,10 @@ import { Schema } from 'mongoose';
 import { model as BaseNodeModel } from './BaseNode.js';
 import type { UserNode } from '@whitepine/types';
 import { NODE_TYPES } from '@whitepine/types';
+import { CONFIG as USER_NODE_CONFIG } from '@whitepine/types/nodes/UserNode';
 
 // UserNode schema
-const schema = new Schema<UserNode>({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    index: true,
-  },
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 100,
-  },
-  avatar: {
-    type: String,
-    trim: true,
-  },
-  bio: {
-    type: String,
-    maxlength: 500,
-    trim: true,
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-    index: true,
-  },
-  lastLoginAt: {
-    type: Date,
-    index: true,
-  },
-  preferences: {
-    theme: {
-      type: String,
-      enum: ['light', 'dark', 'auto'],
-      default: 'auto',
-    },
-    language: {
-      type: String,
-      default: 'en',
-    },
-    notifications: {
-      email: {
-        type: Boolean,
-        default: true,
-      },
-      push: {
-        type: Boolean,
-        default: true,
-      },
-    },
-  },
-}, {
+const schema = new Schema<UserNode>((USER_NODE_CONFIG as any).schema, {
   // Inherit discriminatorKey and collection from BaseNode
   discriminatorKey: 'kind',
 });

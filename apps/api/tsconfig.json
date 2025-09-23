@@ -19,7 +19,9 @@
       "@/*": ["./*"],
       "@shared/*": ["../../packages/types/src/*"],
       "@api/*": ["./*"],
-      "@web/*": ["../web/*"]
+      "@web/*": ["../web/*"],
+      "@whitepine/types": ["../../packages/types/src/index.ts"],
+      "@whitepine/types/*": ["../../packages/types/src/*"]
     },
     "strict": true,
     "noUnusedLocals": false,

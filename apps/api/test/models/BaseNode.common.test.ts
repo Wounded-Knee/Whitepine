@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Types } from 'mongoose';
 import { BaseNodeModel, baseNodeSchema } from '../../src/models/index.js';
-import { baseNodeSelectionCriteria } from '../../src/models/index.js';
+import { BASE_NODE_CONFIG } from '@whitepine/types';
 import { NODE_TYPES, discriminatorKey } from '@whitepine/types';
 import { runNodeModelCommonTests, createMockNodeData, createMockModelInstance } from './shared/NodeModelCommonTests.js';
 
@@ -29,7 +29,7 @@ describe('BaseNode Model', () => {
     nodeType: NODE_TYPES.BASE,
     schema: baseNodeSchema,
     model: BaseNodeModel,
-    selectionCriteria: baseNodeSelectionCriteria,
+    selectionCriteria: BASE_NODE_CONFIG.selectionCriteria,
     requiredFields: {
       // BaseNode has no additional required fields beyond the discriminator key
       // Note: discriminatorKey field is handled automatically by createMockNodeData
@@ -85,12 +85,12 @@ describe('BaseNode Model', () => {
 
         describe('BaseNode Selection Criteria', () => {
           it('should have base selection criteria structure', () => {
-            expect(baseNodeSelectionCriteria.cardinal.deletedAt).toBeNull();
-            expect(baseNodeSelectionCriteria.relatives.deletedAt).toBeNull();
+            expect(BASE_NODE_CONFIG.selectionCriteria.cardinal.deletedAt).toBeNull();
+            expect(BASE_NODE_CONFIG.selectionCriteria.relatives.deletedAt).toBeNull();
           });
 
           it('should use selection criteria for filtering non-deleted nodes', () => {
-            const query = baseNodeSelectionCriteria.relatives;
+            const query = BASE_NODE_CONFIG.selectionCriteria.relatives;
             expect(query).toEqual({ deletedAt: null });
           });
         });

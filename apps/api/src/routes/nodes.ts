@@ -8,7 +8,7 @@ import {
   decodeNodeIdQuery, 
   decodeNodeIdBody,
   encodeNodeIdResponseByType,
-  DEFAULT_NODE_ID_CONFIG
+  generateNodeIdConfig
 } from '../middleware/nodeIdMiddleware.js';
 import {
   validateRequest,
@@ -31,7 +31,7 @@ router.use(authRateLimit);
 router.use(decodeNodeIdParams);
 router.use(decodeNodeIdQuery);
 router.use(decodeNodeIdBody);
-router.use(encodeNodeIdResponseByType(DEFAULT_NODE_ID_CONFIG));
+router.use(encodeNodeIdResponseByType(generateNodeIdConfig()));
 
 
 // Node routes with validation

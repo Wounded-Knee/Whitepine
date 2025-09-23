@@ -7,7 +7,7 @@ export const SYNAPSE_DIRECTIONS = {
   UNDIRECTED: 'undirected'
 } as const;
 
-type SynapseDirection = typeof SYNAPSE_DIRECTIONS[keyof typeof SYNAPSE_DIRECTIONS];
+export type SynapseDirection = typeof SYNAPSE_DIRECTIONS[keyof typeof SYNAPSE_DIRECTIONS];
 
 /**
  * Common synapse roles

@@ -1,3 +1,36 @@
+import {
+  BASE_NODE_CONFIG,
+  USER_NODE_CONFIG,
+  POST_NODE_CONFIG,
+  SYNAPSE_NODE_CONFIG
+} from '@whitepine/types';
+
+/**
+ * Get viewSchema configuration for a specific node kind and field
+ */
+const getViewSchemaForField = (nodeKind: string, fieldKey: string) => {
+  // Map node kinds to their configurations
+  const nodeConfigs = {
+    'base': BASE_NODE_CONFIG,
+    'User': USER_NODE_CONFIG,
+    'post': POST_NODE_CONFIG,
+    'synapse': SYNAPSE_NODE_CONFIG
+  };
+
+  const config = nodeConfigs[nodeKind as keyof typeof nodeConfigs];
+  if (!config?.handlers) {
+    return null;
+  }
+
+  // Type assertion to access viewSchema property
+  const handlers = config.handlers as any;
+  if (!handlers.viewSchema) {
+    return null;
+  }
+
+  return handlers.viewSchema[fieldKey] || null;
+};
+
 /**
  * Dynamic schema generator for any node type
  */
@@ -7,96 +40,56 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false, mode: 
   const properties: Record<string, any> = {};
   const uiSchema: Record<string, any> = {};
 
+  // Unified helper function to get field configuration from viewSchema
+  const getFieldConfig = (key: string, nodeKind: string, value: any, configType: 'name' | 'description' | 'type') => {
+    const viewSchema = getViewSchemaForField(nodeKind, key);
+    if (viewSchema?.[configType]) {
+      const configValue = viewSchema[configType];
+      // Handle both string and callback function cases
+      if (typeof configValue === 'function') {
+        return configValue(value);
+      } else {
+        return configValue;
+      }
+    }
+    return null;
+  };
+
   // Helper function to format field names
-  const formatFieldName = (key: string): string => {
+  const formatFieldName = (key: string, nodeKind?: string, value?: any): string => {
+    if (nodeKind) {
+      const name = getFieldConfig(key, nodeKind, value, 'name');
+      if (name) return name;
+    }
+    
+    // Fallback to the original formatting logic
     return key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
   };
 
   // Helper function to generate description
-  const generateDescription = (key: string, value: any): string => {
-    const commonDescriptions: Record<string, string> = {
-      _id: 'Unique identifier for this node',
-      kind: 'The type of node',
-      createdAt: 'When this node was first created',
-      updatedAt: 'When this node was last modified',
-      deletedAt: 'When this node was deleted (if applicable)',
-      // Note: All relationships are now handled via SynapseNode connections
-      email: 'Email address',
-      name: 'Display name',
-      avatar: 'Profile picture URL',
-      bio: 'Biography or description',
-      isActive: 'Whether this node is active',
-      lastLoginAt: 'When the user last logged in',
-      preferences: 'User preferences and settings'
-    };
+  const generateDescription = (key: string, value: any, nodeKind?: string): string => {
+    if (nodeKind) {
+      const description = getFieldConfig(key, nodeKind, value, 'description');
+      if (description) return description;
+    }
 
-    return commonDescriptions[key] || `Value for ${formatFieldName(key)}`;
+    return `Value for ${formatFieldName(key, nodeKind, value)}`;
   };
 
   // Helper function to detect data type
-  const detectType = (value: any): { type: string; format?: string; items?: any; properties?: any } => {
-    if (value === null || value === undefined) {
-      return { type: 'string' };
+  const detectType = (value: any, key?: string, nodeKind?: string): { type: string; format?: string; items?: any; properties?: any } => {
+    if (key && nodeKind) {
+      const type = getFieldConfig(key, nodeKind, value, 'type');
+      if (type) return { type };
     }
 
-    if (typeof value === 'boolean') {
-      return { type: 'boolean' };
-    }
-
-    if (typeof value === 'number') {
-      return { type: 'number' };
-    }
-
-    if (typeof value === 'string') {
-      // Check if it's a date string
-      const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
-      if (dateRegex.test(value)) {
-        return { type: 'string', format: 'date-time' };
-      }
-      
-      // Check if it's an email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (emailRegex.test(value)) {
-        return { type: 'string', format: 'email' };
-      }
-      
-      // Check if it's a URL
-      try {
-        new URL(value);
-        return { type: 'string', format: 'uri' };
-      } catch {
-        // Not a URL
-      }
-      
-      return { type: 'string' };
-    }
-
-    if (Array.isArray(value)) {
-      // Check if it's an array of objects
-      if (value.length > 0 && typeof value[0] === 'object') {
-        return { type: 'array', items: { type: 'object' } };
-      }
-      return { type: 'array' };
-    }
-
-    if (typeof value === 'object') {
-      // Check if it's a simple object with properties
-      const keys = Object.keys(value);
-      if (keys.length > 0) {
-        return { type: 'object', properties: keys.reduce((acc, key) => {
-          acc[key] = { type: 'string' }; // Default to string for nested properties
-          return acc;
-        }, {} as Record<string, any>) };
-      }
-      return { type: 'object' };
-    }
-
-    return { type: 'string' };
+    return { type: 'unknown' };
   };
 
   // Process each property in the node
   // For create mode, provide default properties if no node exists
   const safeNode = node ? { ...node } : (mode === 'create' ? { kind: 'post' } : {});
+  const nodeKind = safeNode.kind || 'base';
   
   // Use Object.keys to avoid potential enumeration issues with Object.entries
   Object.keys(safeNode).forEach((key) => {
@@ -105,9 +98,9 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false, mode: 
     
     const value = safeNode[key];
 
-    const fieldName = formatFieldName(key);
-    const typeInfo = detectType(value);
-    const description = generateDescription(key, value);
+    const fieldName = formatFieldName(key, nodeKind, value);
+    const typeInfo = detectType(value, key, nodeKind);
+    const description = generateDescription(key, value, nodeKind);
 
     // Determine if this field should be read-only
     const isFieldReadOnly = !isEditing || (mode !== 'create' && (key === '_id' || key === 'createdAt' || key === 'updatedAt' || key === 'deletedAt' || key === 'readOnly'));

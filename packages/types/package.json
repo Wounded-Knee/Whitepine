@@ -3,30 +3,36 @@
   "version": "0.1.0",
   "type": "module",
   "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./src/index.ts"
     },
     "./client": {
-      "types": "./src/client.ts",
+      "types": "./dist/client.d.ts",
       "default": "./src/client.ts"
+    },
+    "./nodes/*": {
+      "types": "./dist/nodes/*.d.ts",
+      "default": "./src/nodes/*.ts"
     }
   },
   "files": [
+    "dist/**/*",
     "src/**/*.ts"
   ],
   "scripts": {
     "build": "tsc --build",
-    "clean": "rm -rf index.d.ts src/**/*.d.ts",
+    "clean": "rm -rf dist/",
     "lint": "echo 'No linting configured for types package'",
     "typecheck": "tsc --noEmit",
     "test": "echo 'No tests configured for types package'",
     "watch": "tsc --build --watch"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
   },
   "dependencies": {
     "mongoose": "^8.18.1"

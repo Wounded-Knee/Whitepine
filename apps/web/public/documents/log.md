@@ -1,3 +1,23 @@
+### 9/22/25 1416
+
+# Education in Liberty
+
+The founders of the American Republic spoke often of education—not as a luxury, but as a safeguard of freedom itself. Jefferson, Adams, Madison, and Washington each emphasized that liberty cannot be preserved without knowledge, and that the people must be instructed in its principles if they are to govern themselves.
+
+But what does it mean to be *educated in liberty*?
+
+To understand liberty, one must also study its opposite. A citizen educated only in the language of freedom, without awareness of tyranny, is half-prepared. Liberty and tyranny are two sides of the same coin. To appreciate the brilliance of liberty, one must know the darkness of tyranny.
+
+The founders knew this darkness well. They had lived under kings and parliaments that taxed without representation, quartered soldiers in private homes, silenced dissent, and wielded power for profit rather than justice. They knew that men of vanity and avarice are not rare exceptions, but constant features of political life. Greed for further power is a disease of the mind, and when it takes hold, it becomes an existential threat—not only to nations but to ordinary people, families, and children.
+
+This is why Adams insisted that *children should be educated in the principles of freedom*. He meant more than patriotic slogans. He meant that the young must be told plainly: you share this world with people who will try to dominate you. Tyranny is not an ancient relic; it is an ever-present possibility, born anew wherever vigilance lapses.
+
+And yet the founders spoke of liberty, not tyranny. Why? Because liberty is the brighter side of the coin. A liberated people need not constantly confront tyranny if they maintain their bulwarks: institutions that resist corruption, a culture that prizes truth, and a citizenry that acts together rather than suffering alone. Education in liberty arms citizens with the wisdom to keep tyranny at bay before it must be fought head-on.
+
+Thus, education in liberty is also education in vigilance. It teaches each generation to recognize the signs of encroaching domination, and to renew their commitment to resist it. Liberty is not humanity’s natural state; it is the earned condition of a people who refuse to be ruled as subjects.
+
+The founders’ message is clear: if we mean to be our own governors, we must arm ourselves with knowledge. Not once, but in every generation. For freedom is not self-sustaining. It is sustained only by those who understand both its light and its shadow.
+
 ### 9/19/25 1632
 
 Like grains of sand, the political power of an individual citizen is constrained to their portion of the collective agency of the republic. Alone, a single grain is weightless, tossed aside by the wind, inconsequential in mass and force. This is the condition of the lone voice in a nation of hundreds of millions.

@@ -6,6 +6,9 @@
  * maintain node type definitions across the web and API apps.
  */
 
+// Re-export synapse types for convenience
+export { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole, type SynapseDirection } from './synapseTypes';
+
 /**
  * The discriminator key used for all node types
  */
@@ -20,6 +23,8 @@ export const NODE_TYPES = {
   POST: 'post', 
   SYNAPSE: 'synapse',
 } as const;
+
+// Synapse constants are now imported from synapseTypes.ts
 
 /**
  * Type for all valid node type discriminator strings

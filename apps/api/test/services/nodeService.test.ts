@@ -52,22 +52,6 @@ vi.mock('../../src/models/index.js', () => {
       ...mockModelConstructor,
       distinct: vi.fn(),
     },
-    baseNodeSelectionCriteria: {
-      relatives: {},
-    },
-    userNodeSelectionCriteria: {
-      relatives: {},
-    },
-    postNodeSelectionCriteria: {
-      relatives: {},
-    },
-    synapseNodeSelectionCriteria: {
-      relatives: {},
-    },
-    baseNodeHandlers: mockNodeHandlers,
-    userNodeHandlers: mockNodeHandlers,
-    postNodeHandlers: mockNodeHandlers,
-    synapseNodeHandlers: mockNodeHandlers
   };
 });
 

@@ -1,35 +1,33 @@
 import { Types } from 'mongoose';
-import { 
-  BaseNodeModel, 
-  UserNodeModel, 
-  PostNodeModel, 
-  SynapseNodeModel,
-  baseNodeSelectionCriteria,
-  userNodeSelectionCriteria,
-  postNodeSelectionCriteria,
-  synapseNodeSelectionCriteria,
-  baseNodeHandlers,
-  userNodeHandlers,
-  postNodeHandlers,
-  synapseNodeHandlers
+import {
+  BaseNodeModel,
+  UserNodeModel,
+  PostNodeModel,
+  SynapseNodeModel
 } from '../models/index.js';
-import type { BaseNode, SynapseDirection, NodeType, SynapseRole } from '@whitepine/types';
+import {
+  BASE_NODE_CONFIG,
+  USER_NODE_CONFIG,
+  POST_NODE_CONFIG,
+  SYNAPSE_NODE_CONFIG
+} from '@whitepine/types';
+import type { BaseNode, SynapseDirection, NodeType, SynapseRole, CreateSynapseRequest as TypesCreateSynapseRequest } from '@whitepine/types';
 import { NODE_TYPES, SYNAPSE_DIRECTIONS, SYNAPSE_ROLES } from '@whitepine/types';
 import { createError } from '../middleware/errorHandler.js';
 import { isWritePermitted } from '../middleware/datePermissions.js';
 
 const selectionCriteria = {
-  [NODE_TYPES.BASE]: baseNodeSelectionCriteria,
-  [NODE_TYPES.USER]: userNodeSelectionCriteria,
-  [NODE_TYPES.POST]: postNodeSelectionCriteria,
-  [NODE_TYPES.SYNAPSE]: synapseNodeSelectionCriteria
+  [NODE_TYPES.BASE]: BASE_NODE_CONFIG.selectionCriteria,
+  [NODE_TYPES.USER]: USER_NODE_CONFIG.selectionCriteria,
+  [NODE_TYPES.POST]: POST_NODE_CONFIG.selectionCriteria,
+  [NODE_TYPES.SYNAPSE]: SYNAPSE_NODE_CONFIG.selectionCriteria
 };
 
 const nodeHandlers = {
-  [NODE_TYPES.BASE]: baseNodeHandlers,
-  [NODE_TYPES.USER]: userNodeHandlers,
-  [NODE_TYPES.POST]: postNodeHandlers,
-  [NODE_TYPES.SYNAPSE]: synapseNodeHandlers
+  [NODE_TYPES.BASE]: { onCreate: (BASE_NODE_CONFIG as any).onCreate },
+  [NODE_TYPES.USER]: { onCreate: (USER_NODE_CONFIG as any).onCreate },
+  [NODE_TYPES.POST]: { onCreate: (POST_NODE_CONFIG as any).onCreate },
+  [NODE_TYPES.SYNAPSE]: { onCreate: (SYNAPSE_NODE_CONFIG as any).onCreate }
 }
 
 /**
@@ -50,28 +48,20 @@ const nodeHandlers = {
  * 
  */
 
-export interface CreateSynapseRequest {
-  from: Types.ObjectId;
-  to: Types.ObjectId;
-  role: string;
-  dir?: SynapseDirection;
-  order?: number;
-  weight?: number;
-  props?: Record<string, unknown>;
-}
+// CreateSynapseRequest is now imported from @whitepine/types
 
 export interface CreateNodeRequest {
   kind: string;
   data: Record<string, any>;
-  synapses?: CreateSynapseRequest[];
+  synapses?: TypesCreateSynapseRequest[];
   userId?: string; // Optional authenticated user ID for automatic authorship synapse
 }
 
 export interface UpdateNodeRequest {
   data: Record<string, any>;
   synapses?: {
-    create?: CreateSynapseRequest[];
-    update?: Array<{ id: string; data: Partial<CreateSynapseRequest> }>;
+    create?: TypesCreateSynapseRequest[];
+    update?: Array<{ id: string; data: Partial<TypesCreateSynapseRequest> }>;
     delete?: string[];
   };
 }
@@ -134,7 +124,7 @@ export class NodeService {
         await node.save({ session });
         
         // Prepare all synapses to create (including automatic authorship synapse)
-        const allSynapseRequests: CreateSynapseRequest[] = [];
+        const allSynapseRequests: TypesCreateSynapseRequest[] = [];
 
         // Always create an authorship synapse if userId is provided
         if (userId) {
@@ -797,7 +787,7 @@ export class NodeService {
   /**
    * Create multiple synapses in a transaction (synapses are nodes with kind='synapse')
    */
-  private static async createMultipleSynapses(requests: CreateSynapseRequest[], session?: any) {
+  private static async createMultipleSynapses(requests: TypesCreateSynapseRequest[], session?: any) {
     const synapses = [];
     
     for (const request of requests) {

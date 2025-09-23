@@ -5,8 +5,8 @@ import { UserNodeView } from './UserNodeView';
 import { PostNodeView } from './PostNodeView';
 import { BaseNodeView } from './BaseNode';
 import { Button } from '@web/components/ui/button';
-import { NODE_TYPES } from '@whitepine/types/client';
-import type { BaseNode } from '@whitepine/types/client';
+import { NODE_TYPES } from '@whitepine/types';
+import type { BaseNode } from '@whitepine/types';
 
 export interface RelativeNodeViewProps {
   relative: any;

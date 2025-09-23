@@ -15,21 +15,56 @@ import {
   normalizeToObjectId,
   encodeObjectIds,
   decodeObjectIds,
-  type NodeIdEncodingConfig
+  type NodeIdEncodingConfig,
+  BASE_NODE_CONFIG,
+  USER_NODE_CONFIG,
+  POST_NODE_CONFIG,
+  SYNAPSE_NODE_CONFIG
 } from '@whitepine/types';
 
 
 /**
- * Default configuration for node ID encoding
- * Maps node types (discriminators) to their ObjectID fields
+ * Helper function to extract ID fields from node configs based on viewSchema.id property
  */
-export const DEFAULT_NODE_ID_CONFIG: NodeIdEncodingConfig = {
-  // Base fields that all nodes have
-  '*': ['_id'],
+function getNodeIdFieldsFromConfig(nodeType: string): string[] {
+  const nodeConfigs = {
+    [NODE_TYPES.BASE]: BASE_NODE_CONFIG,
+    [NODE_TYPES.USER]: USER_NODE_CONFIG,
+    [NODE_TYPES.POST]: POST_NODE_CONFIG,
+    [NODE_TYPES.SYNAPSE]: SYNAPSE_NODE_CONFIG,
+  };
+
+  const config = nodeConfigs[nodeType as keyof typeof nodeConfigs];
+  if (!config || !(config as any).viewSchema) {
+    return ['_id']; // Default fallback
+  }
+
+  const idFields: string[] = [];
+  for (const [fieldName, fieldConfig] of Object.entries((config as any).viewSchema)) {
+    if (fieldConfig && typeof fieldConfig === 'object' && 'id' in fieldConfig && fieldConfig.id === true) {
+      idFields.push(fieldName);
+    }
+  }
+
+  return idFields.length > 0 ? idFields : ['_id']; // Fallback to _id if no ID fields found
+}
+
+/**
+ * Generate node ID configuration dynamically from node configs
+ */
+export function generateNodeIdConfig(): NodeIdEncodingConfig {
+  const config: NodeIdEncodingConfig = {};
   
-  // SynapseNode specific fields
-  [NODE_TYPES.SYNAPSE]: ['_id', 'from', 'to'],
-};
+  // Get ID fields for each node type
+  Object.values(NODE_TYPES).forEach(nodeType => {
+    config[nodeType] = getNodeIdFieldsFromConfig(nodeType);
+  });
+  
+  // Add wildcard fallback
+  config['*'] = ['_id'];
+  
+  return config;
+}
 
 /**
  * Middleware to decode node IDs from URL parameters
@@ -143,7 +178,7 @@ export function encodeNodeIdResponseConservative(req: Request, res: Response, ne
  * Advanced middleware that encodes ObjectID fields based on node type configuration
  * @param config - Configuration mapping node types to their ObjectID fields
  */
-export function encodeNodeIdResponseByType(config: NodeIdEncodingConfig = DEFAULT_NODE_ID_CONFIG) {
+export function encodeNodeIdResponseByType(config: NodeIdEncodingConfig = generateNodeIdConfig()) {
   return function(req: Request, res: Response, next: NextFunction) {
     const originalJson = res.json;
     

@@ -1,14 +1,8 @@
 // Shared types for the Whitepine application
-// Note: Using string instead of Types.ObjectId for client compatibility
-type ObjectId = string;
+import type { ObjectId, ApiResponse, PaginationParams, PaginatedResponse } from './shared';
 
-export interface User {
-  id: string;
-  email?: string;
-  name?: string;
-  picture?: string;
-  provider?: string;
-}
+// Re-export shared types
+export type { ObjectId, ApiResponse, PaginationParams, PaginatedResponse };
 
 // ---------- Node Types ----------
 export { 
@@ -22,88 +16,24 @@ export {
 
 // Import for use in type definitions
 import { NODE_TYPES } from './nodeTypes';
-import { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole } from './synapseTypes';
+import { SYNAPSE_DIRECTIONS, SYNAPSE_ROLES, type SynapseRole, type SynapseDirection } from './synapseTypes';
 
 // ---------- Synapse Types ----------
 export {
   SYNAPSE_DIRECTIONS,
   SYNAPSE_ROLES,
-  type SynapseRole
+  type SynapseRole,
+  type SynapseDirection
 };
 
-// Re-export SynapseDirection type for convenience
-export type SynapseDirection = typeof SYNAPSE_DIRECTIONS[keyof typeof SYNAPSE_DIRECTIONS];
+// SynapseDirection is now imported from synapseTypes.ts
 
-// Base Node interface for polymorphic nodes
-export interface BaseNode {
-  _id: ObjectId;
-  kind: string;                  // discriminator
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date | null;       // soft delete
-  // Note: All relationships are now handled via SynapseNode connections
-}
+// ---------- Node Interface Exports ----------
+export type { BaseNode } from './nodes/BaseNode';
+export type { UserNode } from './nodes/UserNode';
+export type { PostNode } from './nodes/PostNode';
+export type { SynapseNode } from './nodes/SynapseNode';
 
-// UserNode interface extending BaseNode
-export interface UserNode extends BaseNode {
-  kind: typeof NODE_TYPES.USER;
-  email: string;
-  name: string;
-  avatar?: string;
-  bio?: string;
-  isActive: boolean;
-  lastLoginAt?: Date;
-  preferences?: {
-    theme?: 'light' | 'dark' | 'auto';
-    language?: string;
-    notifications?: {
-      email?: boolean;
-      push?: boolean;
-    };
-  };
-}
-
-// PostNode interface extending BaseNode
-export interface PostNode extends BaseNode {
-  kind: typeof NODE_TYPES.POST;
-  content: string;
-  publishedAt?: Date | null;
-}
-
-// SynapseNode interface extending BaseNode
-export interface SynapseNode extends BaseNode {
-  kind: typeof NODE_TYPES.SYNAPSE;
-  from: ObjectId;               // reference to Node
-  to:   ObjectId;               // reference to Node
-  role: SynapseRole;                  // relationship type
-  dir:  SynapseDirection;             // direction of relation
-  order?: number;                     // optional ordering
-  weight?: number;                    // optional weighting
-  props?: Record<string, unknown>;    // freeform metadata
-}
-
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
 
 // ---------- Relationship Configuration Types ----------
 export type { 
@@ -117,27 +47,129 @@ export {
 } from './relationshipConfig';
 
 // ---------- Node Definitions and Relationship Configurations ----------
+// Import individual node configurations and functions
+import { 
+  USER_NODE_RELATIONSHIP_CONFIGS,
+  getUserNodeRelationshipConfigs,
+  validateUserNodeRelationship,
+  CONFIG as USER_NODE_CONFIG
+} from './nodes/UserNode';
+
+import { 
+  POST_NODE_RELATIONSHIP_CONFIGS,
+  getPostNodeRelationshipConfigs,
+  validatePostNodeRelationship,
+  CONFIG as POST_NODE_CONFIG
+} from './nodes/PostNode';
+
+import { 
+  SYNAPSE_NODE_RELATIONSHIP_CONFIGS,
+  getSynapseNodeRelationshipConfigs,
+  validateSynapseNodeRelationship,
+  CONFIG as SYNAPSE_NODE_CONFIG
+} from './nodes/SynapseNode';
+
+import { 
+  CONFIG as BASE_NODE_CONFIG
+} from './nodes/BaseNode';
+
+import { combineRelationshipConfigs } from './relationshipConfig';
+
+// Registry of all relationship configurations by node type
+export const NODE_RELATIONSHIP_REGISTRY = {
+  'User': USER_NODE_RELATIONSHIP_CONFIGS,
+  'post': POST_NODE_RELATIONSHIP_CONFIGS,
+  'synapse': SYNAPSE_NODE_RELATIONSHIP_CONFIGS,
+} as const;
+
+/**
+ * Get relationship configurations for a specific node type
+ */
+export function getRelationshipConfigsForNodeType(nodeType: string) {
+  return NODE_RELATIONSHIP_REGISTRY[nodeType as keyof typeof NODE_RELATIONSHIP_REGISTRY] || [];
+}
+
+/**
+ * Get all relationship configurations
+ */
+export function getAllRelationshipConfigs() {
+  return combineRelationshipConfigs(
+    USER_NODE_RELATIONSHIP_CONFIGS,
+    POST_NODE_RELATIONSHIP_CONFIGS,
+    SYNAPSE_NODE_RELATIONSHIP_CONFIGS
+  );
+}
+
+/**
+ * Validate a relationship creation request
+ */
+export function validateRelationshipCreation(
+  sourceNodeType: string,
+  targetNodeKind: string,
+  synapseRole: string,
+  synapseDirection: string
+): { valid: boolean; error?: string } {
+  switch (sourceNodeType) {
+    case 'User':
+      return validateUserNodeRelationship(targetNodeKind, synapseRole, synapseDirection);
+    case 'post':
+      return validatePostNodeRelationship(targetNodeKind, synapseRole, synapseDirection);
+    case 'synapse':
+      return validateSynapseNodeRelationship(targetNodeKind, synapseRole, synapseDirection);
+    default:
+      return {
+        valid: false,
+        error: `Unknown source node type: ${sourceNodeType}`
+      };
+  }
+}
+
+/**
+ * Check if a relationship configuration exists
+ */
+export function hasRelationshipConfig(
+  sourceNodeType: string,
+  targetNodeKind: string,
+  synapseRole: string,
+  synapseDirection: string
+): boolean {
+  const configs = getRelationshipConfigsForNodeType(sourceNodeType);
+  return configs.some(config => 
+    config.targetNodeKind === targetNodeKind &&
+    config.synapseRole === synapseRole &&
+    config.synapseDirection === synapseDirection
+  );
+}
+
+// Re-export node-specific functions
 export {
-  // Registry functions
-  NODE_RELATIONSHIP_REGISTRY,
-  getRelationshipConfigsForNodeType,
-  getAllRelationshipConfigs,
-  validateRelationshipCreation,
-  hasRelationshipConfig,
-  
-  // Node-specific functions
   getUserNodeRelationshipConfigs,
   validateUserNodeRelationship,
   getPostNodeRelationshipConfigs,
   validatePostNodeRelationship,
   getSynapseNodeRelationshipConfigs,
   validateSynapseNodeRelationship,
-  
-  // Relationship configurations
+};
+
+// Re-export relationship configurations
+export {
   USER_NODE_RELATIONSHIP_CONFIGS,
   POST_NODE_RELATIONSHIP_CONFIGS,
   SYNAPSE_NODE_RELATIONSHIP_CONFIGS,
-} from './nodes';
+};
+
+// Re-export node configurations
+export {
+  BASE_NODE_CONFIG,
+  USER_NODE_CONFIG,
+  POST_NODE_CONFIG,
+  SYNAPSE_NODE_CONFIG,
+};
+
+// ---------- Individual Node Exports ----------
+export {
+  type CreateSynapseRequest
+} from './nodes/BaseNode';
 
 // ---------- Node ID Encoding/Decoding Utilities ----------
 export {
@@ -161,11 +193,3 @@ export {
 
 // ---------- Node ID Configuration ----------
 export type { NodeIdEncodingConfig } from './nodeIdConfig';
-
-// ---------- Node ID Configuration ----------
-export {
-  CUSTOM_NODE_ID_CONFIG,
-  createNodeIdConfig,
-  addFieldsToNodeType,
-  removeFieldsFromNodeType,
-} from './nodeIdConfig';

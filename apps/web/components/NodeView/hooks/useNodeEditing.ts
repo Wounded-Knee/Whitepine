@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch } from '@web/store/hooks';
 import { updateNode, deleteNode } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
-import type { BaseNode } from '@whitepine/types/client';
+import type { BaseNode } from '@whitepine/types';
 import type { EditProps, NodeViewMode } from '../types/BaseNodeView.types';
 
 export const useNodeEditing = (node: BaseNode | null, fetchNode: () => Promise<void>, mode: NodeViewMode = 'view', onSuccess?: (nodeId: string) => void) => {
