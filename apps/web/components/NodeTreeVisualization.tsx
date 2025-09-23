@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as d3 from 'd3';
 import { useSelector, useDispatch } from 'react-redux';
 import { NODE_TYPES, SYNAPSE_ROLES } from '@whitepine/types';
@@ -29,9 +29,6 @@ const NODE_COLORS = {
   [NODE_TYPES.SYNAPSE]: '#f59e0b',   // Orange
   [NODE_TYPES.BASE]: '#6b7280',      // Gray
   'user-plugin': '#8b5cf6',          // Purple
-  'post': '#10b981',                 // Green (alternative spelling)
-  'synapse': '#f59e0b',              // Orange (alternative spelling)
-  'base': '#6b7280',                 // Gray (alternative spelling)
 } as const;
 
 const SYNAPSE_ROLE_COLORS = {
@@ -69,6 +66,8 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const hasLoadedData = useRef(false);
+  const lastVisualizationData = useRef<string>('');
+  const lastNodeCount = useRef<number>(0);
   
   // Redux integration
   const dispatch = useDispatch();
@@ -79,41 +78,67 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
   const updateNodeInVisualization = useCallback((updatedNode: BaseNode) => {
     if (!svgRef.current) return;
     
-    
     // Find the node element and update its display
     const nodeElement = d3.select(svgRef.current).select(`.node[data-id="${updatedNode._id}"]`);
     
     if (nodeElement.empty()) {
+      console.log(`Node ${updatedNode._id} not found in visualization, triggering refresh`);
       setRefreshTrigger(prev => prev + 1);
       return;
     }
     
-    // Update node display name
-    const displayName = getNodeDisplayName(updatedNode);
-    nodeElement.select('text').text(displayName);
-    
-    // Update node color if type changed
-    const nodeColor = NODE_COLORS[updatedNode.kind as keyof typeof NODE_COLORS] || '#6b7280';
-    nodeElement.select('circle').attr('fill', nodeColor);
-    
-    // Update tooltip
-    const connectionCount = nodeElement.datum()?.synapses?.length || 0;
-    nodeElement.select('title').text(`${displayName}\nType: ${updatedNode.kind}\nConnections: ${connectionCount}`);
+    try {
+      // Update node display name
+      const displayName = getNodeDisplayName(updatedNode);
+      nodeElement.select('text').text(displayName);
+      
+      // Update node color if type changed
+      const nodeColor = NODE_COLORS[updatedNode.kind as keyof typeof NODE_COLORS] || '#6b7280';
+      nodeElement.select('circle').attr('fill', nodeColor);
+      
+      // Update tooltip
+      const nodeData = nodeElement.datum() as any;
+      const connectionCount = nodeData?.synapses?.length || 0;
+      nodeElement.select('title').text(`${displayName}\nType: ${updatedNode.kind}\nConnections: ${connectionCount}`);
+      
+      console.log(`Updated node ${updatedNode._id} in visualization without full refresh`);
+    } catch (error) {
+      console.error('Error updating node in visualization:', error);
+      // Fallback to full refresh if individual update fails
+      setRefreshTrigger(prev => prev + 1);
+    }
   }, []);
 
-  // Listen for node updates in Redux store
+  // Listen for node updates in Redux store - but only for actual data changes, not selection changes
   useEffect(() => {
     const nodeCount = Object.keys(nodes).length;
     const currentTime = Date.now();
     
-    // Only refresh if we have nodes and enough time has passed since last update
-    if (nodeCount > 0 && currentTime - lastUpdateTime.current > 1000) {
+    // Debug: Log when Redux nodes state changes
+    const nodeIds = Object.keys(nodes);
+    console.log(`Redux nodes state changed: count=${nodeCount}, lastCount=${lastNodeCount.current}, timeSinceLastUpdate=${currentTime - lastUpdateTime.current}ms`);
+    console.log(`Current node IDs:`, nodeIds);
+    console.log(`Selected node ID:`, selectedNode?._id);
+    
+    // Only refresh if:
+    // 1. We have nodes
+    // 2. The node count actually changed (new nodes added/removed)
+    // 3. The node count increased (not decreased - decreases are likely temporary loading states)
+    // 4. Enough time has passed since last update
+    if (nodeCount > 0 && 
+        nodeCount !== lastNodeCount.current && 
+        nodeCount > lastNodeCount.current && // Only refresh when count increases
+        currentTime - lastUpdateTime.current > 2000) {
+      console.log(`Node count increased from ${lastNodeCount.current} to ${nodeCount}, triggering refresh`);
+      lastNodeCount.current = nodeCount;
       lastUpdateTime.current = currentTime;
       setRefreshTrigger(prev => prev + 1);
+    } else {
+      console.log(`Skipping refresh: nodeCount=${nodeCount}, lastCount=${lastNodeCount.current}, timeSinceLastUpdate=${currentTime - lastUpdateTime.current}ms, countIncreased=${nodeCount > lastNodeCount.current}`);
     }
   }, [nodes]);
 
-  // More sophisticated node update detection
+  // More sophisticated node update detection - but with better debouncing and content change detection
   useEffect(() => {
     // This effect runs when the nodes object changes
     // We can detect which specific nodes were updated
@@ -125,11 +150,29 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
       return currentTime - updatedAt < 5000; // 5 seconds
     });
     
-    if (recentlyUpdatedNodes.length > 0 && currentTime - lastUpdateTime.current > 1000) {
+    // Only trigger refresh if there are actual content updates, not just selection changes
+    // and enough time has passed since last update
+    if (recentlyUpdatedNodes.length > 0 && currentTime - lastUpdateTime.current > 3000) {
       lastUpdateTime.current = currentTime;
-      setRefreshTrigger(prev => prev + 1);
+      
+      // Try to update individual nodes first before doing a full refresh
+      let allNodesUpdated = true;
+      recentlyUpdatedNodes.forEach((node: any) => {
+        try {
+          updateNodeInVisualization(node);
+        } catch (error) {
+          console.error(`Failed to update node ${node._id}:`, error);
+          allNodesUpdated = false;
+        }
+      });
+      
+      // Only do full refresh if individual updates failed
+      if (!allNodesUpdated) {
+        console.log('Individual node updates failed, triggering full refresh');
+        setRefreshTrigger(prev => prev + 1);
+      }
     }
-  }, [nodes]);
+  }, [nodes, updateNodeInVisualization]);
 
   // Fetch all nodes from the API
   const fetchAllNodes = useCallback(async () => {
@@ -150,7 +193,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
   }, []);
 
   // Transform flat node data into a network structure showing all nodes and connections
-  const transformToNetwork = useCallback((nodes: BaseNode[]): { nodes: TreeNode[], links: Array<{source: string, target: string, synapse: SynapseNode}> } => {
+  const transformToNetwork = useCallback((nodes: BaseNode[]): { nodes: TreeNode[], links: Array<{source: TreeNode, target: TreeNode, synapse: SynapseNode}> } => {
     const nodeMap = new Map<string, BaseNode>();
     const synapseNodes: SynapseNode[] = [];
     const regularNodes: BaseNode[] = [];
@@ -213,7 +256,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
   };
 
   // Create the network visualization
-  const createVisualization = useCallback((networkData: { nodes: TreeNode[], links: Array<{source: string, target: string, synapse: SynapseNode}> }) => {
+  const createVisualization = useCallback((networkData: { nodes: TreeNode[], links: Array<{source: TreeNode, target: TreeNode, synapse: SynapseNode}> }) => {
     try {
       if (!svgRef.current || !containerRef.current) {
         console.error('SVG or container ref is null');
@@ -237,8 +280,8 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
     const g = svg.append("g");
 
     // Create force simulation with better parameters
-    const simulation = d3.forceSimulation(networkData.nodes)
-      .force("link", d3.forceLink(networkData.links)
+    const simulation = d3.forceSimulation(networkData.nodes as any)
+      .force("link", d3.forceLink(networkData.links as any)
         .id((d: any) => d.id)
         .distance(150) // Fixed distance for debugging
         .strength(0.5)) // Increased strength
@@ -253,7 +296,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
       .data(networkData.links)
       .enter().append("line")
       .attr("class", "link")
-      .attr("stroke", (d: any) => SYNAPSE_ROLE_COLORS[d.synapse?.role] || "#999")
+      .attr("stroke", (d: any) => SYNAPSE_ROLE_COLORS[d.synapse?.role as keyof typeof SYNAPSE_ROLE_COLORS] || "#999")
       .attr("stroke-width", (d: any) => {
         const role = d.synapse?.role;
         return role === "parent" || role === "child" ? 4 : 2;
@@ -295,6 +338,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         event.stopPropagation();
+        console.log(`Node clicked: ${d.data._id}, setting selectedNode`);
         setSelectedNode(d.data);
         setSelectedSynapse(null);
       })
@@ -308,7 +352,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
       .attr("r", d => {
         // Size nodes based on number of connections
         const connectionCount = networkData.links.filter(link => 
-          link.source === d.id || link.target === d.id
+          (link.source as any).id === d.id || (link.target as any).id === d.id
         ).length;
         return Math.max(6, Math.min(15, 6 + connectionCount * 0.5));
       })
@@ -330,7 +374,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
     node.append("title")
       .text(d => {
         const connectionCount = networkData.links.filter(link => 
-          link.source === d.id || link.target === d.id
+          (link.source as any).id === d.id || (link.target as any).id === d.id
         ).length;
         return `${d.name}\nType: ${d.type}\nConnections: ${connectionCount}`;
       });
@@ -392,34 +436,134 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
     }
   }, []);
 
+  // Memoize the network data to prevent unnecessary recalculations
+  const networkData = useMemo(() => {
+    if (!hasLoadedData.current) return null;
+    // This will be populated when data is loaded
+    return null;
+  }, [refreshTrigger]);
+
+  // Memoize the side panel content to prevent unnecessary re-renders
+  const sidePanelContent = useMemo(() => {
+    if (selectedNode) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <h3 className="font-medium text-gray-900 mb-2">Selected Node</h3>
+            <BaseNodeView 
+              nodeId={selectedNode._id}
+              mode="view"
+              className="text-sm"
+            />
+          </div>
+        </div>
+      );
+    }
+    
+    if (selectedSynapse) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <h3 className="font-medium text-gray-900 mb-2">Selected Connection</h3>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="font-medium">Role:</span>
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                  {selectedSynapse.role}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium">Direction:</span>
+                <span className="ml-2">{selectedSynapse.dir}</span>
+              </div>
+              {selectedSynapse.weight && (
+                <div>
+                  <span className="font-medium">Weight:</span>
+                  <span className="ml-2">{selectedSynapse.weight}</span>
+                </div>
+              )}
+              {selectedSynapse.order && (
+                <div>
+                  <span className="font-medium">Order:</span>
+                  <span className="ml-2">{selectedSynapse.order}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Show connected nodes */}
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <h3 className="font-medium text-gray-900 mb-2">Connected Nodes</h3>
+            <div className="space-y-2">
+              <BaseNodeView 
+                nodeId={selectedSynapse.from}
+                mode="view"
+                className="text-sm"
+              />
+              <div className="text-center text-gray-500">↕</div>
+              <BaseNodeView 
+                nodeId={selectedSynapse.to}
+                mode="view"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-center text-gray-500 py-8">
+        <p>Click on a node or connection to view details</p>
+      </div>
+    );
+  }, [selectedNode, selectedSynapse]);
+
   // Load data and create visualization
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log('Loading data, refreshTrigger:', refreshTrigger);
+        console.log('Loading data, refreshTrigger:', refreshTrigger, 'selectedNode:', selectedNode?._id);
         const nodes = await fetchAllNodes();
         hasLoadedData.current = true;
         
         if (nodes.length > 0) {
           console.log('Creating visualization with', nodes.length, 'nodes');
+          lastNodeCount.current = nodes.length; // Set initial node count
           const networkData = transformToNetwork(nodes);
-          console.log('Network data created:', networkData);
           
-          // Wait for refs to be available
-          if (!svgRef.current || !containerRef.current) {
-            console.log('Refs not available, waiting...');
-            setTimeout(() => {
-              if (svgRef.current && containerRef.current) {
-                createVisualization(networkData);
-                console.log('createVisualization call completed (delayed)');
-              } else {
-                console.error('Refs still not available after delay');
-                setError('Failed to create visualization - DOM not ready');
-              }
-            }, 100);
+          // Create a hash of the data to detect if it actually changed
+          const dataHash = JSON.stringify({
+            nodeCount: networkData.nodes.length,
+            linkCount: networkData.links.length,
+            nodeIds: networkData.nodes.map(n => n.id).sort(),
+            linkIds: networkData.links.map(l => `${(l.source as any).id}-${(l.target as any).id}`).sort()
+          });
+          
+          // Only recreate visualization if data actually changed
+          if (dataHash !== lastVisualizationData.current) {
+            console.log('Network data changed, recreating visualization');
+            lastVisualizationData.current = dataHash;
+            console.log('Network data created:', networkData);
+            
+            // Wait for refs to be available
+            if (!svgRef.current || !containerRef.current) {
+              console.log('Refs not available, waiting...');
+              setTimeout(() => {
+                if (svgRef.current && containerRef.current) {
+                  createVisualization(networkData);
+                  console.log('createVisualization call completed (delayed)');
+                } else {
+                  console.error('Refs still not available after delay');
+                  setError('Failed to create visualization - DOM not ready');
+                }
+              }, 100);
+            } else {
+              createVisualization(networkData);
+              console.log('createVisualization call completed');
+            }
           } else {
-            createVisualization(networkData);
-            console.log('createVisualization call completed');
+            console.log('Network data unchanged, skipping visualization recreation');
           }
         } else {
           // Handle case where no nodes are returned
@@ -437,9 +581,9 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      const networkData = d3.select(svgRef.current).datum();
+      const networkData = d3.select(svgRef.current).datum() as any;
       if (networkData) {
-        createVisualization(networkData as { nodes: TreeNode[], links: Array<{source: string, target: string, synapse: SynapseNode}> });
+        createVisualization(networkData);
       }
     };
 
@@ -541,75 +685,7 @@ const NodeTreeVisualization: React.FC<NodeTreeVisualizationProps> = ({ className
       <div className="w-96 border-l border-gray-200 bg-gray-50 overflow-y-auto">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Node Details</h2>
-          
-          {selectedNode && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-medium text-gray-900 mb-2">Selected Node</h3>
-                <BaseNodeView 
-                  nodeId={selectedNode._id}
-                  mode="view"
-                  className="text-sm"
-                />
-              </div>
-            </div>
-          )}
-          
-          {selectedSynapse && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-medium text-gray-900 mb-2">Selected Connection</h3>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">Role:</span>
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                      {selectedSynapse.role}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Direction:</span>
-                    <span className="ml-2">{selectedSynapse.dir}</span>
-                  </div>
-                  {selectedSynapse.weight && (
-                    <div>
-                      <span className="font-medium">Weight:</span>
-                      <span className="ml-2">{selectedSynapse.weight}</span>
-                    </div>
-                  )}
-                  {selectedSynapse.order && (
-                    <div>
-                      <span className="font-medium">Order:</span>
-                      <span className="ml-2">{selectedSynapse.order}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Show connected nodes */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-medium text-gray-900 mb-2">Connected Nodes</h3>
-                <div className="space-y-2">
-                  <BaseNodeView 
-                    nodeId={selectedSynapse.from}
-                    mode="view"
-                    className="text-sm"
-                  />
-                  <div className="text-center text-gray-500">↕</div>
-                  <BaseNodeView 
-                    nodeId={selectedSynapse.to}
-                    mode="view"
-                    className="text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {!selectedNode && !selectedSynapse && (
-            <div className="text-center text-gray-500 py-8">
-              <p>Click on a node or connection to view details</p>
-            </div>
-          )}
+          {sidePanelContent}
         </div>
       </div>
     </div>
