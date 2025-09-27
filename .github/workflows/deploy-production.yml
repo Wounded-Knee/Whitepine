@@ -1,0 +1,230 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build applications
+        run: pnpm build
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment-package
+          
+          # Copy web app build
+          cp -r apps/web/.next deployment-package/web-next
+          cp -r apps/web/public deployment-package/web-public
+          cp apps/web/package.json deployment-package/web-package.json
+          
+          # Copy API build
+          cp -r apps/api/dist deployment-package/api-dist
+          cp -r apps/api/migrations deployment-package/api-migrations
+          cp apps/api/package.json deployment-package/api-package.json
+          
+          # Copy ops configuration
+          cp -r apps/ops deployment-package/ops
+          
+          # Create deployment script
+          cat > deployment-package/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          ENVIRONMENT=prod
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          RELEASE_DIR="/var/www/whitepine/releases/$TIMESTAMP"
+          CURRENT_DIR="/var/www/whitepine/current"
+          SHARED_DIR="/var/www/whitepine/shared"
+          
+          echo "🚀 Starting deployment for environment: $ENVIRONMENT"
+          echo "📦 Release directory: $RELEASE_DIR"
+          
+          # Create release directory
+          mkdir -p "$RELEASE_DIR"
+          
+          # Copy web app
+          mkdir -p "$RELEASE_DIR/web"
+          cp -r web-next "$RELEASE_DIR/web/.next"
+          cp -r web-public "$RELEASE_DIR/web/public"
+          cp web-package.json "$RELEASE_DIR/web/package.json"
+          
+          # Copy API
+          mkdir -p "$RELEASE_DIR/api"
+          cp -r api-dist "$RELEASE_DIR/api/dist"
+          cp -r api-migrations "$RELEASE_DIR/api/migrations"
+          cp api-package.json "$RELEASE_DIR/api/package.json"
+          
+          # Copy ops
+          cp -r ops "$RELEASE_DIR/ops"
+          
+          # Install dependencies
+          echo "📦 Installing web app dependencies..."
+          cd "$RELEASE_DIR/web"
+          npm ci --only=production
+          
+          echo "📦 Installing API dependencies..."
+          cd "$RELEASE_DIR/api"
+          npm ci --only=production
+          
+          # Create environment file
+          echo "🔧 Creating environment file..."
+          cat > "$SHARED_DIR/env/$ENVIRONMENT.env" << 'ENVEOF'
+          NODE_ENV=production
+          BASE_URL=https://whitepine.jpkramer.com
+          PORT_WEB=3000
+          PORT_API=4000
+          MONGODB_URI=$MONGODB_URI
+          SESSION_SECRET=$SESSION_SECRET
+          GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+          GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+          S3_BUCKET=$S3_BUCKET
+          AWS_REGION=$AWS_REGION
+          AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+          AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+          ENVEOF
+          
+          # Run database migrations
+          echo "🗄️ Running database migrations..."
+          cd "$RELEASE_DIR/api"
+          export $(cat "$SHARED_DIR/env/$ENVIRONMENT.env" | xargs)
+          npx migrate-mongo up
+          
+          # Create symlink to new release
+          echo "🔗 Creating symlink to new release..."
+          ln -sfn "$RELEASE_DIR" "$CURRENT_DIR"
+          
+          # Restart PM2 processes
+          echo "🔄 Restarting PM2 processes..."
+          cd "$CURRENT_DIR"
+          pm2 reload ops/config/ecosystem.config.js --env $ENVIRONMENT
+          
+          # Wait for services to start
+          echo "⏳ Waiting for services to start..."
+          sleep 10
+          
+          # Health check
+          echo "🏥 Performing health check..."
+          if ! curl -f -s "https://whitepine.jpkramer.com/" > /dev/null; then
+            echo "❌ Web app health check failed"
+            exit 1
+          fi
+          
+          if ! curl -f -s "https://whitepine.jpkramer.com/api/healthz" > /dev/null; then
+            echo "❌ API health check failed"
+            exit 1
+          fi
+          
+          echo "✅ Deployment completed successfully!"
+          
+          # Clean up old releases (keep last 5)
+          echo "🧹 Cleaning up old releases..."
+          cd /var/www/whitepine/releases
+          ls -t | tail -n +6 | xargs -r rm -rf
+          
+          echo "🎉 Production deployment finished!"
+          EOF
+          
+          chmod +x deployment-package/deploy.sh
+
+      - name: Deploy to Lightsail
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Create temporary directory for deployment
+            TEMP_DIR=$(mktemp -d)
+            echo "Using temporary directory: $TEMP_DIR"
+            
+            # Cleanup function
+            cleanup() {
+              rm -rf "$TEMP_DIR"
+            }
+            trap cleanup EXIT
+
+      - name: Upload deployment package
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deployment-package/*"
+          target: "/tmp/deployment"
+
+      - name: Execute deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: MONGODB_URI,SESSION_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,S3_BUCKET,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY
+          script: |
+            cd /tmp/deployment
+            chmod +x deploy.sh
+            ./deploy.sh
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "📊 PM2 Status:"
+            pm2 status
+            
+            echo "🌐 Testing endpoints:"
+            curl -f -s "https://whitepine.jpkramer.com/" > /dev/null && echo "✅ Web app is responding"
+            curl -f -s "https://whitepine.jpkramer.com/api/healthz" > /dev/null && echo "✅ API is responding"
+            
+            echo "🔍 Recent logs:"
+            pm2 logs --lines 10
