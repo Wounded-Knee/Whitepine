@@ -264,13 +264,15 @@ const nodesSlice = createSlice({
         state.byId[nodeId] = node;
         
         // Store all related nodes (including synapses - they should already be added by the thunk)
-        allRelatives.forEach(relative => {
-          const relativeNodeId = relative._id.toString();
-          if (!state.byId[relativeNodeId]) {
-            state.allIds.push(relativeNodeId);
-          }
-          state.byId[relativeNodeId] = relative;
-        });
+        if (allRelatives && Array.isArray(allRelatives)) {
+          allRelatives.forEach(relative => {
+            const relativeNodeId = relative._id.toString();
+            if (!state.byId[relativeNodeId]) {
+              state.allIds.push(relativeNodeId);
+            }
+            state.byId[relativeNodeId] = relative;
+          });
+        }
         
         // Store relativesByRole data for this node
         if (!state.relativesByRole) {

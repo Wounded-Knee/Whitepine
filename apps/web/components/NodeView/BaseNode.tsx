@@ -26,7 +26,8 @@ import {
   CustomDateTimeWidget,
   CustomEmailWidget,
   CustomURLWidget,
-  CustomPasswordWidget
+  CustomPasswordWidget,
+  CustomUnknownWidget
 } from './schema/fieldTemplates';
 import { renderNodeId } from './utils/renderNodeId';
 import { useNodeEditing } from './hooks/useNodeEditing';
@@ -143,7 +144,7 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
                 <div className="flex items-center justify-end space-x-2">
                   {!editProps.isEditing ? (
                     mode === 'create' ? null : (
-                      !(node as any)?.readOnly && mode !== 'create' && (
+                      !(node as any)?.readOnly && (
                         <div className="flex items-center space-x-2">
                           <Button
                             onClick={editProps.handleEdit}
@@ -226,7 +227,8 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
                   DateTimeWidget: CustomDateTimeWidget,
                   EmailWidget: CustomEmailWidget,
                   URLWidget: CustomURLWidget,
-                  PasswordWidget: CustomPasswordWidget
+                  PasswordWidget: CustomPasswordWidget,
+                  UnknownWidget: CustomUnknownWidget
                 }}
                 onChange={editProps.isEditing ? editProps.handleFormChange : undefined}
               >

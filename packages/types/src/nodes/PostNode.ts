@@ -215,7 +215,8 @@ const cfg = {
       trim: true,
     },
     publishedAt: {
-      name: 'Published At',
+      name: (value: any) => value ? 'Published!' : 'Unpublished',
+      value: (value: any) => value ? value : null,
       description: 'Publication timestamp',
       type: Date,
       default: null,

@@ -83,14 +83,14 @@ const cfg = {
       schemaExclude: true,
     },
     createdAt: {
-      name: 'Created At',
+      name: (value: any) => value ? 'Created At' : 'Uncreated',
       description: 'When this node was first created',
       type: Date,
       default: Date.now,
       index: true,
     },
     updatedAt: {
-      name: 'Updated At',
+      name: (value: any) => value ? 'Updated At' : 'Unupdated',
       description: 'When this node was last modified',
       type: Date,
       default: Date.now,

@@ -2,7 +2,8 @@ import {
   BASE_NODE_CONFIG,
   USER_NODE_CONFIG,
   POST_NODE_CONFIG,
-  SYNAPSE_NODE_CONFIG
+  SYNAPSE_NODE_CONFIG,
+  NODE_TYPES
 } from '@whitepine/types';
 
 /**
@@ -11,24 +12,24 @@ import {
 const getViewSchemaForField = (nodeKind: string, fieldKey: string) => {
   // Map node kinds to their configurations
   const nodeConfigs = {
-    'base': BASE_NODE_CONFIG,
-    'User': USER_NODE_CONFIG,
-    'post': POST_NODE_CONFIG,
-    'synapse': SYNAPSE_NODE_CONFIG
+    [NODE_TYPES.BASE]: BASE_NODE_CONFIG,
+    [NODE_TYPES.USER]: USER_NODE_CONFIG,
+    [NODE_TYPES.POST]: POST_NODE_CONFIG,
+    [NODE_TYPES.SYNAPSE]: SYNAPSE_NODE_CONFIG
   };
 
   const config = nodeConfigs[nodeKind as keyof typeof nodeConfigs];
-  if (!config?.handlers) {
+  if (!config) {
     return null;
   }
 
   // Type assertion to access viewSchema property
-  const handlers = config.handlers as any;
-  if (!handlers.viewSchema) {
+  const configWithViewSchema = config as any;
+  if (!configWithViewSchema.viewSchema) {
     return null;
   }
 
-  return handlers.viewSchema[fieldKey] || null;
+  return configWithViewSchema.viewSchema[fieldKey] || null;
 };
 
 /**
@@ -45,7 +46,18 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false, mode: 
     const viewSchema = getViewSchemaForField(nodeKind, key);
     if (viewSchema?.[configType]) {
       const configValue = viewSchema[configType];
-      // Handle both string and callback function cases
+      
+      // Debug logging for content field
+      if (key === 'content' && configType === 'type') {
+        console.log('getFieldConfig debug:', { key, nodeKind, value, configType, configValue, viewSchema });
+      }
+      
+      // Special handling for 'type' field - it should be a constructor, not a function
+      if (configType === 'type') {
+        return configValue; // Return the constructor directly (String, Date, etc.)
+      }
+      
+      // Handle both string and callback function cases for name and description
       if (typeof configValue === 'function') {
         return configValue(value);
       } else {
@@ -80,10 +92,45 @@ export const generateNodeSchema = (node: any, isEditing: boolean = false, mode: 
   const detectType = (value: any, key?: string, nodeKind?: string): { type: string; format?: string; items?: any; properties?: any } => {
     if (key && nodeKind) {
       const type = getFieldConfig(key, nodeKind, value, 'type');
-      if (type) return { type };
+      if (type) {
+        // Handle JavaScript constructor types from viewSchema
+        if (type === Date) {
+          return { type: 'string', format: 'date-time' };
+        } else if (type === String) {
+          return { type: 'string' };
+        } else if (type === Number) {
+          return { type: 'number' };
+        } else if (type === Boolean) {
+          return { type: 'boolean' };
+        } else if (type === Array) {
+          return { type: 'array' };
+        } else if (type === Object) {
+          return { type: 'object' };
+        } else {
+          // If it's a string type name, use it directly
+          return { type: typeof type === 'string' ? type : 'string' };
+        }
+      }
     }
 
-    return { type: 'unknown' };
+    // Fallback to runtime type detection
+    if (value === null || value === undefined) {
+      return { type: 'string' }; // Default to string for null/undefined
+    } else if (value instanceof Date) {
+      return { type: 'string', format: 'date-time' };
+    } else if (Array.isArray(value)) {
+      return { type: 'array' };
+    } else if (typeof value === 'object') {
+      return { type: 'object' };
+    } else if (typeof value === 'boolean') {
+      return { type: 'boolean' };
+    } else if (typeof value === 'number') {
+      return { type: 'number' };
+    } else if (typeof value === 'string') {
+      return { type: 'string' };
+    }
+
+    return { type: 'string' }; // Default fallback to string instead of unknown
   };
 
   // Process each property in the node

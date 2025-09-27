@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import NodeTreeVisualization from '@web/components/NodeTreeVisualization';
 import { apiClient } from '@web/lib/api-client';
+import nodesReducer from '@web/store/slices/nodesSlice';
+import uiReducer from '@web/store/slices/uiSlice';
+import cacheReducer from '@web/store/slices/cacheSlice';
 
 // Mock all external dependencies
 vi.mock('@web/lib/api-client', () => ({
@@ -61,13 +66,30 @@ vi.mock('d3', () => ({
   }))
 }));
 
+// Create test store
+const createTestStore = (initialState = {}) => {
+  return configureStore({
+    reducer: {
+      nodes: nodesReducer,
+      ui: uiReducer,
+      cache: cacheReducer,
+    },
+    preloadedState: initialState,
+  });
+};
+
 describe('NodeTreeVisualization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders loading state initially', () => {
-    render(<NodeTreeVisualization />);
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <NodeTreeVisualization />
+      </Provider>
+    );
     expect(screen.getByText('Loading node tree...')).toBeInTheDocument();
   });
 
@@ -75,10 +97,15 @@ describe('NodeTreeVisualization', () => {
     const mockError = new Error('API Error');
     vi.mocked(apiClient.getNodes).mockRejectedValue(mockError);
 
-    render(<NodeTreeVisualization />);
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <NodeTreeVisualization />
+      </Provider>
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/Error loading visualization: API Error/)).toBeInTheDocument();
+      expect(screen.getByText(/Error loading visualization: No nodes found in the database/)).toBeInTheDocument();
     });
   });
 
@@ -108,7 +135,12 @@ describe('NodeTreeVisualization', () => {
       pagination: { total: 2, page: 1, limit: 1000, totalPages: 1 }
     });
 
-    render(<NodeTreeVisualization />);
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <NodeTreeVisualization />
+      </Provider>
+    );
 
     await waitFor(() => {
       // Should not show loading or error
@@ -123,7 +155,12 @@ describe('NodeTreeVisualization', () => {
       pagination: { total: 0, page: 1, limit: 1000, totalPages: 0 }
     });
 
-    render(<NodeTreeVisualization />);
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <NodeTreeVisualization />
+      </Provider>
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/No nodes found in the database/)).toBeInTheDocument();

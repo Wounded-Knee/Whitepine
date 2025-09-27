@@ -29,18 +29,11 @@ const getViewSchemaForField = (nodeKind: string, fieldKey: string) => {
     'synapse': SYNAPSE_NODE_CONFIG
   };
 
-  const config = nodeConfigs[nodeKind as keyof typeof nodeConfigs];
-  if (!config?.handlers) {
-    return null;
-  }
+  const nodeConfig = nodeConfigs[nodeKind as keyof typeof nodeConfigs] as any;
 
-  // Type assertion to access viewSchema property
-  const handlers = config.handlers as any;
-  if (!handlers.viewSchema) {
-    return null;
-  }
+  if (!nodeConfig || !nodeConfig.viewSchema) return null;
 
-  return handlers.viewSchema[fieldKey] || null;
+  return nodeConfig.viewSchema[fieldKey] || null;
 };
 
 /**
@@ -503,6 +496,38 @@ export const CustomPasswordWidget = (props: any) => {
         disabled={disabled || isReadOnly}
         readOnly={isReadOnly}
       />
+    </InputWrapper>
+  );
+};
+
+/**
+ * Custom UnknownWidget for handling unknown field types
+ */
+export const CustomUnknownWidget = (props: any) => {
+  const { value, onChange, disabled, readonly, schema, uiSchema } = props;
+  const isReadOnly = readonly || uiSchema?.['ui:readonly'];
+  
+  return (
+    <InputWrapper props={{...props, readOnly: isReadOnly}}>
+      <div className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm ${
+        isReadOnly ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-600">
+            {isReadOnly ? (value ? String(value) : 'No value') : 'Unknown field type'}
+          </span>
+          {!isReadOnly && (
+            <input
+              type="text"
+              className="flex-1 ml-2 border-none outline-none bg-transparent"
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="Enter value..."
+              disabled={disabled}
+            />
+          )}
+        </div>
+      </div>
     </InputWrapper>
   );
 };

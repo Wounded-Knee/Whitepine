@@ -160,9 +160,9 @@ describe('BaseNodeView', () => {
       </Provider>
     );
 
-    // Should show loading state (pulse animation) initially
-    const loadingElement = document.querySelector('.animate-pulse.bg-gray-200');
-    expect(loadingElement).toBeInTheDocument();
+    // Should show loading state message
+    expect(screen.getByText('Loading node')).toBeInTheDocument();
+    expect(screen.getByText('Please wait while the node is loading.')).toBeInTheDocument();
   });
 
   it('renders node data when available in store', () => {
@@ -181,10 +181,11 @@ describe('BaseNodeView', () => {
       </Provider>
     );
 
-    // Should display node information - the component shows "BaseNode" not "Base Node"
-    expect(screen.getByText('BaseNode')).toBeInTheDocument();
-    expect(screen.getByText('507f1f77bcf86cd799439011')).toBeInTheDocument();
-    expect(screen.getByText(/Created At/)).toBeInTheDocument();
+    // Should display node information - the component shows "BaseNode Node"
+    expect(screen.getByText('BaseNode Node')).toBeInTheDocument();
+    // The component truncates the ID to "507f1f77..." for display
+    expect(screen.getByText('507f1f77...')).toBeInTheDocument();
+    expect(screen.getAllByText(/Created At/)).toHaveLength(2);
   });
 
   it('renders error state when fetch fails', async () => {
@@ -273,7 +274,7 @@ describe('BaseNodeView', () => {
     );
 
     // Should apply custom className - find the outermost container
-    const container = screen.getByText('BaseNode').closest('.custom-class');
+    const container = screen.getByText('BaseNode Node').closest('.custom-class');
     expect(container).toBeInTheDocument();
   });
 
@@ -294,8 +295,9 @@ describe('BaseNodeView', () => {
     );
 
     // Should render the User node (the component handles different node types)
-    expect(screen.getByText('User')).toBeInTheDocument();
-    expect(screen.getByText('507f1f77bcf86cd799439021')).toBeInTheDocument();
+    expect(screen.getByText('User Node')).toBeInTheDocument();
+    // The component truncates the ID to "507f1f77..." for display
+    expect(screen.getByText('507f1f77...')).toBeInTheDocument();
   });
 });
 
