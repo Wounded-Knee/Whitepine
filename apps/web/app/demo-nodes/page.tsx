@@ -361,7 +361,7 @@ export default function NodeViewDemo() {
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-semibold text-blue-800 mb-2">💡 Pro Tip</h4>
             <p className="text-sm text-blue-700">
-              All node IDs in the NodeView components are clickable links that will take you to that node's detail page. 
+              All node IDs in the NodeView components are clickable links that will take you to that node&apos;s detail page. 
               This makes it easy to explore the relationships between nodes in your database.
             </p>
           </div>
