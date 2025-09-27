@@ -15,7 +15,8 @@ These secrets are used for deployment and should be set at the repository level:
 These should be set as environment-specific secrets in GitHub Environments:
 
 #### Production Environment (`production`)
-- `MONGODB_URI` - MongoDB connection string for production
+- `MONGODB_URI_PROD` - MongoDB connection string for production
+- `MONGODB_URI_DEV` - MongoDB connection string for development (used by CI)
 - `SESSION_SECRET` - Session secret for production
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
@@ -25,7 +26,8 @@ These should be set as environment-specific secrets in GitHub Environments:
 - `AWS_SECRET_ACCESS_KEY` - AWS secret access key
 
 #### Development Environment (`development`)
-- `MONGODB_URI` - MongoDB connection string for development
+- `MONGODB_URI_PROD` - MongoDB connection string for production (used by CI)
+- `MONGODB_URI_DEV` - MongoDB connection string for development
 - `SESSION_SECRET` - Session secret for development
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID (can be same as production)
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret (can be same as production)
