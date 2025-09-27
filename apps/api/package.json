@@ -6,7 +6,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "pnpm exec dotenv -e .env.local -- tsx watch src/server.ts",
-    "build": "pnpm exec tsup",
+    "build": "pnpm exec tsup && pnpm build:migrations",
     "build:migrations": "pnpm exec tsup --config tsup.migrations.config.ts",
     "start": "node dist/server.js",
     "lint": "pnpm exec eslint src --ext .ts,.tsx",

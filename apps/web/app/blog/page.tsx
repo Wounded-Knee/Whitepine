@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getAllContent } from '@/lib/content/utils';
-import { BlogPost } from '@/lib/content/types';
+import type { BlogPost } from '@/lib/content/types';
 
 export default function BlogPage() {
   const blogPosts = getAllContent('blog') as BlogPost[];

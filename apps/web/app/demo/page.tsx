@@ -100,7 +100,7 @@ export default function ReduxDemo() {
     dispatch(updateNodeLocal({ 
       id: nodeId, 
       updates: { 
-        name: `${nodes.byId[nodeId]?.name} (Updated)`,
+        name: `${(nodes.byId[nodeId] as any)?.name} (Updated)`,
         updatedAt: new Date()
       } 
     }));
@@ -342,7 +342,7 @@ export default function ReduxDemo() {
                           onChange={() => handleSelectNode(node._id.toString())}
                           className="rounded"
                         />
-                        <h4 className="font-medium">{node.name}</h4>
+                        <h4 className="font-medium">{(node as any).name}</h4>
                         <span className="text-sm text-gray-500">({node.kind})</span>
                       </div>
                       {'email' in node && (
@@ -378,7 +378,7 @@ export default function ReduxDemo() {
         <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-2">Redux DevTools</h4>
           <p className="text-sm text-blue-800">
-            Open your browser's Redux DevTools extension to see all actions, state changes, and time-travel debugging in real-time!
+            Open your browser&apos;s Redux DevTools extension to see all actions, state changes, and time-travel debugging in real-time!
           </p>
         </div>
       </div>

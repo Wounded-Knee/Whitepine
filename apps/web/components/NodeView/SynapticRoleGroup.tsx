@@ -75,8 +75,8 @@ export const CollapsibleGroup: React.FC<CollapsibleGroupProps> = ({
               {showItemCounts && `${totalItems} ${totalItems === 1 ? 'item' : 'items'}`}
               {groupBy && Object.keys(groupedItems).length > 1 && showGroupCounts && (
                 <span className="ml-2">
-                  ({Object.entries(groupedItems).map(([groupKey, groupItems]) => 
-                    `${groupItems.length} ${getGroupLabel(groupKey, groupItems)}${groupItems.length === 1 ? '' : 's'}`
+                  ({Object.entries(groupedItems).map(([groupKey, groupItems]: [string, any]) => 
+                    `${(groupItems as any[]).length} ${getGroupLabel(groupKey, groupItems)}${(groupItems as any[]).length === 1 ? '' : 's'}`
                   ).join(', ')})
                 </span>
               )}
@@ -88,14 +88,14 @@ export const CollapsibleGroup: React.FC<CollapsibleGroupProps> = ({
       
       <CollapsibleContent className="px-0 pb-3">
         <div className="space-y-3 pt-2 border-t border-gray-100">
-          {Object.entries(groupedItems).map(([groupKey, groupItems]) => (
+          {Object.entries(groupedItems).map(([groupKey, groupItems]: [string, any]) => (
             <div key={groupKey} className="space-y-2">
               {groupBy && Object.keys(groupedItems).length > 1 && (
                 <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  {getGroupLabel(groupKey, groupItems)} ({groupItems.length})
+                  {getGroupLabel(groupKey, groupItems)} ({(groupItems as any[]).length})
                 </div>
               )}
-              {groupItems.map((item, index) => (
+              {(groupItems as any[]).map((item: any, index: number) => (
                 <div key={item._id || item.id || index} className={itemClassName}>
                   {renderItem(item, index)}
                 </div>

@@ -22,7 +22,7 @@ export function setupRateLimiting(app: express.Application): void {
       const key = req.ip || 'unknown';
       await rateLimiter.consume(key);
       next();
-    } catch (rejRes) {
+    } catch (rejRes: any) {
       const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
       
       logger.warn(`Rate limit exceeded for IP: ${req.ip}`, {
@@ -55,7 +55,7 @@ export const authRateLimit = async (req: express.Request, res: express.Response,
     const key = req.ip || 'unknown';
     await authRateLimiter.consume(key);
     next();
-  } catch (rejRes) {
+  } catch (rejRes: any) {
     const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
     
     logger.warn(`Auth rate limit exceeded for IP: ${req.ip}`, {

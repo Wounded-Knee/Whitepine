@@ -62,7 +62,7 @@ export default function ProfilePage() {
   const handleAvatarChange = (newAvatarUrl: string | null) => {
     setFormData(prev => ({
       ...prev,
-      avatarUrl: newAvatarUrl || ''
+      avatarUrl: newAvatarUrl ?? ''
     }));
   };
 
@@ -108,7 +108,7 @@ export default function ProfilePage() {
               <CardContent>
                 <div className="flex flex-col items-center space-y-4">
                   <AvatarUpload
-                    currentAvatarUrl={avatarUrl}
+                    currentAvatarUrl={avatarUrl || undefined}
                     userId={session.user.id}
                     userName={session.user.name || 'User'}
                     onAvatarChange={handleAvatarChange}
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                         type="url"
                         placeholder="https://example.com/avatar.jpg"
                         value={formData.avatarUrl}
-                        onChange={(e) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
+                        onChange={(e: any) => setFormData(prev => ({ ...prev, avatarUrl: e.target.value }))}
                         className="flex-1"
                       />
                       <Button
@@ -179,7 +179,7 @@ export default function ProfilePage() {
                       id="name"
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e: any) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       disabled={!isEditing}
                       className="mt-1"
                     />

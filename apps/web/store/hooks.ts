@@ -57,18 +57,18 @@ export const useFilteredNodes = () =>
 
     // Apply filters
     if (ui.filters.type) {
-      filteredNodes = filteredNodes.filter(node => node.type === ui.filters.type);
+      filteredNodes = filteredNodes.filter(node => (node as any).type === ui.filters.type);
     }
     
     if (ui.filters.status) {
-      filteredNodes = filteredNodes.filter(node => node.status === ui.filters.status);
+      filteredNodes = filteredNodes.filter(node => (node as any).status === ui.filters.status);
     }
     
     if (ui.filters.search) {
       const searchTerm = ui.filters.search.toLowerCase();
       filteredNodes = filteredNodes.filter(node => 
-        node.name?.toLowerCase().includes(searchTerm) ||
-        node.description?.toLowerCase().includes(searchTerm)
+        (node as any).name?.toLowerCase().includes(searchTerm) ||
+        (node as any).description?.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -78,8 +78,8 @@ export const useFilteredNodes = () =>
       const aValue = a[field as keyof typeof a];
       const bValue = b[field as keyof typeof b];
       
-      if (aValue < bValue) return direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+      if (aValue && bValue && aValue < bValue) return direction === 'asc' ? -1 : 1;
+      if (aValue && bValue && aValue > bValue) return direction === 'asc' ? 1 : -1;
       return 0;
     });
 

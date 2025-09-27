@@ -13,7 +13,7 @@ import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeVi
 export default function NodeViewDemo() {
   const dispatch = useAppDispatch();
   const [selectedNodeType, setSelectedNodeType] = useState<NodeType>('BaseNode');
-  const [selectedMode, setSelectedMode] = useState<'view' | 'edit' | 'create'>('view');
+  const [selectedMode, setSelectedMode] = useState<'view' | 'create'>('view');
   const [createdNodeId, setCreatedNodeId] = useState<string | null>(null);
   const [availableNodes, setAvailableNodes] = useState<any[]>([]);
   const [isLoadingNodes, setIsLoadingNodes] = useState(true);
@@ -259,7 +259,7 @@ export default function NodeViewDemo() {
             
             <div className="bg-gray-50 rounded-lg p-1">
               <div className="flex">
-                {(['view', 'edit', 'create'] as const).map((mode) => (
+                {(['view', 'create'] as const).map((mode) => (
                   <button
                     key={mode}
                     onClick={() => setSelectedMode(mode)}
@@ -269,8 +269,7 @@ export default function NodeViewDemo() {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    {mode === 'view' ? 'View' : 
-                     mode === 'edit' ? 'Edit' : 'Create'}
+                    {mode === 'view' ? 'View' : 'Create'}
                   </button>
                 ))}
               </div>
@@ -305,8 +304,7 @@ export default function NodeViewDemo() {
         {availableNodes.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              {selectedMode === 'view' ? 'View Mode' : 
-               selectedMode === 'edit' ? 'Edit Mode' : 'Create Mode'} Demonstration
+              {selectedMode === 'view' ? 'View Mode' : 'Create Mode'} Demonstration
             </h2>
             
             <div className="border border-gray-200 rounded-lg p-4">
@@ -323,7 +321,7 @@ export default function NodeViewDemo() {
               ) : (
                 <div>
                   <p className="text-gray-600 mb-4">
-                    {selectedMode === 'view' ? 'View Mode' : 'Edit Mode'}: Displaying the first available node in {selectedMode === 'view' ? 'read-only' : 'editable'} mode.
+                    {selectedMode === 'view' ? 'View Mode' : 'Create Mode'}: Displaying the first available node in {selectedMode === 'view' ? 'read-only' : 'create'} mode.
                   </p>
                   {selectedNodeType === 'BaseNode' && <BaseNodeView nodeId={availableNodes[0]._id} mode={selectedMode} />}
                   {selectedNodeType === 'UserNode' && <UserNodeView nodeId={availableNodes[0]._id} mode={selectedMode} />}
@@ -363,7 +361,7 @@ export default function NodeViewDemo() {
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h4 className="font-semibold text-blue-800 mb-2">💡 Pro Tip</h4>
             <p className="text-sm text-blue-700">
-              All node IDs in the NodeView components are clickable links that will take you to that node's detail page. 
+              All node IDs in the NodeView components are clickable links that will take you to that node&apos;s detail page. 
               This makes it easy to explore the relationships between nodes in your database.
             </p>
           </div>

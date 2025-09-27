@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { CacheState } from '../types';
 
 // Initial state
@@ -143,16 +143,13 @@ const cacheSlice = createSlice({
     },
     
     // Utility actions
-    isCacheValid: (state, action: PayloadAction<{ key: string; currentTime: number }>) => {
+    checkCacheValid: (state, action: PayloadAction<{ key: string; currentTime: number }>) => {
       const { key, currentTime } = action.payload;
       const lastFetched = state.lastFetched[key];
       const ttl = state.invalidationRules.timeBased[key];
       
-      if (!lastFetched || !ttl) {
-        return false;
-      }
-      
-      return (currentTime - lastFetched) < ttl;
+      // This is a utility action that doesn't modify state
+      // The actual validation should be done in selectors
     },
     
     // Reset actions

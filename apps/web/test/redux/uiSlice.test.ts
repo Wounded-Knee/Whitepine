@@ -25,7 +25,7 @@ describe('uiSlice', () => {
 
   describe('initial state', () => {
     it('should have correct initial state', () => {
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.selectedNodeIds).toEqual([]);
       expect(state.filters).toEqual({
         type: undefined,
@@ -48,7 +48,7 @@ describe('uiSlice', () => {
     it('should select a node', () => {
       store.dispatch(selectNode('node1'));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.selectedNodeIds).toContain('node1');
     });
 
@@ -56,7 +56,7 @@ describe('uiSlice', () => {
       store.dispatch(selectNode('node1'));
       store.dispatch(selectNode('node1')); // Same node again
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.selectedNodeIds).toEqual(['node1']);
     });
 
@@ -65,7 +65,7 @@ describe('uiSlice', () => {
       store.dispatch(selectNode('node2'));
       store.dispatch(deselectNode('node1'));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.selectedNodeIds).not.toContain('node1');
       expect(state.selectedNodeIds).toContain('node2');
     });
@@ -75,7 +75,7 @@ describe('uiSlice', () => {
       store.dispatch(selectNode('node2'));
       store.dispatch(clearSelection());
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.selectedNodeIds).toEqual([]);
     });
   });
@@ -84,7 +84,7 @@ describe('uiSlice', () => {
     it('should set a filter', () => {
       store.dispatch(setFilter({ key: 'type', value: NODE_TYPES.USER }));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.filters.type).toBe(NODE_TYPES.USER);
     });
 
@@ -92,7 +92,7 @@ describe('uiSlice', () => {
       store.dispatch(setFilter({ key: 'type', value: NODE_TYPES.USER }));
       store.dispatch(setFilter({ key: 'type', value: undefined }));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.filters.type).toBeUndefined();
     });
   });
@@ -101,7 +101,7 @@ describe('uiSlice', () => {
     it('should set sort options', () => {
       store.dispatch(setSortOptions({ field: 'name', direction: 'asc' }));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.sortOptions.field).toBe('name');
       expect(state.sortOptions.direction).toBe('asc');
     });
@@ -111,7 +111,7 @@ describe('uiSlice', () => {
     it('should set view mode', () => {
       store.dispatch(setViewMode('grid'));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.viewMode).toBe('grid');
     });
   });
@@ -120,7 +120,7 @@ describe('uiSlice', () => {
     it('should set an error', () => {
       store.dispatch(setError('Test error message'));
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.error).toBe('Test error message');
     });
 
@@ -128,7 +128,7 @@ describe('uiSlice', () => {
       store.dispatch(setError('Test error message'));
       store.dispatch(clearError());
       
-      const state = store.getState().ui;
+      const state = (store.getState() as any).ui;
       expect(state.error).toBeNull();
     });
   });

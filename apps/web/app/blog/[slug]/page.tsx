@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getContentBySlug, getContentSlugs } from '@/lib/content/utils';
-import { BlogPost } from '@/lib/content/types';
+import type { BlogPost } from '@/lib/content/types';
 
 interface BlogPostPageProps {
   params: Promise<{

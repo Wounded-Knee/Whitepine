@@ -81,7 +81,7 @@ export class NodeWithRelationshipController {
         if (!relationshipValidation.valid) {
           throw createError(`Invalid relationship: ${relationshipValidation.error}`, 400);
         }
-      } catch (validationError) {
+      } catch (validationError: any) {
         if (validationError.statusCode) {
           throw validationError;
         }

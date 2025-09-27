@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getAllContent } from '@/lib/content/utils';
-import { MarketingPage } from '@/lib/content/types';
+import type { MarketingPage } from '@/lib/content/types';
 
 export default function MarketingPage() {
   const marketingPages = getAllContent('marketing') as MarketingPage[];
