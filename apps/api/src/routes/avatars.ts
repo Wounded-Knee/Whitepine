@@ -7,7 +7,7 @@ import { SchedulerService } from '../services/schedulerService.js';
 import { UserNodeModel } from '../models/index.js';
 import { decodeNodeId } from '@whitepine/types';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -198,7 +198,7 @@ router.delete('/remove', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    user.avatar = null;
+    delete user.avatar;
     user.updatedAt = new Date();
     await user.save();
 
