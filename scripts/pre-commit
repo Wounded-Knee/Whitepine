@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Pre-commit hook to run tests before allowing commits
+# Usage: 
+#   git commit                    # Runs tests, aborts if they fail
+#   git commit --no-verify        # Bypasses tests and commits anyway
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔍 Running pre-commit tests...${NC}"
+
+# Check if we're in the right directory (should have package.json with pnpm)
+if [ ! -f "package.json" ]; then
+    echo -e "${RED}❌ Error: package.json not found. Are you in the project root?${NC}"
+    exit 1
+fi
+
+# Check if pnpm is available
+if ! command -v pnpm &> /dev/null; then
+    echo -e "${RED}❌ Error: pnpm is not installed or not in PATH${NC}"
+    exit 1
+fi
+
+# Run the tests
+echo -e "${YELLOW}📦 Running tests with pnpm...${NC}"
+if pnpm test; then
+    echo -e "${GREEN}✅ All tests passed! Proceeding with commit.${NC}"
+    exit 0
+else
+    echo -e "${RED}❌ Tests failed! Commit aborted.${NC}"
+    echo -e "${YELLOW}💡 To bypass tests and commit anyway, use: git commit --no-verify${NC}"
+    echo -e "${YELLOW}💡 To run tests manually: pnpm test${NC}"
+    exit 1
+fi
