@@ -24,7 +24,7 @@ const mockNode: Node = {
 const mockNode2: Node = {
   _id: '2' as any,
   kind: 'Base',
-  name: 'Test Base Node',
+  // name: 'Test Base Node', // Not part of BaseNode
   createdAt: new Date('2024-01-02'),
   updatedAt: new Date('2024-01-02'),
 };
@@ -49,7 +49,7 @@ describe('nodesSlice', () => {
 
   describe('initial state', () => {
     it('should have empty initial state', () => {
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state.byId).toEqual({});
       expect(state.allIds).toEqual([]);
     });
@@ -59,7 +59,7 @@ describe('nodesSlice', () => {
     it('should add a node to the store', () => {
       store.dispatch(addNode(mockNode));
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state.byId['1']).toEqual(mockNode);
       expect(state.allIds).toContain('1');
     });
@@ -68,7 +68,7 @@ describe('nodesSlice', () => {
       store.dispatch(addNode(mockNode));
       store.dispatch(addNode(mockNode2));
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(Object.keys(state.byId)).toHaveLength(2);
       expect(state.allIds).toHaveLength(2);
     });
@@ -77,7 +77,7 @@ describe('nodesSlice', () => {
       store.dispatch(addNode(mockNode));
       store.dispatch(addNode(mockNode)); // Same node again
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(Object.keys(state.byId)).toHaveLength(1);
       expect(state.allIds).toHaveLength(1);
     });
@@ -92,8 +92,8 @@ describe('nodesSlice', () => {
       const updates = { name: 'Updated Name' };
       store.dispatch(updateNodeLocal({ id: '1', updates }));
       
-      const state = store.getState().nodes;
-      expect(state.byId['1'].name).toBe('Updated Name');
+      const state = (store.getState() as any).nodes;
+      expect((state.byId['1'] as any).name).toBe('Updated Name');
     });
 
     it('should not affect other nodes', () => {
@@ -102,8 +102,8 @@ describe('nodesSlice', () => {
       const updates = { name: 'Updated Name' };
       store.dispatch(updateNodeLocal({ id: '1', updates }));
       
-      const state = store.getState().nodes;
-      expect(state.byId['2'].name).toBe(mockNode2.name);
+      const state = (store.getState() as any).nodes;
+      expect((state.byId['2'] as any).name).toBe((mockNode2 as any).name);
     });
   });
 
@@ -116,7 +116,7 @@ describe('nodesSlice', () => {
     it('should remove a node from the store', () => {
       store.dispatch(removeNode('1'));
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state.byId['1']).toBeUndefined();
       expect(state.allIds).not.toContain('1');
       expect(state.allIds).toContain('2');
@@ -132,7 +132,7 @@ describe('nodesSlice', () => {
     it('should clear all nodes', () => {
       store.dispatch(clearNodes());
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state.byId).toEqual({});
       expect(state.allIds).toEqual([]);
     });
@@ -142,7 +142,7 @@ describe('nodesSlice', () => {
     it('should handle fetchNodes.pending', () => {
       store.dispatch(fetchNodes.pending('', { clusterId: 'test' }));
       // The loading state is handled in UI slice, so we just verify no error
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state).toBeDefined();
     });
 
@@ -150,7 +150,7 @@ describe('nodesSlice', () => {
       const nodes = [mockNode, mockNode2];
       store.dispatch(fetchNodes.fulfilled(nodes, '', { clusterId: 'test' }));
       
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(Object.keys(state.byId)).toHaveLength(2);
       expect(state.allIds).toHaveLength(2);
     });
@@ -158,7 +158,7 @@ describe('nodesSlice', () => {
     it('should handle fetchNodes.rejected', () => {
       store.dispatch(fetchNodes.rejected(new Error('Test error'), '', { clusterId: 'test' }));
       // The error state is handled in UI slice, so we just verify no error
-      const state = store.getState().nodes;
+      const state = (store.getState() as any).nodes;
       expect(state).toBeDefined();
     });
   });

@@ -45,7 +45,7 @@ describe('Redux DevTools Integration', () => {
   describe('logDevToolsStatus', () => {
     it('should not log in production environment', () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      (process.env as any).NODE_ENV = 'production';
       
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
@@ -53,13 +53,13 @@ describe('Redux DevTools Integration', () => {
       
       expect(consoleSpy).not.toHaveBeenCalled();
       
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
       consoleSpy.mockRestore();
     });
 
     it('should log DevTools status in development environment', () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      (process.env as any).NODE_ENV = 'development';
       
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
@@ -76,13 +76,13 @@ describe('Redux DevTools Integration', () => {
         expect.stringContaining('color: green')
       );
       
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
       consoleSpy.mockRestore();
     });
 
     it('should log installation instructions when DevTools is not available', () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+      (process.env as any).NODE_ENV = 'development';
       
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
@@ -104,7 +104,7 @@ describe('Redux DevTools Integration', () => {
         expect.stringContaining('color: orange')
       );
       
-      process.env.NODE_ENV = originalEnv;
+      (process.env as any).NODE_ENV = originalEnv;
       consoleSpy.mockRestore();
     });
   });
