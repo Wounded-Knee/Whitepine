@@ -1,25 +1,6 @@
 import { MongoClient, ObjectId } from 'mongodb'
-import type { BaseNode } from '@whitepine/types'
+import type { UserNode } from '@whitepine/types'
 import { NODE_TYPES } from '@whitepine/types'
-
-// Define UserNode interface extending BaseNode
-interface UserNode extends BaseNode {
-  kind: typeof NODE_TYPES.USER
-  email: string
-  name: string
-  avatar?: string
-  bio?: string
-  isActive: boolean
-  lastLoginAt?: Date
-  preferences?: {
-    theme?: 'light' | 'dark' | 'auto'
-    language?: string
-    notifications?: {
-      email?: boolean
-      push?: boolean
-    }
-  }
-}
 
 // Get the appropriate MongoDB URI based on environment
 const getMongoUri = () => {
@@ -30,15 +11,23 @@ const getMongoUri = () => {
   }
 }
 
-const mongoUri = getMongoUri()
-if (!mongoUri) {
-  throw new Error(
-    `MongoDB URI not found. Please set ${process.env.NODE_ENV === 'production' ? 'MONGODB_URI_PROD' : 'MONGODB_URI_DEV'} in your environment variables`
-  )
-}
+// Lazy MongoDB connection - only connect when actually needed
+let client: MongoClient | null = null
+let clientPromise: Promise<MongoClient> | null = null
 
-const client = new MongoClient(mongoUri)
-const clientPromise = client.connect()
+const getMongoClient = async () => {
+  if (!clientPromise) {
+    const mongoUri = getMongoUri()
+    if (!mongoUri) {
+      throw new Error(
+        `MongoDB URI not found. Please set ${process.env.NODE_ENV === 'production' ? 'MONGODB_URI_PROD' : 'MONGODB_URI_DEV'} in your environment variables`
+      )
+    }
+    client = new MongoClient(mongoUri)
+    clientPromise = client.connect()
+  }
+  return clientPromise
+}
 
 export async function findOrCreateUser(profile: {
   id: string
@@ -46,8 +35,9 @@ export async function findOrCreateUser(profile: {
   name?: string | null
   picture?: string | null
 }): Promise<UserNode> {
-  const db = (await clientPromise).db()
-  const collection = db.collection('nodes')
+  const client = await getMongoClient()
+  const db = client.db('whitepine')
+  const collection = db.collection<UserNode>('users')
 
   // First, try to find existing user by email
   if (profile.email) {
@@ -60,7 +50,7 @@ export async function findOrCreateUser(profile: {
     if (existingUser) {
       // Update last login and return existing user
       await collection.updateOne(
-        { _id: existingUser._id },
+        { _id: existingUser._id as any },
         { 
           $set: { 
             lastLoginAt: new Date(),
@@ -93,28 +83,30 @@ export async function findOrCreateUser(profile: {
     }
   }
 
-  const result = await collection.insertOne(newUser)
+  const result = await collection.insertOne(newUser as any)
   
   return {
     ...newUser,
-    _id: result.insertedId
+    _id: result.insertedId.toString()
   } as UserNode
 }
 
 export async function findUserById(id: string): Promise<UserNode | null> {
-  const db = (await clientPromise).db()
-  const collection = db.collection('nodes')
+  const client = await getMongoClient()
+  const db = client.db('whitepine')
+  const collection = db.collection<UserNode>('users')
   
   return await collection.findOne({
-    _id: new ObjectId(id),
+    _id: new ObjectId(id) as any,
     kind: NODE_TYPES.USER,
     deletedAt: null
   }) as UserNode | null
 }
 
 export async function findUserByEmail(email: string): Promise<UserNode | null> {
-  const db = (await clientPromise).db()
-  const collection = db.collection('nodes')
+  const client = await getMongoClient()
+  const db = client.db('whitepine')
+  const collection = db.collection<UserNode>('users')
   
   return await collection.findOne({
     email: email.toLowerCase(),

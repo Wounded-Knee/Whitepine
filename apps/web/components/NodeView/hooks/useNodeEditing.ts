@@ -9,7 +9,7 @@ export const useNodeEditing = (node: BaseNode | null, fetchNode: () => Promise<v
   const dispatch = useAppDispatch();
   
   // Edit state
-  const [isEditing, setIsEditing] = useState(mode === 'create' || mode === 'edit');
+  const [isEditing, setIsEditing] = useState(mode === 'create');
   const [editData, setEditData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

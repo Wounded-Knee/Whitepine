@@ -68,14 +68,14 @@ const createTestStore = (initialState = {}) => {
         },
         sortOptions: {
           field: 'createdAt',
-          direction: 'desc',
+          direction: 'desc' as const,
         },
         loading: {
           nodes: false,
           operations: {},
         },
         error: null,
-        viewMode: 'list',
+        viewMode: 'list' as const,
       },
       cache: {
         lastFetched: {},
@@ -98,9 +98,9 @@ const mockBaseNode: Node = {
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   deletedAt: null,
-  createdBy: '507f1f77bcf86cd799439012' as any,
-  ownerId: '507f1f77bcf86cd799439012' as any,
-};
+  // createdBy: '507f1f77bcf86cd799439012' as any, // Not part of BaseNode
+  // ownerId: '507f1f77bcf86cd799439012' as any, // Not part of BaseNode
+} as any;
 
 const mockUserNode: Node = {
   _id: '507f1f77bcf86cd799439021' as any,
@@ -121,9 +121,9 @@ const mockUserNode: Node = {
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   deletedAt: null,
-  createdBy: '507f1f77bcf86cd799439012' as any,
-  ownerId: '507f1f77bcf86cd799439012' as any,
-};
+  // createdBy: '507f1f77bcf86cd799439012' as any, // Not part of Node
+  // ownerId: '507f1f77bcf86cd799439012' as any, // Not part of Node
+} as any;
 
 describe('BaseNodeView', () => {
   beforeEach(() => {
@@ -136,7 +136,9 @@ describe('BaseNodeView', () => {
     vi.mocked(apiClient.getNode).mockImplementation(() => 
       new Promise(resolve => setTimeout(() => resolve({
         node: mockBaseNode,
-        relatives: []
+        allRelatives: [],
+        allRelativeIds: [],
+        relativesByRole: {}
       }), 100))
     );
 

@@ -14,6 +14,12 @@
       ],
       "@web/*": [
         "./*"
+      ],
+      "@whitepine/types": [
+        "../../packages/types/src/index.ts"
+      ],
+      "@whitepine/types/*": [
+        "../../packages/types/src/*"
       ]
     },
     "jsx": "preserve"

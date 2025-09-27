@@ -29,6 +29,11 @@ interface UseApiRequestOptions<T> {
   enableCache?: boolean;
   
   /**
+   * Whether the request is enabled (default: true)
+   */
+  enabled?: boolean;
+  
+  /**
    * Custom cache key (default: `${resourceType}-${id}`)
    */
   cacheKey?: string;
@@ -63,6 +68,11 @@ export function useApiRequest<T>(
   const isCached = useMemo(() => data !== null, [data]);
   
   const refetch = useCallback(async () => {
+    // If request is disabled, don't fetch
+    if (options.enabled === false) {
+      return;
+    }
+    
     // If data already exists and caching is enabled, don't fetch
     if (data && options.enableCache !== false) {
       return;

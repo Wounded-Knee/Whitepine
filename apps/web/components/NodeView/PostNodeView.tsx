@@ -200,10 +200,6 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
   mode = 'view',
   onSuccess
 }) => {
-  // If in create mode, render the creation form directly
-  if (mode === 'create') {
-    return <PostNodeCreateForm onSuccess={onSuccess} className={className} />;
-  }
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<RelationshipSuggestion | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -218,6 +214,11 @@ export const PostNodeView: React.FC<PostNodeViewProps> = ({
       setCurrentNode(baseNode);
     }
   }, [baseNode, currentNode]);
+
+  // If in create mode, render the creation form directly
+  if (mode === 'create') {
+    return <PostNodeCreateForm onSuccess={onSuccess} className={className} />;
+  }
 
   const handleCreateRelationship = (suggestion: RelationshipSuggestion) => {
     setSelectedSuggestion(suggestion);

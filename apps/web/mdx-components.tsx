@@ -1,5 +1,5 @@
 import type { MDXComponents } from 'mdx/types';
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
 // This file allows you to provide custom React components
 // to be used in MDX files. You can import and use any

@@ -15,6 +15,8 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../../packages/types/src'),
       '@api': path.resolve(__dirname, '../api/src'),
       '@web': path.resolve(__dirname, './'),
+      '@whitepine/types': path.resolve(__dirname, '../../packages/types/src'),
+      '@whitepine/types/*': path.resolve(__dirname, '../../packages/types/src/*'),
     },
   },
 })

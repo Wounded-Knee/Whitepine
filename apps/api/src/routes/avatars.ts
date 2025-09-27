@@ -7,7 +7,7 @@ import { SchedulerService } from '../services/schedulerService.js';
 import { UserNodeModel } from '../models/index.js';
 import { decodeNodeId } from '@whitepine/types';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -42,13 +42,13 @@ router.get('/:filename', async (req, res) => {
     
     try {
       await fs.access(filePath);
-      res.sendFile(filePath);
+      return res.sendFile(filePath);
     } catch {
-      res.status(404).json({ error: 'Avatar not found' });
+      return res.status(404).json({ error: 'Avatar not found' });
     }
   } catch (error) {
     console.error('Error serving avatar:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -66,10 +66,10 @@ router.get('/user/:userId', async (req, res) => {
       return res.status(404).json({ error: 'Avatar not found' });
     }
 
-    res.json({ avatarUrl });
+    return res.json({ avatarUrl });
   } catch (error) {
     console.error('Error getting user avatar:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -99,14 +99,14 @@ router.post('/upload', upload.single('avatar'), async (req, res) => {
       return res.status(500).json({ error: 'Failed to upload avatar' });
     }
 
-    res.json({ 
+    return res.json({ 
       success: true, 
       avatarUrl,
       message: 'Avatar uploaded successfully' 
     });
   } catch (error) {
     console.error('Error uploading avatar:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -134,13 +134,13 @@ router.put('/update', async (req, res) => {
       return res.status(500).json({ error: 'Failed to update avatar' });
     }
 
-    res.json({ 
+    return res.json({ 
       success: true, 
       message: 'Avatar updated successfully' 
     });
   } catch (error) {
     console.error('Error updating avatar:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -170,13 +170,13 @@ router.post('/refresh/:userId', async (req, res) => {
 
     await AvatarService.refreshAvatarCache(user.avatar);
 
-    res.json({ 
+    return res.json({ 
       success: true, 
       message: 'Avatar cache refreshed successfully' 
     });
   } catch (error) {
     console.error('Error refreshing avatar cache:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -198,17 +198,17 @@ router.delete('/remove', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    user.avatar = undefined;
+    delete user.avatar;
     user.updatedAt = new Date();
     await user.save();
 
-    res.json({ 
+    return res.json({ 
       success: true, 
       message: 'Avatar removed successfully' 
     });
   } catch (error) {
     console.error('Error removing avatar:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

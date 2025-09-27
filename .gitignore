@@ -8,7 +8,8 @@ dist/
 build/
 .next/
 out/
-migrations/
+# Compiled migrations (but keep source migrations)
+apps/api/migrations/
 
 # Environment variables
 .env

@@ -1,6 +1,6 @@
 const config = {
   mongodb: {
-    url: process.env.MONGODB_URI || 'mongodb://localhost:27017/whitepine',
+    url: process.env.MONGODB_URI_PROD || process.env.MONGODB_URI || 'mongodb://localhost:27017/whitepine',
     options: {
       useNewUrlParser: true,
       useUnifiedTopology: true,

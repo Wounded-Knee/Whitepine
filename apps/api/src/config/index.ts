@@ -1,8 +1,6 @@
 import { z } from 'zod';
-import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
+// Environment variables are loaded by the runtime environment
 
 const configSchema = z.object({
   nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
@@ -34,11 +32,19 @@ const configSchema = z.object({
   rateLimitMax: z.coerce.number().default(100), // requests per window
 });
 
+const getMongoUri = () => {
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv === 'production') {
+    return process.env.MONGODB_URI_PROD;
+  }
+  return process.env.MONGODB_URI_DEV;
+};
+
 const envConfig = {
   nodeEnv: process.env.NODE_ENV,
   port: process.env.PORT,
   logLevel: process.env.LOG_LEVEL,
-  mongoUri: process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI_PROD : process.env.MONGODB_URI_DEV,
+  mongoUri: getMongoUri(),
   corsOrigins: process.env.CORS_ORIGINS,
   sessionSecret: process.env.SESSION_SECRET,
   googleClientId: process.env.GOOGLE_CLIENT_ID,

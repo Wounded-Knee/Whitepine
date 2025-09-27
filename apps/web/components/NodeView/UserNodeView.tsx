@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { BaseNodeView } from './BaseNode';
-import type { BaseNodeViewProps, EditProps } from './BaseNode';
+import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { Avatar } from '../avatar';
@@ -15,6 +15,7 @@ export interface UserNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
   children?: (node: UserNode | null, isLoading: boolean, error: string | null, editProps: EditProps) => React.ReactNode;
   mode?: 'view' | 'create';
   onSuccess?: (nodeId: string) => void;
+  compact?: boolean;
 }
 
 interface UserNodeCreateFormProps {
@@ -150,7 +151,8 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
   className,
   children,
   mode = 'view',
-  onSuccess
+  onSuccess,
+  compact = false
 }) => {
   // If in create mode, render the creation form directly
   if (mode === 'create') {
@@ -207,7 +209,7 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
             {/* Edit/Save/Cancel buttons */}
             <div className="flex items-center justify-end space-x-2 mb-4">
               {!editProps.isEditing ? (
-                !userNode.readOnly && (
+                !(userNode as any).readOnly && (
                   <Button
                     onClick={editProps.handleEdit}
                     variant="outline"

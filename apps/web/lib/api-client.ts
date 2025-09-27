@@ -9,10 +9,15 @@ class ApiClient {
   private ongoingRequests: Map<string, Promise<any>> = new Map();
 
   constructor(baseUrl?: string) {
-    // Use provided baseUrl, or default to local API server
-    this.baseUrl = baseUrl || (typeof window !== 'undefined' 
-      ? 'http://localhost:4000/api'  // Browser environment
-      : 'http://localhost:4000/api'  // Server environment
+    // Use provided baseUrl, environment variable, or default based on environment
+    this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_API_URL || (
+      typeof window !== 'undefined'
+        ? (process.env.NODE_ENV === 'production' 
+            ? '/api'  // Production: use relative path (proxied by nginx)
+            : 'http://localhost:4000/api')  // Development: direct API server
+        : (process.env.NODE_ENV === 'production'
+            ? 'http://localhost:4000/api'  // Production SSR: internal localhost
+            : 'http://localhost:4000/api')  // Development SSR: direct API server
     );
   }
 
@@ -130,7 +135,12 @@ class ApiClient {
     }
 
     const data = await response.json();
-    const result = data.data;
+    const result = data.data as {
+      node: BaseNode | UserNode;
+      allRelatives: any[];
+      allRelativeIds: string[];
+      relativesByRole: Record<string, Record<string, string[]>>;
+    };
     
     // Cache the result
     this.setCachedData(url, result);
@@ -254,7 +264,19 @@ class ApiClient {
       return this.ongoingRequests.get(url)!;
     }
 
-    const request = this.makeHttpRequest(url);
+    const request = fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch isolated posts: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.data as any[]; // Assuming API returns { data: PostNode[] }
+    });
+
     this.ongoingRequests.set(url, request);
 
     try {
