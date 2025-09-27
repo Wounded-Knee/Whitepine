@@ -45,16 +45,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: pnpm typecheck
+        run: pnpm --filter @whitepine/api typecheck
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm --filter @whitepine/api lint
 
       - name: Test
-        run: pnpm test
+        run: pnpm --filter @whitepine/api test
 
       - name: Build applications
-        run: pnpm build
+        run: pnpm --filter @whitepine/api build
 
       - name: Create deployment package
         run: |
