@@ -5,6 +5,8 @@
  * without requiring a full Redux store or API calls.
  */
 
+import { describe, test, expect } from 'vitest'
+
 // Mock relatives data structure
 const mockRelatives = [
   {

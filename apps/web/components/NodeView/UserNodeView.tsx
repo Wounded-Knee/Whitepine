@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { BaseNodeView } from './BaseNode';
-import type { BaseNodeViewProps, EditProps } from './BaseNode';
+import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X } from 'lucide-react';
 import { Avatar } from '../avatar';
@@ -207,7 +207,7 @@ export const UserNodeView: React.FC<UserNodeViewProps> = ({
             {/* Edit/Save/Cancel buttons */}
             <div className="flex items-center justify-end space-x-2 mb-4">
               {!editProps.isEditing ? (
-                !userNode.readOnly && (
+                !(userNode as any).readOnly && (
                   <Button
                     onClick={editProps.handleEdit}
                     variant="outline"

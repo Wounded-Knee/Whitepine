@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 // Global test setup for web app with jsdom environment
 // This file is imported by vitest.config.ts
@@ -47,6 +48,8 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Setup global test environment
+import { beforeEach } from 'vitest'
+
 beforeEach(() => {
   // Reset all mocks before each test
   vi.clearAllMocks()
