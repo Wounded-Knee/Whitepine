@@ -57,12 +57,12 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          MONGODB_URI_PROD: ${{ secrets.MONGODB_URI_DEV }}
+          MONGODB_URI_PROD: ${{ secrets.MONGODB_URI_PROD }}
           MONGODB_URI_DEV: ${{ secrets.MONGODB_URI_DEV }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           NEXTAUTH_URL: https://whitepine.jpkramer.com
-          NODE_ENV: development
+          NODE_ENV: production
 
   security:
     runs-on: ubuntu-latest
