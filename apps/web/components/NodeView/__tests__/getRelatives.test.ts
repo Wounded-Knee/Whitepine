@@ -91,7 +91,7 @@ function mockGetRelatives(selector: any): any[] {
       
       // Role filtering
       if (role && role !== '*') {
-        if (synapse.role !== role) {
+        if (synapse?.role !== role) {
           return false;
         }
       }
@@ -104,7 +104,7 @@ function mockGetRelatives(selector: any): any[] {
         if (dir === 'out' && relative._direction !== 'outgoing') {
           return false;
         }
-        if (dir === 'undirected' && synapse.dir !== 'undirected') {
+        if (dir === 'undirected' && synapse?.dir !== 'undirected') {
           return false;
         }
       }

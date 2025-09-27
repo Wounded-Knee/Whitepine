@@ -60,7 +60,7 @@ export async function findOrCreateUser(profile: {
     if (existingUser) {
       // Update last login and return existing user
       await collection.updateOne(
-        { _id: existingUser._id },
+        { _id: existingUser._id as any },
         { 
           $set: { 
             lastLoginAt: new Date(),
@@ -97,7 +97,7 @@ export async function findOrCreateUser(profile: {
   
   return {
     ...newUser,
-    _id: result.insertedId
+    _id: result.insertedId.toString()
   } as UserNode
 }
 

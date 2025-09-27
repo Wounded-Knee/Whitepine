@@ -130,7 +130,12 @@ class ApiClient {
     }
 
     const data = await response.json();
-    const result = data.data;
+    const result = data.data as {
+      node: BaseNode | UserNode;
+      allRelatives: any[];
+      allRelativeIds: string[];
+      relativesByRole: Record<string, Record<string, string[]>>;
+    };
     
     // Cache the result
     this.setCachedData(url, result);
@@ -254,7 +259,19 @@ class ApiClient {
       return this.ongoingRequests.get(url)!;
     }
 
-    const request = this.makeHttpRequest(url);
+    const request = fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch isolated posts: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.data as any[]; // Assuming API returns { data: PostNode[] }
+    });
+
     this.ongoingRequests.set(url, request);
 
     try {

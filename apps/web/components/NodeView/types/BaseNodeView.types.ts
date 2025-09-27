@@ -1,7 +1,7 @@
 import React from 'react';
 import type { BaseNode, RelationshipConfig } from '@whitepine/types';
 
-export type NodeViewMode = 'view' | 'edit' | 'create';
+export type NodeViewMode = 'view' | 'create';
 
 export interface BaseNodeViewProps {
   nodeId?: string; // Optional for create mode

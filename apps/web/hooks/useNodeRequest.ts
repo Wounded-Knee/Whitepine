@@ -39,7 +39,7 @@ export function useNodeRequest(nodeId: string | undefined, mode: NodeViewMode = 
   const dispatch = useAppDispatch();
   
   // Use the generic API request hook for basic request management (only if not in create mode)
-  const { data: node, refetch } = useApiRequest(
+  const { data: nodeData, refetch } = useApiRequest(
     'nodes',
     nodeId || '',
     {
@@ -53,6 +53,8 @@ export function useNodeRequest(nodeId: string | undefined, mode: NodeViewMode = 
       enabled: mode !== 'create' && !!nodeId // Don't fetch in create mode
     }
   );
+  
+  const node = nodeData as BaseNode | null;
   
   // Get loading and error state from Redux (node-specific)
   const isLoading = useAppSelector((state) => {
@@ -69,7 +71,7 @@ export function useNodeRequest(nodeId: string | undefined, mode: NodeViewMode = 
   const allNodes = useAppSelector((state) => state.nodes.byId);
   
   // Get relativesByRole data from Redux store
-  const relativesByRole = useAppSelector((state) => state.nodes.relativesByRole?.[nodeId] || null);
+  const relativesByRole = useAppSelector((state) => state.nodes.relativesByRole?.[nodeId || ''] || null);
   
   // Get the count of nodes to ensure relatives computation re-runs when nodes are added
   const nodeCount = useAppSelector((state) => Object.keys(state.nodes.byId).length);
@@ -77,7 +79,7 @@ export function useNodeRequest(nodeId: string | undefined, mode: NodeViewMode = 
   // Get a more specific selector that tracks when relatives might be available
   const hasRelatives = useAppSelector((state) => {
     const nodes = state.nodes.byId;
-    const mainNode = nodes[nodeId];
+    const mainNode = nodes[nodeId || ''];
     if (!mainNode) return false;
     
     // Check if there are any other nodes that could be relatives

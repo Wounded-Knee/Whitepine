@@ -17,7 +17,7 @@ export default function NodeViewDemo() {
   
   const nodeId = params.nodeId as string;
   const [selectedNodeType, setSelectedNodeType] = useState<NodeType>('BaseNode');
-  const [selectedMode, setSelectedMode] = useState<'view' | 'edit' | 'create'>('view');
+  const [selectedMode, setSelectedMode] = useState<'view' | 'create'>('view');
   const [createdNodeId, setCreatedNodeId] = useState<string | null>(null);
   const [isLoadingNode, setIsLoadingNode] = useState(true);
   const [nodeError, setNodeError] = useState<string | null>(null);
@@ -190,7 +190,7 @@ export default function NodeViewDemo() {
         <div className="flex justify-center mb-6">
           <div className="bg-white rounded-lg shadow-sm border p-1">
             <div className="flex">
-              {(['view', 'edit', 'create'] as const).map((mode) => (
+              {(['view', 'create'] as const).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setSelectedMode(mode)}
@@ -200,8 +200,7 @@ export default function NodeViewDemo() {
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                   }`}
                 >
-                  {mode === 'view' ? 'View Mode' : 
-                   mode === 'edit' ? 'Edit Mode' : 'Create Mode'}
+                  {mode === 'view' ? 'View Mode' : 'Create Mode'}
                 </button>
               ))}
             </div>
