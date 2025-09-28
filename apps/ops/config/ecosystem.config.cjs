@@ -22,7 +22,8 @@ module.exports = {
       listen_timeout: 10000,
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 3000,
+        PROD_WEB_PORT: 3000
       }
     },
     {
@@ -70,8 +71,9 @@ module.exports = {
       wait_ready: true,
       listen_timeout: 10000,
       env: {
-        NODE_ENV: 'production',
-        PORT: 3001
+        NODE_ENV: 'development',
+        PORT: 3001,
+        DEV_WEB_PORT: 3001
       }
     },
     {
@@ -94,7 +96,7 @@ module.exports = {
       wait_ready: true,
       listen_timeout: 10000,
       env: {
-        NODE_ENV: 'production',
+        NODE_ENV: 'development',
         PORT: 4001
       }
     }

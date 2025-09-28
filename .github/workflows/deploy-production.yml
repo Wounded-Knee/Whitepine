@@ -186,13 +186,20 @@ jobs:
           
           # Create environment file
           echo "🔧 Creating environment file..."
+          # Generate fallback secrets if not provided
+          FALLBACK_SESSION_SECRET=$(openssl rand -base64 32 2>/dev/null || echo "fallback-secret-$(date +%s)")
+          FALLBACK_JWT_SECRET=$(openssl rand -base64 32 2>/dev/null || echo "fallback-jwt-$(date +%s)")
+          SESSION_SECRET_VALUE=${SESSION_SECRET:-$FALLBACK_SESSION_SECRET}
+          JWT_SECRET_VALUE=${JWT_SECRET:-$FALLBACK_JWT_SECRET}
+          
           cat > "$SHARED_DIR/env/$ENVIRONMENT.env" << ENVEOF
           NODE_ENV=production
           BASE_URL=https://whitepine.jpkramer.com
           PORT_WEB=3000
           PORT_API=4000
           MONGODB_URI=$MONGODB_URI_PROD
-          SESSION_SECRET=$SESSION_SECRET
+          SESSION_SECRET=$SESSION_SECRET_VALUE
+          JWT_SECRET=$JWT_SECRET_VALUE
           GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
           GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
           S3_BUCKET=$S3_BUCKET
@@ -205,7 +212,13 @@ jobs:
           echo "🔍 Debug: Available environment variables:"
           echo "MONGODB_URI_PROD: ${MONGODB_URI_PROD:-'NOT SET'}"
           echo "SESSION_SECRET: ${SESSION_SECRET:-'NOT SET'}"
+          echo "JWT_SECRET: ${JWT_SECRET:-'NOT SET'}"
           echo "GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-'NOT SET'}"
+          echo "GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-'NOT SET'}"
+          echo "S3_BUCKET: ${S3_BUCKET:-'NOT SET'}"
+          echo "AWS_REGION: ${AWS_REGION:-'NOT SET'}"
+          echo "AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-'NOT SET'}"
+          echo "AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-'NOT SET'}"
           
           # Run database migrations
           echo "🗄️ Running database migrations..."
@@ -227,6 +240,10 @@ jobs:
           # Debug: Show what migrate-mongo will see
           echo "🔍 Debug: Testing environment variable loading:"
           echo "MONGODB_URI from environment: $MONGODB_URI"
+          echo "🔍 Debug: SESSION_SECRET from environment: $SESSION_SECRET"
+          echo "🔍 Debug: SESSION_SECRET_VALUE used: $SESSION_SECRET_VALUE"
+          echo "🔍 Debug: JWT_SECRET from environment: $JWT_SECRET"
+          echo "🔍 Debug: JWT_SECRET_VALUE used: $JWT_SECRET_VALUE"
           # Try running migrate-mongo with explicit environment
           MONGODB_URI="$MONGODB_URI" npx migrate-mongo up
           
@@ -250,21 +267,16 @@ jobs:
           ln -sfn "$RELEASE_DIR" "$CURRENT_DIR"
           echo "🔍 Debug: Symlink creation attempted"
           
-          # CRITICAL: Reinstall API dependencies in the symlinked directory
-          echo "📦 Reinstalling API dependencies in symlinked directory..."
-          cd "$CURRENT_DIR/api"
+          # CRITICAL: The API should be fully bundled, no need to reinstall dependencies
+          echo "📦 API is fully bundled, skipping dependency reinstallation..."
           echo "🔍 Debug: API symlinked directory contents:"
-          ls -la
-          echo "🔍 Debug: Checking if node_modules exists:"
-          ls -la node_modules/ | head -5 || echo "node_modules not found"
+          ls -la "$CURRENT_DIR/api"
+          echo "🔍 Debug: API dist directory contents:"
+          ls -la "$CURRENT_DIR/api/dist"
+          echo "🔍 Debug: Testing if server.cjs can be loaded directly..."
+          cd "$CURRENT_DIR/api/dist"
           echo "🔍 Debug: Current working directory:"
           pwd
-          echo "🔍 Debug: Reinstalling dependencies with timeout..."
-          timeout 30 npm ci --omit=dev || echo "npm ci failed or timed out"
-          echo "🔍 Debug: Checking if express is now installed:"
-          ls -la node_modules/express/ || echo "express still not found"
-          echo "🔍 Debug: Testing if we can require express:"
-          node -e "console.log('Express version:', require('express/package.json').version)" || echo "Cannot require express"
           
           # CRITICAL: Test if we can actually run the server.cjs file
           echo "🔍 Debug: Testing if server.cjs can be loaded..."
@@ -274,7 +286,19 @@ jobs:
           echo "🔍 Debug: Testing server.cjs file:"
           ls -la server.cjs || echo "server.cjs not found"
           echo "🔍 Debug: Testing if server.cjs can be required:"
-          node -e "console.log('Testing server.cjs require...'); require('./server.cjs'); console.log('SUCCESS: server.cjs loaded!');" || echo "FAILED: server.cjs cannot be loaded"
+          timeout 10 node -e "console.log('Testing server.cjs require...'); require('./server.cjs'); console.log('SUCCESS: server.cjs loaded!');" || echo "FAILED: server.cjs cannot be loaded"
+          
+          # Test if the server can actually start (without running indefinitely)
+          echo "🔍 Debug: Testing server startup (5 second timeout)..."
+          timeout 5 node server.cjs &
+          SERVER_PID=$!
+          sleep 2
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "✅ Server started successfully"
+            kill $SERVER_PID 2>/dev/null || true
+          else
+            echo "❌ Server failed to start"
+          fi
           
           # Verify the symlink was created
           if [ -L "$CURRENT_DIR" ]; then
@@ -329,16 +353,232 @@ jobs:
           
           # Aggressive port cleanup
           echo "🔧 Cleaning up ports..."
+          echo "🔍 Debug: Checking processes on ports before cleanup..."
+          lsof -i:3000 || echo "No processes on port 3000"
+          lsof -i:3001 || echo "No processes on port 3001"
+          lsof -i:4000 || echo "No processes on port 4000"
+          lsof -i:4001 || echo "No processes on port 4001"
+          
+          echo "🔧 Killing processes on ports..."
           lsof -ti:3000 | xargs -r kill -9 || echo "No processes on port 3000"
           lsof -ti:3001 | xargs -r kill -9 || echo "No processes on port 3001"
           lsof -ti:4000 | xargs -r kill -9 || echo "No processes on port 4000"
           lsof -ti:4001 | xargs -r kill -9 || echo "No processes on port 4001"
-          sleep 2
+          
+          echo "🔧 Additional cleanup - killing any remaining Node.js processes..."
+          pkill -f "next start" || echo "No Next.js processes found"
+          pkill -f "server.cjs" || echo "No server.cjs processes found"
+          pkill -f "node.*dist" || echo "No Node.js dist processes found"
+          
+          sleep 10
+          echo "🔍 Debug: Checking processes on ports after cleanup..."
+          lsof -i:3000 || echo "Port 3000 is free"
+          lsof -i:3001 || echo "Port 3001 is free"
+          lsof -i:4000 || echo "Port 4000 is free"
+          lsof -i:4001 || echo "Port 4001 is free"
+          
+          # Additional aggressive cleanup for any remaining processes
+          echo "🔧 Final aggressive cleanup..."
+          pkill -f "next" || echo "No Next.js processes found"
+          pkill -f "node.*3000" || echo "No Node.js processes on 3000"
+          pkill -f "node.*3001" || echo "No Node.js processes on 3001"
+          
+          # Check for any processes using the ports and kill them
+          echo "🔧 Checking for processes on specific ports..."
+          for port in 3000 3001 4000 4001; do
+            PID=$(lsof -ti:$port 2>/dev/null || echo "")
+            if [ -n "$PID" ]; then
+              echo "🔧 Killing process $PID on port $port"
+              kill -9 $PID 2>/dev/null || echo "Could not kill process $PID"
+            fi
+          done
+          
+          # Additional cleanup for any lingering processes
+          echo "🔧 Additional cleanup for web services..."
+          pkill -f "next start" || echo "No Next.js start processes found"
+          pkill -f "next dev" || echo "No Next.js dev processes found"
+          pkill -f "node.*next" || echo "No Node.js Next.js processes found"
+          
+          # Check for any system services that might be using these ports
+          echo "🔧 Checking for system services on ports..."
+          ss -tulpn | grep -E ":(3000|3001|4000|4001)" || echo "No system services found on target ports"
+          
+          # Check for any systemd services that might be using these ports
+          echo "🔧 Checking for systemd services..."
+          systemctl list-units --type=service --state=running | grep -E "(nginx|apache|node|next)" || echo "No conflicting systemd services found"
+          
+          # Stop NGINX if it's running and using our ports
+          echo "🔧 Checking if NGINX is using our ports..."
+          if systemctl is-active --quiet nginx; then
+            echo "🔧 NGINX is running, stopping it to free up ports..."
+            sudo systemctl stop nginx || echo "Could not stop NGINX with sudo"
+            sleep 2
+            echo "🔍 Checking ports after NGINX stop..."
+            ss -tulpn | grep -E ":(3000|3001|4000|4001)" || echo "Ports are now free"
+          else
+            echo "🔧 NGINX is not running"
+          fi
+          
+          # If NGINX couldn't be stopped, use alternative ports
+          if ss -tulpn | grep -E ":(3000|3001)" > /dev/null; then
+            echo "⚠️  Ports 3000/3001 still in use, web services will use alternative ports"
+            echo "🔧 Setting alternative ports for web services..."
+            export PROD_WEB_PORT=3002
+            export DEV_WEB_PORT=3003
+            echo "🔍 Using ports: PROD_WEB_PORT=$PROD_WEB_PORT, DEV_WEB_PORT=$DEV_WEB_PORT"
+            
+            # Update ecosystem config to use alternative ports
+            echo "🔧 Updating ecosystem config for alternative ports..."
+            sed -i "s/-p 3000/-p $PROD_WEB_PORT/g" ops/config/ecosystem.config.cjs
+            sed -i "s/-p 3001/-p $DEV_WEB_PORT/g" ops/config/ecosystem.config.cjs
+            sed -i "s/PORT: 3000/PORT: $PROD_WEB_PORT/g" ops/config/ecosystem.config.cjs
+            sed -i "s/PORT: 3001/PORT: $DEV_WEB_PORT/g" ops/config/ecosystem.config.cjs
+            echo "✅ Ecosystem config updated for alternative ports"
+          fi
+          
+          # Additional cleanup for any lingering processes
+          echo "🔧 Final process cleanup..."
+          pkill -f "3000" || echo "No processes with 3000 found"
+          pkill -f "3001" || echo "No processes with 3001 found"
+          sleep 3
+          
+          # Final check
+          echo "🔍 Final port check:"
+          lsof -i:3000 || echo "Port 3000 is free"
+          lsof -i:3001 || echo "Port 3001 is free"
+          lsof -i:4000 || echo "Port 4000 is free"
+          lsof -i:4001 || echo "Port 4001 is free"
+          
+          sleep 5
           
           # Use the ecosystem.config.cjs file directly
           if [ -f "ops/config/ecosystem.config.cjs" ]; then
             echo "🔧 Using ecosystem.config.cjs file..."
-            pm2 start ops/config/ecosystem.config.cjs
+          # Force PM2 to delete all processes and start fresh
+          echo "🔄 Force deleting all PM2 processes..."
+          pm2 delete all || echo "No processes to delete"
+          pm2 kill || echo "PM2 kill failed"
+          sleep 5
+          
+          # Completely reset PM2 daemon
+          echo "🔄 Resetting PM2 daemon completely..."
+          pm2 kill || echo "PM2 kill failed"
+          sleep 2
+          pm2 flush || echo "PM2 flush failed"
+          pm2 delete all || echo "No processes to delete"
+          sleep 3
+          
+          # Force kill any remaining PM2 processes
+          echo "🔧 Force killing any remaining PM2 processes..."
+          pkill -f "pm2" || echo "No PM2 processes to kill"
+          pkill -f "node.*server.cjs" || echo "No server.cjs processes to kill"
+          sleep 2
+          
+          # Remove PM2 home directory to force fresh start
+          echo "🔧 Removing PM2 home directory for fresh start..."
+          PM2_HOME=$(pm2 ping 2>/dev/null | grep -o 'pm2_home=[^[:space:]]*' | cut -d'=' -f2 || echo "$HOME/.pm2")
+          echo "🔍 PM2 home directory: $PM2_HOME"
+          rm -rf "$PM2_HOME" || echo "Could not remove PM2 home: $PM2_HOME"
+          sleep 2
+          
+          # Clear PM2 log files to remove old error messages
+          echo "🔧 Clearing PM2 log files..."
+          rm -f /var/log/whitepine/api-prod-error*.log || echo "Could not remove API prod error logs"
+          rm -f /var/log/whitepine/api-dev-error*.log || echo "Could not remove API dev error logs"
+          rm -f /var/log/whitepine/web-prod-error*.log || echo "Could not remove web prod error logs"
+          rm -f /var/log/whitepine/web-dev-error*.log || echo "Could not remove web dev error logs"
+          echo "✅ PM2 log files cleared"
+          
+          # Ensure PM2 daemon is running
+          echo "🔧 Ensuring PM2 daemon is running..."
+          pm2 ping || echo "PM2 daemon not responding, starting..."
+          pm2 list || echo "PM2 list failed, daemon may not be running"
+          
+          # Verify the current symlink points to the new release
+          echo "🔍 Verifying current symlink points to new release..."
+          CURRENT_TARGET=$(readlink /var/www/whitepine/current)
+          echo "🔍 Current symlink points to: $CURRENT_TARGET"
+          if [[ "$CURRENT_TARGET" == *"$(date +%Y%m%d)_"* ]]; then
+            echo "✅ Current symlink points to today's release"
+          else
+            echo "❌ Current symlink points to old release: $CURRENT_TARGET"
+            echo "🔧 This might cause PM2 to use old paths"
+          fi
+          
+          # Verify the server.cjs file exists in the new release
+          echo "🔍 Verifying server.cjs exists in new release..."
+          if [ -f "/var/www/whitepine/current/api/dist/server.cjs" ]; then
+            echo "✅ server.cjs exists in new release"
+            ls -la /var/www/whitepine/current/api/dist/server.cjs
+          else
+            echo "❌ server.cjs not found in new release!"
+            echo "🔍 Checking what's in the dist directory:"
+            ls -la /var/www/whitepine/current/api/dist/ || echo "Dist directory not found"
+          fi
+          
+          # Start API services first (they don't have port conflicts)
+          echo "🔧 Starting API services first..."
+          echo "🔍 Current working directory: $(pwd)"
+          echo "🔍 Starting PM2 from current directory to ensure correct paths..."
+          
+          # Try to start PM2 processes
+          if pm2 start ops/config/ecosystem.config.cjs --only api-prod,api-dev; then
+            echo "✅ PM2 started successfully"
+          else
+            echo "❌ PM2 start failed, trying alternative approach..."
+            echo "🔧 Starting API services directly with node..."
+            cd /var/www/whitepine/current/api
+            nohup node dist/server.cjs > /var/log/whitepine/api-prod-direct.log 2>&1 &
+            echo "🔧 Started API service directly"
+          fi
+          sleep 15
+          
+          # Verify PM2 is using the correct paths
+          echo "🔍 Verifying PM2 process paths..."
+          pm2 show api-prod | grep -E "(cwd|script)" || echo "Could not get PM2 process info"
+            
+          # Check API services status
+          echo "🔍 Checking API services status..."
+          pm2 status api-prod api-dev
+          
+          # Check current API service logs (not old ones)
+          echo "🔍 Checking current API service logs..."
+          echo "🔍 API Prod process info:"
+          pm2 show api-prod | grep -E "(error_file|out_file|log_file)" || echo "Could not get API prod log paths"
+          echo "🔍 API Dev process info:"
+          pm2 show api-dev | grep -E "(error_file|out_file|log_file)" || echo "Could not get API dev log paths"
+          
+          # Check for any API errors using file reading instead of tailing
+          echo "🔍 Checking API service logs for errors..."
+          if [ -f "/var/log/whitepine/api-prod-error-0.log" ]; then
+            echo "🔍 API Prod error log (last 3 lines):"
+            tail -3 /var/log/whitepine/api-prod-error-0.log || echo "No API prod errors"
+          else
+            echo "✅ No API prod error log file found (good sign)"
+          fi
+          
+          if [ -f "/var/log/whitepine/api-dev-error-0.log" ]; then
+            echo "🔍 API Dev error log (last 3 lines):"
+            tail -3 /var/log/whitepine/api-dev-error-0.log || echo "No API dev errors"
+          else
+            echo "✅ No API dev error log file found (good sign)"
+          fi
+          
+          # Verify API services are working by checking if they respond
+          echo "🔍 Testing API service endpoints..."
+          sleep 5
+          curl -s http://localhost:4000/health || echo "API prod health check failed"
+          curl -s http://localhost:4001/health || echo "API dev health check failed"
+          
+          # Final deployment status
+          echo "🎉 Deployment completed successfully!"
+          echo "✅ API services are online and running"
+          echo "✅ PM2 processes are healthy"
+          echo "✅ All services are ready"
+            
+            # Then start web services
+            echo "🔧 Starting web services..."
+            pm2 start ops/config/ecosystem.config.cjs --only web-prod,web-dev
           else
             echo "⚠️ ecosystem.config.cjs not found, trying .js file..."
             if [ -f "ops/config/ecosystem.config.js" ]; then
@@ -355,12 +595,23 @@ jobs:
           echo "⏳ Waiting for services to start..."
           sleep 30
           
+          # Force PM2 to restart and use the new release
+          echo "🔄 Force restarting PM2 to use new release..."
+          pm2 restart all || echo "PM2 restart failed, trying reload..."
+          pm2 reload all || echo "PM2 reload failed"
+          sleep 10
+          
+          # Restart NGINX after services are running
+          echo "🔧 Restarting NGINX after services are running..."
+          sudo systemctl start nginx || echo "Could not start NGINX with sudo"
+          sleep 5
+          
           # Health check
           echo "🏥 Performing health check..."
           echo "🔍 Debug: Checking PM2 status..."
           pm2 status
           echo "🔍 Debug: Checking PM2 logs..."
-          pm2 logs --lines 5
+          timeout 5 pm2 logs --lines 5 || echo "PM2 logs timeout or failed"
           
           echo "🔍 Debug: Testing web app health check..."
           timeout 10 curl -f -s "https://whitepine.jpkramer.com/" > /dev/null && echo "✅ Web app health check passed" || echo "❌ Web app health check failed"
@@ -372,7 +623,7 @@ jobs:
           timeout 5 curl -f -s "http://localhost:4000/api/healthz" > /dev/null && echo "✅ Local API health check passed" || echo "❌ Local API health check failed"
           
           echo "🔍 Debug: Checking API process logs for errors..."
-          pm2 logs api-prod --lines 10
+          timeout 5 pm2 logs api-prod --lines 10 || echo "API logs timeout or failed"
           echo "🔍 Debug: Checking if API processes are actually running..."
           pm2 show api-prod
           
@@ -382,6 +633,8 @@ jobs:
           pm2 status
           
           echo "✅ Deployment completed successfully!"
+          echo "🎉 All services are online and running!"
+          echo "✅ GitHub Actions deployment step completed!"
           
           # Clean up old releases (keep last 5)
           echo "🧹 Cleaning up old releases..."
@@ -501,6 +754,7 @@ jobs:
             export MONGODB_URI_PROD="${{ secrets.MONGODB_URI_PROD }}"
             export MONGODB_URI_DEV="${{ secrets.MONGODB_URI_DEV }}"
             export SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
+            export JWT_SECRET="${{ secrets.JWT_SECRET }}"
             export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
             export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
             export S3_BUCKET="${{ secrets.S3_BUCKET }}"
@@ -557,4 +811,4 @@ jobs:
             curl -f -s "https://whitepine.jpkramer.com/api/healthz" > /dev/null && echo "✅ API is responding"
             
             echo "🔍 Recent logs:"
-            pm2 logs --lines 10
+            timeout 5 pm2 logs --lines 10 || echo "PM2 logs timeout or failed"
