@@ -353,11 +353,7 @@ jobs:
           
           # Aggressive port cleanup
           echo "🔧 Cleaning up ports..."
-          echo "🔍 Debug: Checking processes on ports before cleanup..."
-          lsof -i:3000 || echo "No processes on port 3000"
-          lsof -i:3001 || echo "No processes on port 3001"
-          lsof -i:4000 || echo "No processes on port 4000"
-          lsof -i:4001 || echo "No processes on port 4001"
+          echo "🔧 Checking for processes on ports..."
           
           echo "🔧 Killing processes on ports..."
           lsof -ti:3000 | xargs -r kill -9 || echo "No processes on port 3000"
@@ -371,41 +367,16 @@ jobs:
           pkill -f "node.*dist" || echo "No Node.js dist processes found"
           
           sleep 10
-          echo "🔍 Debug: Checking processes on ports after cleanup..."
-          lsof -i:3000 || echo "Port 3000 is free"
-          lsof -i:3001 || echo "Port 3001 is free"
-          lsof -i:4000 || echo "Port 4000 is free"
-          lsof -i:4001 || echo "Port 4001 is free"
           
-          # Additional aggressive cleanup for any remaining processes
-          echo "🔧 Final aggressive cleanup..."
+          # Final cleanup
+          echo "🔧 Final cleanup..."
           pkill -f "next" || echo "No Next.js processes found"
           pkill -f "node.*3000" || echo "No Node.js processes on 3000"
           pkill -f "node.*3001" || echo "No Node.js processes on 3001"
           
-          # Check for any processes using the ports and kill them
-          echo "🔧 Checking for processes on specific ports..."
-          for port in 3000 3001 4000 4001; do
-            PID=$(lsof -ti:$port 2>/dev/null || echo "")
-            if [ -n "$PID" ]; then
-              echo "🔧 Killing process $PID on port $port"
-              kill -9 $PID 2>/dev/null || echo "Could not kill process $PID"
-            fi
-          done
-          
-          # Additional cleanup for any lingering processes
-          echo "🔧 Additional cleanup for web services..."
-          pkill -f "next start" || echo "No Next.js start processes found"
-          pkill -f "next dev" || echo "No Next.js dev processes found"
-          pkill -f "node.*next" || echo "No Node.js Next.js processes found"
-          
-          # Check for any system services that might be using these ports
+          # Check for system services using ports
           echo "🔧 Checking for system services on ports..."
           ss -tulpn | grep -E ":(3000|3001|4000|4001)" || echo "No system services found on target ports"
-          
-          # Check for any systemd services that might be using these ports
-          echo "🔧 Checking for systemd services..."
-          systemctl list-units --type=service --state=running | grep -E "(nginx|apache|node|next)" || echo "No conflicting systemd services found"
           
           # Stop NGINX if it's running and using our ports
           echo "🔧 Checking if NGINX is using our ports..."
@@ -497,29 +468,14 @@ jobs:
           # Verify the current symlink points to the new release
           echo "🔍 Verifying current symlink points to new release..."
           CURRENT_TARGET=$(readlink /var/www/whitepine/current)
-          echo "🔍 Current symlink points to: $CURRENT_TARGET"
           if [[ "$CURRENT_TARGET" == *"$(date +%Y%m%d)_"* ]]; then
             echo "✅ Current symlink points to today's release"
           else
             echo "❌ Current symlink points to old release: $CURRENT_TARGET"
-            echo "🔧 This might cause PM2 to use old paths"
-          fi
-          
-          # Verify the server.cjs file exists in the new release
-          echo "🔍 Verifying server.cjs exists in new release..."
-          if [ -f "/var/www/whitepine/current/api/dist/server.cjs" ]; then
-            echo "✅ server.cjs exists in new release"
-            ls -la /var/www/whitepine/current/api/dist/server.cjs
-          else
-            echo "❌ server.cjs not found in new release!"
-            echo "🔍 Checking what's in the dist directory:"
-            ls -la /var/www/whitepine/current/api/dist/ || echo "Dist directory not found"
           fi
           
           # Start API services first (they don't have port conflicts)
           echo "🔧 Starting API services first..."
-          echo "🔍 Current working directory: $(pwd)"
-          echo "🔍 Starting PM2 from current directory to ensure correct paths..."
           
           # Try to start PM2 processes
           if pm2 start ops/config/ecosystem.config.cjs --only api-prod,api-dev; then
@@ -541,27 +497,13 @@ jobs:
           echo "🔍 Checking API services status..."
           pm2 status api-prod api-dev
           
-          # Check current API service logs (not old ones)
-          echo "🔍 Checking current API service logs..."
-          echo "🔍 API Prod process info:"
-          pm2 show api-prod | grep -E "(error_file|out_file|log_file)" || echo "Could not get API prod log paths"
-          echo "🔍 API Dev process info:"
-          pm2 show api-dev | grep -E "(error_file|out_file|log_file)" || echo "Could not get API dev log paths"
-          
-          # Check for any API errors using file reading instead of tailing
+          # Check for any API errors
           echo "🔍 Checking API service logs for errors..."
           if [ -f "/var/log/whitepine/api-prod-error-0.log" ]; then
             echo "🔍 API Prod error log (last 3 lines):"
             tail -3 /var/log/whitepine/api-prod-error-0.log || echo "No API prod errors"
           else
             echo "✅ No API prod error log file found (good sign)"
-          fi
-          
-          if [ -f "/var/log/whitepine/api-dev-error-0.log" ]; then
-            echo "🔍 API Dev error log (last 3 lines):"
-            tail -3 /var/log/whitepine/api-dev-error-0.log || echo "No API dev errors"
-          else
-            echo "✅ No API dev error log file found (good sign)"
           fi
           
           # Verify API services are working by checking if they respond
@@ -601,36 +543,41 @@ jobs:
           pm2 reload all || echo "PM2 reload failed"
           sleep 10
           
+          # Update NGINX configuration with correct ports
+          echo "🔧 Updating NGINX configuration with correct ports..."
+          if [ -f "/etc/nginx/sites-available/whitepine" ]; then
+            echo "🔧 Updating NGINX upstream ports to 3002/3003..."
+            sudo sed -i 's/127.0.0.1:3000/127.0.0.1:3002/g' /etc/nginx/sites-available/whitepine
+            sudo sed -i 's/127.0.0.1:3001/127.0.0.1:3003/g' /etc/nginx/sites-available/whitepine
+            echo "✅ NGINX configuration updated"
+          else
+            echo "⚠️ NGINX configuration file not found, copying from deployment..."
+            sudo cp ops/config/nginx.conf /etc/nginx/sites-available/whitepine
+            sudo ln -sf /etc/nginx/sites-available/whitepine /etc/nginx/sites-enabled/whitepine
+            echo "✅ NGINX configuration copied and enabled"
+          fi
+          
+          # Test NGINX configuration
+          echo "🔧 Testing NGINX configuration..."
+          sudo nginx -t || echo "NGINX configuration test failed"
+          
           # Restart NGINX after services are running
           echo "🔧 Restarting NGINX after services are running..."
-          sudo systemctl start nginx || echo "Could not start NGINX with sudo"
+          sudo systemctl reload nginx || echo "Could not reload NGINX with sudo"
           sleep 5
           
           # Health check
           echo "🏥 Performing health check..."
-          echo "🔍 Debug: Checking PM2 status..."
           pm2 status
-          echo "🔍 Debug: Checking PM2 logs..."
-          timeout 5 pm2 logs --lines 5 || echo "PM2 logs timeout or failed"
           
-          echo "🔍 Debug: Testing web app health check..."
+          echo "🔍 Testing web app health check..."
           timeout 10 curl -f -s "https://whitepine.jpkramer.com/" > /dev/null && echo "✅ Web app health check passed" || echo "❌ Web app health check failed"
           
-          echo "🔍 Debug: Testing API health check..."
+          echo "🔍 Testing API health check..."
           timeout 10 curl -f -s "https://whitepine.jpkramer.com/api/healthz" > /dev/null && echo "✅ API health check passed" || echo "❌ API health check failed"
           
-          echo "🔍 Debug: Testing local API health check..."
+          echo "🔍 Testing local API health check..."
           timeout 5 curl -f -s "http://localhost:4000/api/healthz" > /dev/null && echo "✅ Local API health check passed" || echo "❌ Local API health check failed"
-          
-          echo "🔍 Debug: Checking API process logs for errors..."
-          timeout 5 pm2 logs api-prod --lines 10 || echo "API logs timeout or failed"
-          echo "🔍 Debug: Checking if API processes are actually running..."
-          pm2 show api-prod
-          
-          # Don't exit on health check failure, just warn
-          echo "⚠️ Health check failed, but deployment may still be partially successful"
-          echo "🔍 Debug: Final PM2 status:"
-          pm2 status
           
           echo "✅ Deployment completed successfully!"
           echo "🎉 All services are online and running!"
@@ -810,5 +757,3 @@ jobs:
             curl -f -s "https://whitepine.jpkramer.com/" > /dev/null && echo "✅ Web app is responding"
             curl -f -s "https://whitepine.jpkramer.com/api/healthz" > /dev/null && echo "✅ API is responding"
             
-            echo "🔍 Recent logs:"
-            timeout 5 pm2 logs --lines 10 || echo "PM2 logs timeout or failed"
