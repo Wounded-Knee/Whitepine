@@ -4,7 +4,7 @@ module.exports = {
       name: 'web-prod',
       cwd: '/var/www/whitepine/current/web',
       script: 'npx',
-      args: 'next start -p 3000',
+      args: 'next start -p 3002',
       env_file: '/var/www/whitepine/shared/env/prod.env',
       instances: 1,
       exec_mode: 'fork',
@@ -22,8 +22,8 @@ module.exports = {
       listen_timeout: 10000,
       env: {
         NODE_ENV: 'production',
-        PORT: 3000,
-        PROD_WEB_PORT: 3000
+        PORT: 3002,
+        PROD_WEB_PORT: 3002
       }
     },
     {
@@ -54,7 +54,7 @@ module.exports = {
       name: 'web-dev',
       cwd: '/var/www/whitepine/current/web',
       script: 'npx',
-      args: 'next start -p 3001',
+      args: 'next start -p 3003',
       env_file: '/var/www/whitepine/shared/env/dev.env',
       instances: 1,
       exec_mode: 'fork',
@@ -72,8 +72,8 @@ module.exports = {
       listen_timeout: 10000,
       env: {
         NODE_ENV: 'development',
-        PORT: 3001,
-        DEV_WEB_PORT: 3001
+        PORT: 3003,
+        DEV_WEB_PORT: 3003
       }
     },
     {
