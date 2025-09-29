@@ -45,6 +45,50 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Test SSH Connection
+        run: |
+          echo "🔧 Creating SSH key file..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          
+          echo "🔍 Creating test script to verify execution location and environment variables..."
+          cat > /tmp/test_location.sh << 'EOF'
+          #!/bin/bash
+          echo "🔍 TEST SCRIPT EXECUTION LOCATION:"
+          echo "=================================="
+          echo "Current working directory: $(pwd)"
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Date: $(date)"
+          echo "Environment: $ENVIRONMENT"
+          echo "Available files in current directory:"
+          ls -la
+          echo "=================================="
+          echo "🔍 TESTING ENVIRONMENT VARIABLES:"
+          echo "=================================="
+          echo "MONGODB_URI_PROD: $MONGODB_URI_PROD"
+          echo "MONGODB_URI_DEV: $MONGODB_URI_DEV"
+          echo "SESSION_SECRET: $SESSION_SECRET"
+          echo "JWT_SECRET: $JWT_SECRET"
+          echo "GOOGLE_CLIENT_ID: $GOOGLE_CLIENT_ID"
+          echo "GOOGLE_CLIENT_SECRET: $GOOGLE_CLIENT_SECRET"
+          echo "S3_BUCKET: $S3_BUCKET"
+          echo "AWS_REGION: $AWS_REGION"
+          echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+          echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+          echo "=================================="
+          EOF
+          
+          chmod +x /tmp/test_location.sh
+          
+          echo "🔍 Uploading test script to server..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key /tmp/test_location.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/
+          
+          echo "🔍 Executing test script on server with environment variables..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "export MONGODB_URI_PROD='${{ secrets.MONGODB_URI_PROD }}'; export MONGODB_URI_DEV='${{ secrets.MONGODB_URI_DEV }}'; export SESSION_SECRET='${{ secrets.SESSION_SECRET }}'; export JWT_SECRET='${{ secrets.JWT_SECRET }}'; export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'; export GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'; export S3_BUCKET='${{ secrets.S3_BUCKET }}'; export AWS_REGION='${{ secrets.AWS_REGION }}'; export AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}'; export AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}'; /tmp/test_location.sh"
+          
+          echo "🔍 Test completed - check output above to verify script ran on server"
+
       - name: Type check
         run: pnpm typecheck
 
@@ -218,6 +262,10 @@ jobs:
           echo "📦 Release directory: $RELEASE_DIR"
           echo "🔍 Debug: Deployment script version: $(date)"
           echo "🔍 Debug: This deployment includes API dependency reinstallation fix"
+          echo "🔍 Debug: RELEASE_DIR is set to: $RELEASE_DIR"
+          echo "🔍 Debug: Current working directory: $(pwd)"
+          echo "🔍 Debug: Available files in current directory:"
+          ls -la
           
           # Create release directory
           mkdir -p "$RELEASE_DIR"
@@ -225,10 +273,10 @@ jobs:
           # Copy web app built files (built in GitHub Actions)
           mkdir -p "$RELEASE_DIR/web"
           echo "🔧 Copying web app built files..."
-          cp -r web-next "$RELEASE_DIR/web/.next"
-          cp -r web-public "$RELEASE_DIR/web/public"
-          cp web-package.json "$RELEASE_DIR/web/package.json"
-          cp web-package-lock.json "$RELEASE_DIR/web/package-lock.json"
+          cp -r /tmp/deployment/web-next "$RELEASE_DIR/web/.next"
+          cp -r /tmp/deployment/web-public "$RELEASE_DIR/web/public"
+          cp /tmp/deployment/web-package.json "$RELEASE_DIR/web/package.json"
+          cp /tmp/deployment/web-package-lock.json "$RELEASE_DIR/web/package-lock.json"
           
           # Copy API
           echo "🔧 Copying API files..."
@@ -237,13 +285,13 @@ jobs:
           echo "🔍 Debug: Creating API directory: $RELEASE_DIR/api"
           mkdir -p "$RELEASE_DIR/api"
           echo "🔍 Debug: Copying API dist files..."
-          cp -r api-dist "$RELEASE_DIR/api/dist"
+          cp -r /tmp/deployment/api-dist "$RELEASE_DIR/api/dist"
           echo "🔍 Debug: Copying API migrations..."
-          cp -r api-migrations "$RELEASE_DIR/api/migrations"
+          cp -r /tmp/deployment/api-migrations "$RELEASE_DIR/api/migrations"
           echo "🔍 Debug: Copying API package files..."
-          cp api-package.json "$RELEASE_DIR/api/package.json"
-          cp api-package-lock.json "$RELEASE_DIR/api/package-lock.json"
-          cp migrate-mongo-config.cjs "$RELEASE_DIR/api/migrate-mongo-config.cjs"
+          cp /tmp/deployment/api-package.json "$RELEASE_DIR/api/package.json"
+          cp /tmp/deployment/api-package-lock.json "$RELEASE_DIR/api/package-lock.json"
+          cp /tmp/deployment/migrate-mongo-config.cjs "$RELEASE_DIR/api/migrate-mongo-config.cjs"
           echo "🔍 Debug: API directory after copying:"
           ls -la "$RELEASE_DIR/api" || echo "API directory not found"
           echo "🔍 Debug: API dist directory after copying:"
@@ -253,37 +301,37 @@ jobs:
           echo "🔍 Debug: Copying ops directory..."
           echo "🔍 Debug: Ops source directory contents:"
           echo "🔍 Debug: Ops config directory contents:"
-          cp -r ops "$RELEASE_DIR/ops"
+          cp -r /tmp/deployment/ops "$RELEASE_DIR/ops"
           
           # Copy packages directory for monorepo workspace dependencies
           echo "🔍 Debug: Copying packages directory..."
           mkdir -p "$RELEASE_DIR/packages/types"
           
           # Copy files only if they exist
-          if [ -d "packages/types/src" ]; then
+          if [ -d "/tmp/deployment/packages/types/src" ]; then
             echo "🔍 Debug: Copying packages/types/src..."
-            cp -r packages/types/src "$RELEASE_DIR/packages/types/src"
+            cp -r /tmp/deployment/packages/types/src "$RELEASE_DIR/packages/types/src"
           else
             echo "⚠️ packages/types/src not found, skipping..."
           fi
           
-          if [ -d "packages/types/dist" ]; then
+          if [ -d "/tmp/deployment/packages/types/dist" ]; then
             echo "🔍 Debug: Copying packages/types/dist..."
-            cp -r packages/types/dist "$RELEASE_DIR/packages/types/dist"
+            cp -r /tmp/deployment/packages/types/dist "$RELEASE_DIR/packages/types/dist"
           else
             echo "⚠️ packages/types/dist not found, skipping..."
           fi
           
-          if [ -f "packages/types/package.json" ]; then
+          if [ -f "/tmp/deployment/packages/types/package.json" ]; then
             echo "🔍 Debug: Copying packages/types/package.json..."
-            cp packages/types/package.json "$RELEASE_DIR/packages/types/package.json"
+            cp /tmp/deployment/packages/types/package.json "$RELEASE_DIR/packages/types/package.json"
           else
             echo "⚠️ packages/types/package.json not found, skipping..."
           fi
           
-          if [ -f "packages/types/tsconfig.json" ]; then
+          if [ -f "/tmp/deployment/packages/types/tsconfig.json" ]; then
             echo "🔍 Debug: Copying packages/types/tsconfig.json..."
-            cp packages/types/tsconfig.json "$RELEASE_DIR/packages/types/tsconfig.json"
+            cp /tmp/deployment/packages/types/tsconfig.json "$RELEASE_DIR/packages/types/tsconfig.json"
           else
             echo "⚠️ packages/types/tsconfig.json not found, skipping..."
           fi
@@ -332,7 +380,7 @@ jobs:
             echo "✅ API directory found, installing dependencies..."
             echo "🔍 Debug: API directory contents:"
             ls -la "$RELEASE_DIR/api"
-            cd "$RELEASE_DIR/api"
+          cd "$RELEASE_DIR/api"
             echo "🔍 Debug: Changed to API directory: $(pwd)"
             pnpm install --prod --frozen-lockfile=false
           else
@@ -871,62 +919,39 @@ jobs:
           rm -f /tmp/ssh_key
 
       - name: Execute deployment
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Set environment variables from GitHub secrets
-            export MONGODB_URI_PROD="${{ secrets.MONGODB_URI_PROD }}"
-            export MONGODB_URI_DEV="${{ secrets.MONGODB_URI_DEV }}"
-            export SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
-            export JWT_SECRET="${{ secrets.JWT_SECRET }}"
-            export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
-            export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
-            export S3_BUCKET="${{ secrets.S3_BUCKET }}"
-            export AWS_REGION="${{ secrets.AWS_REGION }}"
-            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-            echo "🔍 Checking deployment directory contents:"
-            echo "📁 Current directory: $(pwd)"
-            echo "📋 Available files:"
-            find /tmp/deployment -type f -name "*.sh" 2>/dev/null || echo "No .sh files found"
-            echo "🔍 Checking API files in deployment:"
-            ls -la api-dist/ || echo "API dist directory not found"
-            ls -la api-migrations/ || echo "API migrations directory not found"
-            echo "🔍 Checking what's in the current release directory:"
-            ls -la /var/www/whitepine/current/ || echo "Current directory not found"
-            echo "🔍 Checking what's in the latest release directory:"
-            LATEST_RELEASE=$(ls -t /var/www/whitepine/releases/ | head -1)
-            echo "Latest release: $LATEST_RELEASE"
-            ls -la /var/www/whitepine/releases/$LATEST_RELEASE/ || echo "Latest release directory not found"
-            
-            cd /tmp/deployment
-            echo "📂 Changed to deployment directory: $(pwd)"
-            ls -la
-            
-            if [ -f "deployment-package/deploy.sh" ]; then
-              echo "✅ Found deploy.sh, making it executable and running..."
-              cd deployment-package
-              chmod +x deploy.sh
-              echo "🔍 Debug: About to execute deploy.sh in directory: $(pwd)"
-              echo "🔍 Debug: Available files in deployment-package:"
-              ls -la
-              ./deploy.sh
-            elif [ -f "deploy.sh" ]; then
-              echo "✅ Found deploy.sh, making it executable and running..."
-              chmod +x deploy.sh
-              echo "🔍 Debug: About to execute deploy.sh in directory: $(pwd)"
-              echo "🔍 Debug: Available files in current directory:"
-              ls -la
-              ./deploy.sh
-            else
-              echo "❌ deploy.sh not found in /tmp/deployment"
-              echo "Available files:"
-              ls -la
-              exit 1
-            fi
+        run: |
+          echo "🔧 Creating SSH key file..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          
+          echo "🔍 Debug: Creating simple deployment script..."
+          cat > /tmp/server_deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          echo "🔍 Debug: Environment variables set"
+          echo "🔍 Debug: Current working directory: $(pwd)"
+          echo "🔍 Debug: Changing to /tmp/deployment..."
+          cd /tmp/deployment
+          echo "🔍 Debug: Current working directory after cd: $(pwd)"
+          echo "🔍 Debug: Listing contents of /tmp/deployment:"
+          ls -la
+          echo "🔍 Debug: Making deploy.sh executable..."
+          chmod +x deploy.sh
+          echo "🔍 Debug: Executing deploy.sh..."
+          ./deploy.sh
+          EOF
+          
+          chmod +x /tmp/server_deploy.sh
+          
+          echo "🔍 Debug: Uploading deployment script to server..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key /tmp/server_deploy.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/
+          
+          echo "🔍 Debug: Executing deployment script on server with environment variables..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "export MONGODB_URI_PROD='${{ secrets.MONGODB_URI_PROD }}'; export MONGODB_URI_DEV='${{ secrets.MONGODB_URI_DEV }}'; export SESSION_SECRET='${{ secrets.SESSION_SECRET }}'; export JWT_SECRET='${{ secrets.JWT_SECRET }}'; export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'; export GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'; export S3_BUCKET='${{ secrets.S3_BUCKET }}'; export AWS_REGION='${{ secrets.AWS_REGION }}'; export AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}'; export AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}'; /tmp/server_deploy.sh"
+          
+          # Clean up SSH key
+          rm -f /tmp/ssh_key
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.0

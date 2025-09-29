@@ -1,0 +1,198 @@
+name: Deploy Production (Multi-Job)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Build and Package
+  build-and-package:
+    runs-on: ubuntu-latest
+    outputs:
+      deployment-package: ${{ steps.package.outputs.package-path }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build API
+        run: |
+          cd apps/api
+          pnpm run build
+
+      - name: Build web app
+        run: |
+          cd apps/web
+          pnpm run build
+
+      - name: Package deployment
+        id: package
+        run: |
+          mkdir -p deployment-package
+          
+          # Copy API files
+          cp -r apps/api/dist deployment-package/api-dist
+          cp -r apps/api/migrations deployment-package/api-migrations
+          cp apps/api/package.json deployment-package/api-package.json
+          cp apps/api/package-lock.json deployment-package/api-package-lock.json
+          cp apps/api/migrate-mongo-config.cjs deployment-package/migrate-mongo-config.cjs
+          
+          # Copy web app files
+          cp -r apps/web/.next deployment-package/web-next
+          cp -r apps/web/public deployment-package/web-public
+          cp apps/web/package.json deployment-package/web-package.json
+          cp apps/web/package-lock.json deployment-package/web-package-lock.json
+          
+          # Copy packages
+          cp -r packages deployment-package/packages
+          
+          # Copy ops
+          cp -r apps/ops deployment-package/ops
+          
+          echo "package-path=deployment-package" >> $GITHUB_OUTPUT
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: deployment-package/
+
+  # Job 2: Upload to Server
+  upload-to-server:
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package
+
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+
+      - name: Upload files to server
+        run: |
+          # Create deployment directory on server
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "mkdir -p /tmp/deployment"
+          
+          # Upload deployment package
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key -r deployment-package/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          
+          # Upload deployment script
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key .github/workflows/deploy-script.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/deploy.sh
+          
+          # Clean up
+          rm -f /tmp/ssh_key
+
+  # Job 3: Deploy on Server
+  deploy-on-server:
+    needs: upload-to-server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+
+      - name: Execute deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Set environment variables from GitHub secrets
+            export MONGODB_URI_PROD="${{ secrets.MONGODB_URI_PROD }}"
+            export MONGODB_URI_DEV="${{ secrets.MONGODB_URI_DEV }}"
+            export SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
+            export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+            export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            export S3_BUCKET="${{ secrets.S3_BUCKET }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            
+            # Run deployment script
+            cd /tmp/deployment
+            chmod +x deploy.sh
+            ./deploy.sh
+
+  # Job 4: Verify Deployment
+  verify-deployment:
+    needs: deploy-on-server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "📊 PM2 Status:"
+            pm2 status
+            
+            echo "🔧 Ensuring NGINX is running..."
+            if ! systemctl is-active --quiet nginx; then
+              echo "🔧 NGINX is not running, starting it..."
+              sudo systemctl start nginx || echo "Could not start NGINX"
+              sleep 5
+            else
+              echo "✅ NGINX is already running"
+            fi
+            
+            echo "🌐 Testing endpoints:"
+            echo "🔍 Testing web app..."
+            if curl -s "https://whitepine.jpkramer.com/" > /dev/null; then
+              echo "✅ Web app is responding"
+            else
+              echo "❌ Web app is not responding"
+              echo "🔍 Checking local web app..."
+              if curl -s "http://localhost:3002/" > /dev/null; then
+                echo "✅ Local web app is responding on port 3002"
+              else
+                echo "❌ Local web app is not responding on port 3002"
+              fi
+            fi
+            
+            echo "🔍 Testing API..."
+            if curl -s "https://whitepine.jpkramer.com/health" > /dev/null; then
+              echo "✅ API is responding"
+            else
+              echo "❌ API is not responding"
+              echo "🔍 Checking local API..."
+              if curl -s "http://localhost:4000/health" > /dev/null; then
+                echo "✅ Local API is responding on port 4000"
+                echo "🔍 API response:"
+                curl -s "http://localhost:4000/health" | head -3
+              else
+                echo "❌ Local API is not responding on port 4000"
+                echo "🔍 Checking API process status..."
+                pm2 logs api-prod --lines 3 --err 2>/dev/null | tail -3 || echo "Could not get API logs"
+              fi
+            fi
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f /tmp/ssh_key
