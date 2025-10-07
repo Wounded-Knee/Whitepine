@@ -24,6 +24,7 @@ const baseNavigation = [
 export function Navigation() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
 
   const navigation = React.useMemo(() => {
     const nav = [...baseNavigation]
@@ -70,7 +71,7 @@ export function Navigation() {
           </nav>
         </div>
         
-        <Sheet>
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button
               variant="ghost"
@@ -111,7 +112,11 @@ export function Navigation() {
           <SheetContent side="left" className="pr-0">
             <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
             <div className="flex flex-col space-y-4">
-              <Link className="flex items-center space-x-2" href="/">
+              <Link 
+                className="flex items-center space-x-2" 
+                href="/"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 <span className="font-bold">Whitepine</span>
               </Link>
               <nav className="flex flex-col space-y-2">
@@ -125,6 +130,7 @@ export function Navigation() {
                         ? "text-foreground"
                         : "text-foreground/60"
                     )}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.name}
                   </Link>
