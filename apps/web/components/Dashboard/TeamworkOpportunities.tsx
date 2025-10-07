@@ -50,9 +50,9 @@ const mockOpportunities: Opportunity[] = [
 ];
 
 const urgencyConfig = {
-  high: { color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200', label: 'URGENT' },
-  medium: { color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', label: 'Important' },
-  low: { color: 'text-blue-600', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', label: 'Upcoming' }
+  high: { color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-500/10 dark:bg-red-500/20', borderColor: 'border-red-500/30 dark:border-red-500/50', label: 'URGENT' },
+  medium: { color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-500/10 dark:bg-orange-500/20', borderColor: 'border-orange-500/30 dark:border-orange-500/50', label: 'Important' },
+  low: { color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-500/10 dark:bg-blue-500/20', borderColor: 'border-blue-500/30 dark:border-blue-500/50', label: 'Upcoming' }
 };
 
 export function TeamworkOpportunities() {
@@ -60,7 +60,7 @@ export function TeamworkOpportunities() {
     <Card className="col-span-full lg:col-span-1">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-purple-600" />
+          <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           Teamwork Opportunities
         </CardTitle>
         <CardDescription>Urgent collective actions</CardDescription>
@@ -99,9 +99,9 @@ export function TeamworkOpportunities() {
                     </span>
                     <span className="font-medium">{Math.round(progress)}%</span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-3">
                     <div
-                      className={`h-full ${opp.urgency === 'high' ? 'bg-red-500' : opp.urgency === 'medium' ? 'bg-orange-500' : 'bg-blue-500'} transition-all duration-500`}
+                      className={`h-full ${opp.urgency === 'high' ? 'bg-red-500 dark:bg-red-400' : opp.urgency === 'medium' ? 'bg-orange-500 dark:bg-orange-400' : 'bg-blue-500 dark:bg-blue-400'} transition-all duration-500`}
                       style={{ width: `${progress}%` }}
                     />
                   </div>

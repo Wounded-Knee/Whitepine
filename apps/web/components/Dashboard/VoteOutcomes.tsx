@@ -48,11 +48,11 @@ const mockOutcomes: VoteOutcome[] = [
 ];
 
 const statusConfig = {
-  passed: { icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50', label: 'Passed' },
-  failed: { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', label: 'Failed' },
-  pending: { icon: Clock, color: 'text-yellow-600', bgColor: 'bg-yellow-50', label: 'Pending' },
-  trending_up: { icon: TrendingUp, color: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Rising' },
-  trending_down: { icon: TrendingDown, color: 'text-orange-600', bgColor: 'bg-orange-50', label: 'Falling' }
+  passed: { icon: CheckCircle, color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-500/10 dark:bg-green-500/20', label: 'Passed' },
+  failed: { icon: XCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-500/10 dark:bg-red-500/20', label: 'Failed' },
+  pending: { icon: Clock, color: 'text-yellow-600 dark:text-yellow-400', bgColor: 'bg-yellow-500/10 dark:bg-yellow-500/20', label: 'Pending' },
+  trending_up: { icon: TrendingUp, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-500/10 dark:bg-blue-500/20', label: 'Rising' },
+  trending_down: { icon: TrendingDown, color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-500/10 dark:bg-orange-500/20', label: 'Falling' }
 };
 
 export function VoteOutcomes() {

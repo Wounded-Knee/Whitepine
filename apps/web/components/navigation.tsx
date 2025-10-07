@@ -19,6 +19,16 @@ const baseNavigation = [
     name: "About",
     href: "/marketing/about-us",
   },
+  {
+    name: "Instruments of Power",
+    href: "/instruments-of-power",
+    children: [
+      {
+        name: "Economic Veto",
+        href: "/instruments-of-power/economic-veto",
+      },
+    ],
+  },
 ]
 
 export function Navigation() {
@@ -55,18 +65,42 @@ export function Navigation() {
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium">
             {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href as any}
-                className={cn(
-                  "transition-colors hover:text-foreground/80",
-                  pathname === item.href
-                    ? "text-foreground"
-                    : "text-foreground/60"
+              <div key={item.href} className="relative group">
+                <Link
+                  href={item.href as any}
+                  className={cn(
+                    "transition-colors hover:text-foreground/80",
+                    pathname === item.href || (item.children && item.children.some((child: any) => pathname === child.href))
+                      ? "text-foreground"
+                      : "text-foreground/60"
+                  )}
+                >
+                  {item.name}
+                  {item.children && item.children.length > 0 && (
+                    <span className="ml-1">▾</span>
+                  )}
+                </Link>
+                {item.children && item.children.length > 0 && (
+                  <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-50">
+                    <div className="bg-background border rounded-md shadow-lg py-2 min-w-[200px]">
+                      {item.children.map((child: any) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "block px-4 py-2 text-sm transition-colors hover:bg-accent",
+                            pathname === child.href
+                              ? "bg-accent text-accent-foreground"
+                              : "text-foreground/60 hover:text-foreground"
+                          )}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              >
-                {item.name}
-              </Link>
+              </div>
             ))}
           </nav>
         </div>
@@ -121,19 +155,39 @@ export function Navigation() {
               </Link>
               <nav className="flex flex-col space-y-2">
                 {navigation.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href as any}
-                    className={cn(
-                      "block px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
-                      pathname === item.href
-                        ? "text-foreground"
-                        : "text-foreground/60"
+                  <div key={item.href}>
+                    <Link
+                      href={item.href as any}
+                      className={cn(
+                        "block px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
+                        pathname === item.href
+                          ? "text-foreground"
+                          : "text-foreground/60"
+                      )}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                    {item.children && item.children.length > 0 && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {item.children.map((child: any) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              "block px-3 py-2 text-sm transition-colors hover:text-foreground/80",
+                              pathname === child.href
+                                ? "text-foreground"
+                                : "text-foreground/60"
+                            )}
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
                     )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
+                  </div>
                 ))}
               </nav>
               <div className="pt-4 space-y-4">
