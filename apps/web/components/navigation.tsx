@@ -12,7 +12,7 @@ import { AuthButton } from "@/components/auth-button"
 
 const baseNavigation = [
   {
-    name: "Home",
+    name: "Dashboard",
     href: "/",
   },
   {

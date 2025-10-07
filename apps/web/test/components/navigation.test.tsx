@@ -57,7 +57,7 @@ describe('Navigation', () => {
       expect(whitepineElements.length).toBeGreaterThan(0);
 
       // Base navigation items
-      expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'About' })).toBeInTheDocument();
     });
 
@@ -148,9 +148,9 @@ describe('Navigation', () => {
         expect(screen.getByRole('heading', { name: /navigation menu/i, hidden: true })).toBeInTheDocument();
         
         // Check that navigation links exist in the document
-        const homeLinks = screen.getAllByRole('link', { name: 'Home' });
+        const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
         const aboutLinks = screen.getAllByRole('link', { name: 'About' });
-        expect(homeLinks.length).toBeGreaterThanOrEqual(1);
+        expect(dashboardLinks.length).toBeGreaterThanOrEqual(1);
         expect(aboutLinks.length).toBeGreaterThanOrEqual(1);
       });
     });
@@ -181,10 +181,10 @@ describe('Navigation', () => {
       });
 
       // Click on a navigation link in the mobile menu
-      const allHomeLinks = screen.getAllByRole('link', { name: 'Home' });
+      const allDashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
       // Find the mobile menu link (not the desktop one)
-      const mobileHomeLink = allHomeLinks[allHomeLinks.length - 1];
-      fireEvent.click(mobileHomeLink);
+      const mobileDashboardLink = allDashboardLinks[allDashboardLinks.length - 1];
+      fireEvent.click(mobileDashboardLink);
 
       // The menu should close - the dialog should not be in the document anymore
       // or should be marked as closed
@@ -323,9 +323,9 @@ describe('Navigation', () => {
       });
 
       // Close by clicking a link
-      const allHomeLinks = screen.getAllByRole('link', { name: 'Home' });
-      const mobileHomeLink = allHomeLinks[allHomeLinks.length - 1];
-      fireEvent.click(mobileHomeLink);
+      const allDashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+      const mobileDashboardLink = allDashboardLinks[allDashboardLinks.length - 1];
+      fireEvent.click(mobileDashboardLink);
 
       // Wait for close
       await waitFor(() => {
@@ -369,8 +369,8 @@ describe('Navigation', () => {
         expect(screen.getByRole('heading', { name: /navigation menu/i, hidden: true })).toBeInTheDocument();
       });
 
-      const allHomeLinks = screen.getAllByRole('link', { name: 'Home' });
-      fireEvent.click(allHomeLinks[allHomeLinks.length - 1]);
+      const allDashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+      fireEvent.click(allDashboardLinks[allDashboardLinks.length - 1]);
 
       await waitFor(() => {
         const content = document.querySelector('[data-state]');
@@ -382,11 +382,11 @@ describe('Navigation', () => {
   });
 
   describe('Navigation Links', () => {
-    it('renders correct href for Home', () => {
+    it('renders correct href for Dashboard', () => {
       render(<Navigation />);
 
-      const homeLinks = screen.getAllByRole('link', { name: 'Home' });
-      homeLinks.forEach(link => {
+      const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+      dashboardLinks.forEach(link => {
         expect(link).toHaveAttribute('href', '/');
       });
     });
@@ -482,17 +482,17 @@ describe('Navigation', () => {
   });
 
   describe('Active Route Highlighting', () => {
-    it('highlights Home when on root path', () => {
+    it('highlights Dashboard when on root path', () => {
       mockPathname.mockReturnValue('/');
 
       render(<Navigation />);
 
-      const homeLinks = screen.getAllByRole('link', { name: 'Home' });
-      const activeHomeLink = homeLinks.find(link =>
+      const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+      const activeDashboardLink = dashboardLinks.find(link =>
         link.className.includes('text-foreground') &&
         !link.className.includes('text-foreground/60')
       );
-      expect(activeHomeLink).toBeDefined();
+      expect(activeDashboardLink).toBeDefined();
     });
 
     it('highlights About when on about page', () => {
@@ -551,8 +551,8 @@ describe('Navigation', () => {
 
       render(<Navigation />);
 
-      const homeLinks = screen.getAllByRole('link', { name: 'Home' });
-      homeLinks.forEach(link => {
+      const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
+      dashboardLinks.forEach(link => {
         expect(link.className).toContain('text-foreground/60');
       });
     });
