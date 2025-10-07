@@ -2,7 +2,32 @@ import type { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { findOrCreateUser, findUserById } from "./user-service"
 
+// Get the appropriate NextAuth secret based on environment
+const getNextAuthSecret = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.NEXTAUTH_SECRET_PROD || process.env.NEXTAUTH_SECRET
+  } else {
+    return process.env.NEXTAUTH_SECRET_DEV || process.env.NEXTAUTH_SECRET
+  }
+}
+
+// Get the base URL dynamically based on environment
+const getNextAuthUrl = () => {
+  // If explicitly set, use it
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL
+  }
+  
+  // Otherwise construct it dynamically
+  if (process.env.NODE_ENV === 'production') {
+    return `http://localhost:${process.env.PROD_WEB_PORT || 3000}`
+  } else {
+    return `http://localhost:${process.env.DEV_WEB_PORT || 3000}`
+  }
+}
+
 export const authOptions: NextAuthOptions = {
+  secret: getNextAuthSecret(),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,

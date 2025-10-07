@@ -43,13 +43,18 @@ export async function connectDatabase(): Promise<void> {
     });
 
   } catch (error) {
-    logger.error('Failed to connect to MongoDB:', error);
-    logger.error('MongoDB URI:', config.mongoUri ? 'Set' : 'Not set');
-    logger.error('Error details:', {
-      message: (error as Error).message,
-      code: (error as any).code,
-      name: (error as Error).name
-    });
+    logger.error({ error }, 'Failed to connect to MongoDB');
+    logger.error({ uriSet: !!config.mongoUri }, 'MongoDB URI status');
+    logger.error({ 
+      maskedUri: config.mongoUri ? config.mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@') : 'Not set' 
+    }, 'MongoDB URI (masked)');
+    logger.error({ 
+      errorMessage: (error as Error).message,
+      errorCode: (error as any).code,
+      errorName: (error as Error).name
+    }, 'Error details');
+    console.log('DEBUG - Full MongoDB URI:', config.mongoUri);
+    console.log('DEBUG - Full error:', JSON.stringify(error, null, 2));
     throw error;
   }
 }

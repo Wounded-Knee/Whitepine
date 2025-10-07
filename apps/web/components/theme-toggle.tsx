@@ -5,18 +5,63 @@ import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
   const [theme, setTheme] = React.useState<"light" | "dark">("light")
+  const [mounted, setMounted] = React.useState(false)
 
+  // Load saved theme on mount
   React.useEffect(() => {
+    setMounted(true)
+    try {
+      const saved = localStorage.getItem("theme")
+      if (saved === "dark" || saved === "light") {
+        setTheme(saved)
+      } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        setTheme("dark")
+      }
+    } catch (e) {
+      // If localStorage is unavailable, fall back to system preference
+      try {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          setTheme("dark")
+        }
+      } catch {
+        // If matchMedia also fails, stay with default light theme
+      }
+    }
+  }, [])
+
+  // Apply theme to DOM and save to localStorage
+  React.useEffect(() => {
+    if (!mounted) return
+    
     const root = document.documentElement
     if (theme === "dark") {
       root.classList.add("dark")
+      try {
+        localStorage.setItem("theme", "dark")
+      } catch {
+        // Silently fail if localStorage is unavailable
+      }
     } else {
       root.classList.remove("dark")
+      try {
+        localStorage.setItem("theme", "light")
+      } catch {
+        // Silently fail if localStorage is unavailable
+      }
     }
-  }, [theme])
+  }, [theme, mounted])
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light")
+  }
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Button variant="outline" size="icon" className="h-9 w-9" disabled>
+        <span className="sr-only">Loading</span>
+      </Button>
+    )
   }
 
   return (

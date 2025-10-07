@@ -3,13 +3,14 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { AuthButton } from "@/components/auth-button"
 
-const navigation = [
+const baseNavigation = [
   {
     name: "Home",
     href: "/",
@@ -18,27 +19,29 @@ const navigation = [
     name: "About",
     href: "/marketing/about-us",
   },
-  {
-    name: "Blog",
-    href: "/blog",
-  },
-  {
-    name: "Marketing",
-    href: "/marketing",
-  },
 ]
-
-navigation.push({
-  name: "Nodes",
-  href: "/demo-nodes",
-});
-navigation.push({
-  name: "Tree",
-  href: "/demo-tree",
-});
 
 export function Navigation() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const navigation = React.useMemo(() => {
+    const nav = [...baseNavigation]
+    
+    // Only add demo navigation items if user is logged in
+    if (session) {
+      nav.push({
+        name: "Nodes",
+        href: "/demo-nodes",
+      })
+      nav.push({
+        name: "Tree",
+        href: "/demo-tree",
+      })
+    }
+    
+    return nav
+  }, [session])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

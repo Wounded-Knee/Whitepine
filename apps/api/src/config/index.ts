@@ -40,16 +40,32 @@ const getMongoUri = () => {
   return process.env.MONGODB_URI_DEV;
 };
 
+const getSessionSecret = () => {
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv === 'production') {
+    return process.env.SESSION_SECRET_PROD || process.env.SESSION_SECRET;
+  }
+  return process.env.SESSION_SECRET_DEV || process.env.SESSION_SECRET;
+};
+
+const getJwtSecret = () => {
+  const nodeEnv = process.env.NODE_ENV;
+  if (nodeEnv === 'production') {
+    return process.env.JWT_SECRET_PROD || process.env.JWT_SECRET;
+  }
+  return process.env.JWT_SECRET_DEV || process.env.JWT_SECRET;
+};
+
 const envConfig = {
   nodeEnv: process.env.NODE_ENV,
   port: process.env.PORT,
   logLevel: process.env.LOG_LEVEL,
   mongoUri: getMongoUri(),
   corsOrigins: process.env.CORS_ORIGINS,
-  sessionSecret: process.env.SESSION_SECRET,
+  sessionSecret: getSessionSecret(),
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: getJwtSecret(),
   awsRegion: process.env.AWS_REGION,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
