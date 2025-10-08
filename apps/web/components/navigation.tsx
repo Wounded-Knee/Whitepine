@@ -35,6 +35,25 @@ export function Navigation() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [isDark, setIsDark] = React.useState(false)
+
+  // Track theme changes
+  React.useEffect(() => {
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains("dark"))
+    }
+    
+    checkTheme()
+    
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+    
+    return () => observer.disconnect()
+  }, [])
 
   const navigation = React.useMemo(() => {
     const nav = [...baseNavigation]
@@ -120,21 +139,21 @@ export function Navigation() {
               >
                 <path
                   d="M3 5H11"
-                  stroke="currentColor"
+                  stroke="#3b82f6"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 ></path>
                 <path
                   d="M3 12H16"
-                  stroke="currentColor"
+                  stroke={isDark ? "#ffffff" : "#374151"}
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 ></path>
                 <path
                   d="M3 19H21"
-                  stroke="currentColor"
+                  stroke="#ef4444"
                   strokeWidth="1.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"

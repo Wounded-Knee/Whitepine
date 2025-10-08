@@ -8,7 +8,7 @@ import React, { type ReactNode } from 'react';
 
 function CustomH1({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+    <h1 className="text-4xl font-bold text-gray-950 dark:text-white mb-6">
       {children}
     </h1>
   );
@@ -16,7 +16,7 @@ function CustomH1({ children }: { children: ReactNode }) {
 
 function CustomH2({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-4 mt-8">
+    <h2 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-8">
       {children}
     </h2>
   );
@@ -24,7 +24,7 @@ function CustomH2({ children }: { children: ReactNode }) {
 
 function CustomH3({ children }: { children: ReactNode }) {
   return (
-    <h3 className="text-2xl font-medium text-gray-700 dark:text-gray-200 mb-3 mt-6">
+    <h3 className="text-2xl font-medium text-gray-900 dark:text-gray-200 mb-3 mt-6">
       {children}
     </h3>
   );
@@ -32,7 +32,7 @@ function CustomH3({ children }: { children: ReactNode }) {
 
 function CustomP({ children }: { children: ReactNode }) {
   return (
-    <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+    <p className="text-gray-800 dark:text-gray-300 mb-4 leading-relaxed">
       {children}
     </p>
   );
@@ -51,7 +51,7 @@ function CustomA({ href, children }: { href?: string; children: ReactNode }) {
 
 function CustomCode({ children }: { children: ReactNode }) {
   return (
-    <code className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">
+    <code className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">
       {children}
     </code>
   );
@@ -67,7 +67,7 @@ function CustomPre({ children }: { children: ReactNode }) {
 
 function CustomBlockquote({ children }: { children: ReactNode }) {
   return (
-    <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 dark:text-gray-300 my-4">
+    <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-900 dark:text-gray-300 my-4">
       {children}
     </blockquote>
   );
@@ -75,7 +75,7 @@ function CustomBlockquote({ children }: { children: ReactNode }) {
 
 function CustomUl({ children }: { children: ReactNode }) {
   return (
-    <ul className="list-disc list-inside text-gray-600 dark:text-gray-300 mb-4 space-y-2">
+    <ul className="list-disc list-inside text-gray-800 dark:text-gray-300 mb-4 space-y-2">
       {children}
     </ul>
   );
@@ -83,7 +83,7 @@ function CustomUl({ children }: { children: ReactNode }) {
 
 function CustomOl({ children }: { children: ReactNode }) {
   return (
-    <ol className="list-decimal list-inside text-gray-600 dark:text-gray-300 mb-4 space-y-2">
+    <ol className="list-decimal list-inside text-gray-800 dark:text-gray-300 mb-4 space-y-2">
       {children}
     </ol>
   );
@@ -91,7 +91,7 @@ function CustomOl({ children }: { children: ReactNode }) {
 
 function CustomLi({ children }: { children: ReactNode }) {
   return (
-    <li className="text-gray-600 dark:text-gray-300">
+    <li className="text-gray-800 dark:text-gray-300">
       {children}
     </li>
   );

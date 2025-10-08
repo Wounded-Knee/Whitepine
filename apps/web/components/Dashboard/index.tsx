@@ -12,6 +12,7 @@ import { UpcomingInitiatives } from './UpcomingInitiatives';
 import { Trending } from './Trending';
 import { TeamworkOpportunities } from './TeamworkOpportunities';
 import { YourImpact } from './YourImpact';
+import { SituationRoom } from './SituationRoom';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,13 @@ export function Dashboard() {
         </div>
         <ViewSwitcher />
       </div>
+
+      <Separator />
+
+      {/* SITUATION ROOM */}
+      <section>
+        <SituationRoom />
+      </section>
 
       <Separator />
 
