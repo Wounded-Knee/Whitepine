@@ -62,8 +62,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <article className="max-w-4xl mx-auto">
         <header className="mb-12 border-b border-border pb-8">
           <h1 
-            className="font-serif font-bold text-foreground mb-6 text-balance"
+            className="font-semibold text-foreground mb-6 text-balance"
             style={{ 
+              fontFamily: 'var(--font-manrope)',
               fontSize: 'var(--font-size-5xl)', 
               lineHeight: 'var(--line-height-tight)', 
               letterSpacing: 'var(--letter-spacing-tight)' 

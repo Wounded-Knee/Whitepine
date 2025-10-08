@@ -2,6 +2,7 @@
 @import "../styles/splash-screen.css";
 
 @theme {
+  /* Base theme configuration */
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -38,10 +39,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
   
-  /* Font families */
-  --font-family-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --font-family-serif: var(--font-playfair), Georgia, serif;
-  --font-family-mono: var(--font-mono), 'Courier New', monospace;
+  /* Font families - Direct reference to Next.js font variables */
+  --font-family-sans: var(--font-inter);
+  --font-family-mono: var(--font-mono);
   
   /* Typography scale - fluid responsive sizing */
   --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
@@ -141,6 +141,12 @@
   * {
     @apply border-border;
   }
+  
+  :root {
+    /* Map Next.js font variables to semantic names */
+    --font-family-heading: var(--font-manrope);
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-family-sans);
@@ -154,8 +160,8 @@
   
   /* Typography hierarchy */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-family-serif);
-    font-weight: 700;
+    font-family: var(--font-manrope);
+    font-weight: 500;
     line-height: var(--line-height-tight);
     letter-spacing: var(--letter-spacing-tight);
     color: hsl(var(--foreground));
@@ -226,8 +232,8 @@
   
   .prose h1 {
     font-size: var(--font-size-4xl);
-    font-family: var(--font-family-serif);
-    font-weight: 700;
+    font-family: var(--font-manrope);
+    font-weight: 600;
     line-height: var(--line-height-tight);
     letter-spacing: var(--letter-spacing-tight);
     margin-top: 0;
@@ -236,8 +242,8 @@
   
   .prose h2 {
     font-size: var(--font-size-3xl);
-    font-family: var(--font-family-serif);
-    font-weight: 700;
+    font-family: var(--font-manrope);
+    font-weight: 600;
     line-height: var(--line-height-snug);
     letter-spacing: var(--letter-spacing-tight);
     margin-top: 2em;
@@ -246,8 +252,8 @@
   
   .prose h3 {
     font-size: var(--font-size-2xl);
-    font-family: var(--font-family-serif);
-    font-weight: 600;
+    font-family: var(--font-manrope);
+    font-weight: 500;
     line-height: var(--line-height-snug);
     margin-top: 1.75em;
     margin-bottom: 0.5em;

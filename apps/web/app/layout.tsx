@@ -1,29 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Navigation } from '@/components/navigation';
 import { Providers } from '@/components/providers';
-
-// Body font - Inter with variable font support
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-// Display font for headings - Playfair Display for elegance
-const playfair = Playfair_Display({ 
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
-
-// Monospace font for code
-const jetbrainsMono = JetBrains_Mono({ 
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
+import { inter, manrope, jetbrainsMono } from './fonts';
 
 export const metadata: Metadata = {
   title: 'White Pine',
@@ -44,7 +23,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <Providers>
           <div className="min-h-screen bg-background">
             <Navigation />

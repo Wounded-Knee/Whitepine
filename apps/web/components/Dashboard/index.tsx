@@ -1,7 +1,5 @@
-'use client';
-
 import React from 'react';
-import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { UserBadge } from './UserBadge';
 import { ViewSwitcher } from './ViewSwitcher';
 import { CivicMetrics } from './CivicMetrics';
@@ -17,17 +15,11 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-export function Dashboard() {
-  const { data: session, status } = useSession();
+interface DashboardProps {
+  session: Session | null;
+}
 
-  if (status === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
+export function Dashboard({ session }: DashboardProps) {
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
@@ -49,7 +41,7 @@ export function Dashboard() {
       {/* Header with User Badge and View Switcher */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <UserBadge />
+          <UserBadge session={session} />
         </div>
         <ViewSwitcher />
       </div>

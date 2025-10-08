@@ -9,8 +9,9 @@ interface TypographyProps {
 export function TypographyH1({ children, className }: TypographyProps) {
   return (
     <h1 
-      className={cn("font-serif font-bold text-foreground mb-6 text-balance", className)}
+      className={cn("font-semibold text-foreground mb-6 text-balance", className)}
       style={{ 
+        fontFamily: 'var(--font-manrope)',
         fontSize: 'var(--font-size-5xl)', 
         lineHeight: 'var(--line-height-tight)', 
         letterSpacing: 'var(--letter-spacing-tight)' 
@@ -24,8 +25,9 @@ export function TypographyH1({ children, className }: TypographyProps) {
 export function TypographyH2({ children, className }: TypographyProps) {
   return (
     <h2 
-      className={cn("font-serif font-bold text-foreground mb-4 mt-12 text-balance", className)}
+      className={cn("font-semibold text-foreground mb-4 mt-12 text-balance", className)}
       style={{ 
+        fontFamily: 'var(--font-manrope)',
         fontSize: 'var(--font-size-4xl)', 
         lineHeight: 'var(--line-height-tight)', 
         letterSpacing: 'var(--letter-spacing-tight)' 
@@ -39,8 +41,9 @@ export function TypographyH2({ children, className }: TypographyProps) {
 export function TypographyH3({ children, className }: TypographyProps) {
   return (
     <h3 
-      className={cn("font-serif font-semibold text-foreground mb-3 mt-8 text-balance", className)}
+      className={cn("font-medium text-foreground mb-3 mt-8 text-balance", className)}
       style={{ 
+        fontFamily: 'var(--font-manrope)',
         fontSize: 'var(--font-size-3xl)', 
         lineHeight: 'var(--line-height-snug)', 
         letterSpacing: 'var(--letter-spacing-tight)' 
@@ -54,8 +57,9 @@ export function TypographyH3({ children, className }: TypographyProps) {
 export function TypographyH4({ children, className }: TypographyProps) {
   return (
     <h4 
-      className={cn("font-serif font-semibold text-foreground mb-3 mt-6", className)}
+      className={cn("font-medium text-foreground mb-3 mt-6", className)}
       style={{ 
+        fontFamily: 'var(--font-manrope)',
         fontSize: 'var(--font-size-2xl)', 
         lineHeight: 'var(--line-height-snug)' 
       }}

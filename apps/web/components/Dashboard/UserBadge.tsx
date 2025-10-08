@@ -1,14 +1,14 @@
-'use client';
-
 import React from 'react';
-import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { Avatar } from '@/components/avatar';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 
-export function UserBadge() {
-  const { data: session } = useSession();
+interface UserBadgeProps {
+  session: Session | null;
+}
 
+export function UserBadge({ session }: UserBadgeProps) {
   if (!session?.user) {
     return null;
   }

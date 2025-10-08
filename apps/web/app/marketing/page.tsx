@@ -8,8 +8,9 @@ export default function MarketingPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 
-        className="font-serif font-bold text-foreground mb-12 text-balance"
+        className="font-semibold text-foreground mb-12 text-balance"
         style={{ 
+          fontFamily: 'var(--font-manrope)',
           fontSize: 'var(--font-size-5xl)', 
           lineHeight: 'var(--line-height-tight)', 
           letterSpacing: 'var(--letter-spacing-tight)' 
@@ -25,8 +26,9 @@ export default function MarketingPage() {
             className="bg-card rounded-lg border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all"
           >
             <h2 
-              className="font-serif font-semibold text-card-foreground mb-3"
+              className="font-medium text-card-foreground mb-3"
               style={{ 
+                fontFamily: 'var(--font-manrope)',
                 fontSize: 'var(--font-size-2xl)', 
                 lineHeight: 'var(--line-height-snug)' 
               }}

@@ -8,7 +8,7 @@ import React, { type ReactNode } from 'react';
 
 function CustomH1({ children }: { children: ReactNode }) {
   return (
-    <h1 className="font-serif font-bold text-foreground mb-6 text-balance" style={{ fontSize: 'var(--font-size-5xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
+    <h1 className="font-semibold text-foreground mb-6 text-balance" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-5xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h1>
   );
@@ -16,7 +16,7 @@ function CustomH1({ children }: { children: ReactNode }) {
 
 function CustomH2({ children }: { children: ReactNode }) {
   return (
-    <h2 className="font-serif font-bold text-foreground mb-4 mt-12 text-balance" style={{ fontSize: 'var(--font-size-4xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
+    <h2 className="font-semibold text-foreground mb-4 mt-12 text-balance" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-4xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h2>
   );
@@ -24,7 +24,7 @@ function CustomH2({ children }: { children: ReactNode }) {
 
 function CustomH3({ children }: { children: ReactNode }) {
   return (
-    <h3 className="font-serif font-semibold text-foreground mb-3 mt-8 text-balance" style={{ fontSize: 'var(--font-size-3xl)', lineHeight: 'var(--line-height-snug)', letterSpacing: 'var(--letter-spacing-tight)' }}>
+    <h3 className="font-medium text-foreground mb-3 mt-8 text-balance" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-3xl)', lineHeight: 'var(--line-height-snug)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h3>
   );
@@ -32,7 +32,7 @@ function CustomH3({ children }: { children: ReactNode }) {
 
 function CustomH4({ children }: { children: ReactNode }) {
   return (
-    <h4 className="font-serif font-semibold text-foreground mb-3 mt-6" style={{ fontSize: 'var(--font-size-2xl)', lineHeight: 'var(--line-height-snug)' }}>
+    <h4 className="font-medium text-foreground mb-3 mt-6" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-2xl)', lineHeight: 'var(--line-height-snug)' }}>
       {children}
     </h4>
   );
@@ -40,7 +40,7 @@ function CustomH4({ children }: { children: ReactNode }) {
 
 function CustomH5({ children }: { children: ReactNode }) {
   return (
-    <h5 className="font-serif font-semibold text-foreground mb-2 mt-6" style={{ fontSize: 'var(--font-size-xl)', lineHeight: 'var(--line-height-snug)' }}>
+    <h5 className="font-normal text-foreground mb-2 mt-6" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-xl)', lineHeight: 'var(--line-height-snug)' }}>
       {children}
     </h5>
   );
@@ -48,7 +48,7 @@ function CustomH5({ children }: { children: ReactNode }) {
 
 function CustomH6({ children }: { children: ReactNode }) {
   return (
-    <h6 className="font-serif font-semibold text-foreground mb-2 mt-6" style={{ fontSize: 'var(--font-size-lg)', lineHeight: 'var(--line-height-normal)' }}>
+    <h6 className="font-normal text-foreground mb-2 mt-6" style={{ fontFamily: 'var(--font-manrope)', fontSize: 'var(--font-size-lg)', lineHeight: 'var(--line-height-normal)' }}>
       {children}
     </h6>
   );
