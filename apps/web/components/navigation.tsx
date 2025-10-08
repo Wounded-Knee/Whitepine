@@ -20,6 +20,10 @@ const baseNavigation = [
     href: "/marketing/about-us",
   },
   {
+    name: "Declaration of Assembly",
+    href: "/marketing/declaration-of-civic-constitutional-assembly",
+  },
+  {
     name: "Instruments of Power",
     href: "/instruments-of-power",
     children: [
