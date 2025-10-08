@@ -4,20 +4,29 @@ import type { MarketingPage } from '@/lib/content/types';
 
 interface MarketingPageProps {
   params: Promise<{
-    slug: string;
+    slug: string[];
   }>;
 }
 
 export async function generateStaticParams() {
   const slugs = getContentSlugs('marketing');
   return slugs.map((slug) => ({
-    slug,
+    slug: slug.split('/'),
   }));
 }
 
 export async function generateMetadata({ params }: MarketingPageProps) {
   const { slug } = await params;
-  const page = getContentBySlug(slug, 'marketing') as MarketingPage;
+  const slugPath = slug.join('/');
+  
+  // Try direct path first, then index
+  let page = getContentBySlug(slugPath, 'marketing') as MarketingPage;
+  
+  if (!page) {
+    // Try index file
+    const indexPath = `${slugPath}/index`;
+    page = getContentBySlug(indexPath, 'marketing') as MarketingPage;
+  }
   
   if (!page) {
     return {
@@ -38,7 +47,20 @@ export async function generateMetadata({ params }: MarketingPageProps) {
 
 export default async function MarketingPageComponent({ params }: MarketingPageProps) {
   const { slug } = await params;
-  const page = getContentBySlug(slug, 'marketing') as MarketingPage;
+  const slugPath = slug.join('/');
+  
+  // Try direct path first, then index
+  let page = getContentBySlug(slugPath, 'marketing') as MarketingPage;
+  let actualPath = slugPath;
+  
+  if (!page) {
+    // Try index file
+    const indexPath = `${slugPath}/index`;
+    page = getContentBySlug(indexPath, 'marketing') as MarketingPage;
+    if (page) {
+      actualPath = indexPath;
+    }
+  }
 
   if (!page) {
     notFound();
@@ -47,10 +69,10 @@ export default async function MarketingPageComponent({ params }: MarketingPagePr
   // Import the MDX content dynamically using dynamic import
   let MDXContent;
   try {
-    const mdxModule = await import(`@/content/marketing/${slug}.mdx`);
+    const mdxModule = await import(`@/content/marketing/${actualPath}.mdx`);
     MDXContent = mdxModule.default;
   } catch (error) {
-    console.error(`Failed to load MDX content for ${slug}:`, error);
+    console.error(`Failed to load MDX content for ${actualPath}:`, error);
     notFound();
   }
 
@@ -58,3 +80,4 @@ export default async function MarketingPageComponent({ params }: MarketingPagePr
     <MDXContent />
   );
 }
+

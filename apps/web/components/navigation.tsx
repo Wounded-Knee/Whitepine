@@ -24,6 +24,20 @@ const baseNavigation = [
     href: "/marketing/declaration-of-civic-constitutional-assembly",
   },
   {
+    name: "Symbols",
+    href: "/marketing/symbols",
+    children: [
+      {
+        name: "Great Tree of Peace",
+        href: "/marketing/symbols/great-tree-of-peace",
+      },
+      {
+        name: "Thirteen Arrows",
+        href: "/marketing/symbols/thirteen-arrows",
+      },
+    ],
+  },
+  {
     name: "Instruments of Power",
     href: "/instruments-of-power",
     children: [
