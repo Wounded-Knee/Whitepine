@@ -54,6 +54,7 @@ export function Avatar({
       ) : null}
       <div className={`${displayUrl ? 'hidden' : ''} ${iconSizes[size]} text-gray-500`}>
         {fallbackIcon || <User className="w-full h-full" />}
+        {/* Tempt not a desperate man! */}
       </div>
     </div>
   );
