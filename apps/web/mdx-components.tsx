@@ -8,7 +8,7 @@ import React, { type ReactNode } from 'react';
 
 function CustomH1({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-4xl font-bold text-gray-950 dark:text-white mb-6">
+    <h1 className="font-serif font-bold text-foreground mb-6 text-balance" style={{ fontSize: 'var(--font-size-5xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h1>
   );
@@ -16,7 +16,7 @@ function CustomH1({ children }: { children: ReactNode }) {
 
 function CustomH2({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-4 mt-8">
+    <h2 className="font-serif font-bold text-foreground mb-4 mt-12 text-balance" style={{ fontSize: 'var(--font-size-4xl)', lineHeight: 'var(--line-height-tight)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h2>
   );
@@ -24,15 +24,39 @@ function CustomH2({ children }: { children: ReactNode }) {
 
 function CustomH3({ children }: { children: ReactNode }) {
   return (
-    <h3 className="text-2xl font-medium text-gray-900 dark:text-gray-200 mb-3 mt-6">
+    <h3 className="font-serif font-semibold text-foreground mb-3 mt-8 text-balance" style={{ fontSize: 'var(--font-size-3xl)', lineHeight: 'var(--line-height-snug)', letterSpacing: 'var(--letter-spacing-tight)' }}>
       {children}
     </h3>
   );
 }
 
+function CustomH4({ children }: { children: ReactNode }) {
+  return (
+    <h4 className="font-serif font-semibold text-foreground mb-3 mt-6" style={{ fontSize: 'var(--font-size-2xl)', lineHeight: 'var(--line-height-snug)' }}>
+      {children}
+    </h4>
+  );
+}
+
+function CustomH5({ children }: { children: ReactNode }) {
+  return (
+    <h5 className="font-serif font-semibold text-foreground mb-2 mt-6" style={{ fontSize: 'var(--font-size-xl)', lineHeight: 'var(--line-height-snug)' }}>
+      {children}
+    </h5>
+  );
+}
+
+function CustomH6({ children }: { children: ReactNode }) {
+  return (
+    <h6 className="font-serif font-semibold text-foreground mb-2 mt-6" style={{ fontSize: 'var(--font-size-lg)', lineHeight: 'var(--line-height-normal)' }}>
+      {children}
+    </h6>
+  );
+}
+
 function CustomP({ children }: { children: ReactNode }) {
   return (
-    <p className="text-gray-800 dark:text-gray-300 mb-4 leading-relaxed">
+    <p className="text-foreground mb-5 text-pretty" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
       {children}
     </p>
   );
@@ -42,7 +66,7 @@ function CustomA({ href, children }: { href?: string; children: ReactNode }) {
   return (
     <a
       href={href}
-      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+      className="text-primary hover:text-primary/80 underline decoration-primary/30 underline-offset-2 hover:decoration-primary transition-colors"
     >
       {children}
     </a>
@@ -51,7 +75,7 @@ function CustomA({ href, children }: { href?: string; children: ReactNode }) {
 
 function CustomCode({ children }: { children: ReactNode }) {
   return (
-    <code className="bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">
+    <code className="font-mono bg-muted text-foreground px-2 py-0.5 rounded text-[0.875em]">
       {children}
     </code>
   );
@@ -59,7 +83,7 @@ function CustomCode({ children }: { children: ReactNode }) {
 
 function CustomPre({ children }: { children: ReactNode }) {
   return (
-    <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
+    <pre className="font-mono bg-muted text-foreground p-5 rounded-lg overflow-x-auto my-6 text-sm" style={{ lineHeight: 'var(--line-height-normal)' }}>
       {children}
     </pre>
   );
@@ -67,7 +91,7 @@ function CustomPre({ children }: { children: ReactNode }) {
 
 function CustomBlockquote({ children }: { children: ReactNode }) {
   return (
-    <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-900 dark:text-gray-300 my-4">
+    <blockquote className="border-l-4 border-primary pl-6 italic text-muted-foreground my-8" style={{ fontSize: 'var(--font-size-lg)', lineHeight: 'var(--line-height-relaxed)' }}>
       {children}
     </blockquote>
   );
@@ -75,7 +99,7 @@ function CustomBlockquote({ children }: { children: ReactNode }) {
 
 function CustomUl({ children }: { children: ReactNode }) {
   return (
-    <ul className="list-disc list-inside text-gray-800 dark:text-gray-300 mb-4 space-y-2">
+    <ul className="list-disc pl-6 text-foreground mb-5 space-y-2" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
       {children}
     </ul>
   );
@@ -83,7 +107,7 @@ function CustomUl({ children }: { children: ReactNode }) {
 
 function CustomOl({ children }: { children: ReactNode }) {
   return (
-    <ol className="list-decimal list-inside text-gray-800 dark:text-gray-300 mb-4 space-y-2">
+    <ol className="list-decimal pl-6 text-foreground mb-5 space-y-2" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
       {children}
     </ol>
   );
@@ -91,9 +115,31 @@ function CustomOl({ children }: { children: ReactNode }) {
 
 function CustomLi({ children }: { children: ReactNode }) {
   return (
-    <li className="text-gray-800 dark:text-gray-300">
+    <li className="text-foreground" style={{ lineHeight: 'var(--line-height-relaxed)' }}>
       {children}
     </li>
+  );
+}
+
+function CustomHr() {
+  return (
+    <hr className="border-none border-t border-border my-12" />
+  );
+}
+
+function CustomStrong({ children }: { children: ReactNode }) {
+  return (
+    <strong className="font-semibold text-foreground">
+      {children}
+    </strong>
+  );
+}
+
+function CustomEm({ children }: { children: ReactNode }) {
+  return (
+    <em className="italic">
+      {children}
+    </em>
   );
 }
 
@@ -103,6 +149,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h1: CustomH1,
     h2: CustomH2,
     h3: CustomH3,
+    h4: CustomH4,
+    h5: CustomH5,
+    h6: CustomH6,
     p: CustomP,
     a: CustomA,
     code: CustomCode,
@@ -111,6 +160,9 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ul: CustomUl,
     ol: CustomOl,
     li: CustomLi,
+    hr: CustomHr,
+    strong: CustomStrong,
+    em: CustomEm,
     ...components,
   };
 }

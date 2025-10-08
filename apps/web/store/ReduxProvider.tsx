@@ -9,12 +9,24 @@ interface ReduxProviderProps {
   children: ReactNode;
 }
 
-// Loading component for PersistGate
+// Splash screen for PersistGate
 const LoadingComponent = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-      <p className="mt-2 text-sm text-gray-600">Loading application...</p>
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="text-center space-y-8 px-4">
+      {/* Logo/Brand Section */}
+      <div className="space-y-2">
+        <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+          Whitepine
+        </h1>
+        <p className="text-lg text-gray-600 font-medium">
+          The Digital Town Hall
+        </p>
+      </div>
+      
+      {/* Animated Loading Indicator - Red, Gray, Blue carousel */}
+      <div className="flex justify-center">
+        <div className="dot-carousel-patriotic"></div>
+      </div>
     </div>
   </div>
 );

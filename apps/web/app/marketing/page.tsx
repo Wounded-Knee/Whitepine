@@ -6,8 +6,15 @@ export default function MarketingPage() {
   const marketingPages = getAllContent('marketing') as MarketingPage[];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+    <div className="container mx-auto px-4 py-12">
+      <h1 
+        className="font-serif font-bold text-foreground mb-12 text-balance"
+        style={{ 
+          fontSize: 'var(--font-size-5xl)', 
+          lineHeight: 'var(--line-height-tight)', 
+          letterSpacing: 'var(--letter-spacing-tight)' 
+        }}
+      >
         Marketing
       </h1>
       
@@ -15,27 +22,39 @@ export default function MarketingPage() {
         {marketingPages.map((page) => (
           <article
             key={page.slug}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="bg-card rounded-lg border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all"
           >
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">
+            <h2 
+              className="font-serif font-semibold text-card-foreground mb-3"
+              style={{ 
+                fontSize: 'var(--font-size-2xl)', 
+                lineHeight: 'var(--line-height-snug)' 
+              }}
+            >
               <Link
                 href={`/marketing/${page.slug}`}
-                className="hover:text-blue-600 dark:hover:text-blue-400"
+                className="hover:text-primary transition-colors"
               >
                 {page.title}
               </Link>
             </h2>
             
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
+            <p 
+              className="text-muted-foreground mb-4"
+              style={{ lineHeight: 'var(--line-height-relaxed)' }}
+            >
               {page.description}
             </p>
             
-            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <div 
+              className="flex items-center justify-between text-muted-foreground"
+              style={{ fontSize: 'var(--font-size-sm)' }}
+            >
               <time dateTime={page.date}>
                 {new Date(page.date).toLocaleDateString()}
               </time>
               {page.author && (
-                <span>by {page.author}</span>
+                <span className="font-medium">by {page.author}</span>
               )}
             </div>
             
@@ -44,7 +63,7 @@ export default function MarketingPage() {
                 {page.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full"
+                    className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full"
                   >
                     {tag}
                   </span>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/splash-screen.css";
 
 @theme {
   --color-border: hsl(var(--border));
@@ -37,7 +38,36 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
   
-  --font-family-sans: 'Inter', system-ui, sans-serif;
+  /* Font families */
+  --font-family-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-family-serif: var(--font-playfair), Georgia, serif;
+  --font-family-mono: var(--font-mono), 'Courier New', monospace;
+  
+  /* Typography scale - fluid responsive sizing */
+  --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 0.825rem + 0.25vw, 1rem);
+  --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --font-size-3xl: clamp(1.875rem, 1.65rem + 1.125vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+  --font-size-5xl: clamp(3rem, 2.5rem + 2.5vw, 3.75rem);
+  
+  /* Line heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
   
   --spacing-18: 4.5rem;
   --spacing-88: 22rem;
@@ -113,7 +143,223 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Typography hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-serif);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    color: hsl(var(--foreground));
+    margin-bottom: 0.5em;
+  }
+  
+  h1 {
+    font-size: var(--font-size-5xl);
+    margin-top: 0;
+  }
+  
+  h2 {
+    font-size: var(--font-size-4xl);
+    margin-top: 2em;
+  }
+  
+  h3 {
+    font-size: var(--font-size-3xl);
+    margin-top: 1.5em;
+    font-weight: 600;
+  }
+  
+  h4 {
+    font-size: var(--font-size-2xl);
+    margin-top: 1.5em;
+    font-weight: 600;
+  }
+  
+  h5 {
+    font-size: var(--font-size-xl);
+    margin-top: 1.5em;
+    font-weight: 600;
+  }
+  
+  h6 {
+    font-size: var(--font-size-lg);
+    margin-top: 1.5em;
+    font-weight: 600;
+  }
+  
+  p {
+    margin-bottom: 1.25em;
+    line-height: var(--line-height-relaxed);
+  }
+  
+  strong, b {
+    font-weight: 600;
+  }
+  
+  em, i {
+    font-style: italic;
+  }
+  
+  code {
+    font-family: var(--font-family-mono);
+    font-size: 0.9em;
+  }
+  
+  /* Prose styling for long-form content */
+  .prose {
+    max-width: 65ch;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose > * {
+    margin-bottom: 1.25em;
+  }
+  
+  .prose h1 {
+    font-size: var(--font-size-4xl);
+    font-family: var(--font-family-serif);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    margin-top: 0;
+    margin-bottom: 0.75em;
+  }
+  
+  .prose h2 {
+    font-size: var(--font-size-3xl);
+    font-family: var(--font-family-serif);
+    font-weight: 700;
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+  }
+  
+  .prose h3 {
+    font-size: var(--font-size-2xl);
+    font-family: var(--font-family-serif);
+    font-weight: 600;
+    line-height: var(--line-height-snug);
+    margin-top: 1.75em;
+    margin-bottom: 0.5em;
+  }
+  
+  .prose h4 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  
+  .prose p {
+    line-height: var(--line-height-relaxed);
+    margin-bottom: 1.25em;
+  }
+  
+  .prose a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--primary) / 0.3);
+    text-underline-offset: 0.15em;
+    transition: text-decoration-color 0.2s ease;
+  }
+  
+  .prose a:hover {
+    text-decoration-color: hsl(var(--primary));
+  }
+  
+  .prose strong {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+  
+  .prose em {
+    font-style: italic;
+  }
+  
+  .prose code {
+    font-family: var(--font-family-mono);
+    font-size: 0.875em;
+    padding: 0.2em 0.4em;
+    background: hsl(var(--muted));
+    border-radius: 0.25rem;
+  }
+  
+  .prose pre {
+    font-family: var(--font-family-mono);
+    font-size: 0.875em;
+    line-height: var(--line-height-normal);
+    padding: 1.25rem;
+    background: hsl(var(--muted));
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1.75em 0;
+  }
+  
+  .prose pre code {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+  }
+  
+  .prose ul, .prose ol {
+    padding-left: 1.5em;
+    margin-bottom: 1.25em;
+  }
+  
+  .prose li {
+    margin-bottom: 0.5em;
+    line-height: var(--line-height-relaxed);
+  }
+  
+  .prose ul > li {
+    position: relative;
+    padding-left: 0.5em;
+  }
+  
+  .prose ul > li::marker {
+    color: hsl(var(--primary));
+  }
+  
+  .prose ol > li::marker {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+  
+  .prose blockquote {
+    font-style: italic;
+    border-left: 4px solid hsl(var(--primary));
+    padding-left: 1.5em;
+    margin: 2em 0;
+    color: hsl(var(--muted-foreground));
+  }
+  
+  .prose blockquote p {
+    margin-bottom: 0.5em;
+  }
+  
+  .prose hr {
+    border: none;
+    border-top: 1px solid hsl(var(--border));
+    margin: 3em 0;
+  }
+  
+  /* Special typography utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
   }
 }
 

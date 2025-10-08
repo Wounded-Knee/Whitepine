@@ -1,0 +1,61 @@
+/* Custom three-dots carousel with patriotic colors */
+.dot-carousel-patriotic {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #dc2626; /* Red */
+  color: #dc2626;
+  animation: dot-carousel-patriotic 1.5s infinite linear;
+}
+
+.dot-carousel-patriotic::before,
+.dot-carousel-patriotic::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+}
+
+.dot-carousel-patriotic::before {
+  left: -15px;
+  background-color: #9ca3af; /* Gray (lighter for light theme) */
+  animation: dot-carousel-patriotic-before 1.5s infinite linear;
+}
+
+.dot-carousel-patriotic::after {
+  left: 15px;
+  background-color: #2563eb; /* Blue */
+  animation: dot-carousel-patriotic-after 1.5s infinite linear;
+}
+
+@keyframes dot-carousel-patriotic {
+  0%, 50% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(30px);
+  }
+}
+
+@keyframes dot-carousel-patriotic-before {
+  0% {
+    transform: translateX(0);
+  }
+  50%, 100% {
+    transform: translateX(30px);
+  }
+}
+
+@keyframes dot-carousel-patriotic-after {
+  0%, 50% {
+    transform: translateX(-30px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+

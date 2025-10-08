@@ -60,12 +60,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <div className="container mx-auto px-4 py-8">
       <article className="max-w-4xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <header className="mb-12 border-b border-border pb-8">
+          <h1 
+            className="font-serif font-bold text-foreground mb-6 text-balance"
+            style={{ 
+              fontSize: 'var(--font-size-5xl)', 
+              lineHeight: 'var(--line-height-tight)', 
+              letterSpacing: 'var(--letter-spacing-tight)' 
+            }}
+          >
             {post.title}
           </h1>
           
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <div 
+            className="flex items-center justify-between text-muted-foreground mb-6"
+            style={{ fontSize: 'var(--font-size-sm)' }}
+          >
             <time dateTime={post.date}>
               {new Date(post.date).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -74,16 +84,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               })}
             </time>
             {post.author && (
-              <span>by {post.author}</span>
+              <span className="font-medium">by {post.author}</span>
             )}
           </div>
           
           {post.tags && post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-2">
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded-full"
+                  className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full"
                 >
                   {tag}
                 </span>
@@ -92,7 +102,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           )}
         </header>
         
-        <div className="prose prose-lg max-w-none">
+        <div className="prose max-w-none">
           <MDXContent />
         </div>
       </article>

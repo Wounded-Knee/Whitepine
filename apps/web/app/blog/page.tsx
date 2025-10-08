@@ -6,8 +6,15 @@ export default function BlogPage() {
   const blogPosts = getAllContent('blog') as BlogPost[];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
+    <div className="container mx-auto px-4 py-12">
+      <h1 
+        className="font-serif font-bold text-foreground mb-12 text-balance"
+        style={{ 
+          fontSize: 'var(--font-size-5xl)', 
+          lineHeight: 'var(--line-height-tight)', 
+          letterSpacing: 'var(--letter-spacing-tight)' 
+        }}
+      >
         Blog
       </h1>
       
@@ -15,27 +22,39 @@ export default function BlogPage() {
         {blogPosts.map((post) => (
           <article
             key={post.slug}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+            className="bg-card rounded-lg border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all"
           >
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-3">
+            <h2 
+              className="font-serif font-semibold text-card-foreground mb-3"
+              style={{ 
+                fontSize: 'var(--font-size-2xl)', 
+                lineHeight: 'var(--line-height-snug)' 
+              }}
+            >
               <Link
                 href={`/blog/${post.slug}`}
-                className="hover:text-blue-600 dark:hover:text-blue-400"
+                className="hover:text-primary transition-colors"
               >
                 {post.title}
               </Link>
             </h2>
             
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
+            <p 
+              className="text-muted-foreground mb-4"
+              style={{ lineHeight: 'var(--line-height-relaxed)' }}
+            >
               {post.description}
             </p>
             
-            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <div 
+              className="flex items-center justify-between text-muted-foreground"
+              style={{ fontSize: 'var(--font-size-sm)' }}
+            >
               <time dateTime={post.date}>
                 {new Date(post.date).toLocaleDateString()}
               </time>
               {post.author && (
-                <span>by {post.author}</span>
+                <span className="font-medium">by {post.author}</span>
               )}
             </div>
             
@@ -44,7 +63,7 @@ export default function BlogPage() {
                 {post.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full"
+                    className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full"
                   >
                     {tag}
                   </span>
@@ -57,7 +76,10 @@ export default function BlogPage() {
       
       {blogPosts.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
+          <p 
+            className="text-muted-foreground"
+            style={{ fontSize: 'var(--font-size-lg)' }}
+          >
             No blog posts yet. Check back soon!
           </p>
         </div>
