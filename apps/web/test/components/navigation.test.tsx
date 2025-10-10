@@ -1,11 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Navigation } from '@web/components/navigation';
+import { ClientNavigation } from '@web/components/client-navigation';
+import type { Session } from 'next-auth';
 
 // Mock next-auth
-const mockSession = vi.fn();
+const mockSession = vi.fn<[], Session | null>();
 vi.mock('next-auth/react', () => ({
+  SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useSession: () => mockSession(),
   signIn: vi.fn(),
   signOut: vi.fn(),
@@ -38,10 +40,7 @@ describe('Navigation', () => {
   beforeEach(() => {
     // Default mocks
     mockPathname.mockReturnValue('/');
-    mockSession.mockReturnValue({
-      data: null,
-      status: 'unauthenticated',
-    });
+    mockSession.mockReturnValue(null);
   });
 
   afterEach(() => {
@@ -50,7 +49,7 @@ describe('Navigation', () => {
 
   describe('Desktop Navigation', () => {
     it('renders desktop navigation with base links', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Desktop nav should be visible on larger screens
       const whitepineElements = screen.getAllByText('Whitepine');
@@ -62,12 +61,9 @@ describe('Navigation', () => {
     });
 
     it('does not show demo links when user is not logged in', () => {
-      mockSession.mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-      });
+      mockSession.mockReturnValue(null);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Demo links should not be present
       expect(screen.queryByRole('link', { name: 'Nodes' })).not.toBeInTheDocument();
@@ -75,14 +71,13 @@ describe('Navigation', () => {
     });
 
     it('shows demo links when user is logged in', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       // Demo links should be present for authenticated users
       expect(screen.getAllByRole('link', { name: 'Nodes' }).length).toBeGreaterThan(0);
@@ -92,7 +87,7 @@ describe('Navigation', () => {
     it('highlights active navigation item', () => {
       mockPathname.mockReturnValue('/marketing/about-us');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const aboutLinks = screen.getAllByRole('link', { name: 'About' });
       // Desktop nav About link should have active styling
@@ -104,7 +99,7 @@ describe('Navigation', () => {
     });
 
     it('renders theme toggle and auth button', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Should have multiple instances (desktop and mobile)
       const themeToggles = screen.getAllByTestId('theme-toggle');
@@ -117,14 +112,14 @@ describe('Navigation', () => {
 
   describe('Mobile Navigation', () => {
     it('renders mobile menu trigger button', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       expect(menuButton).toBeInTheDocument();
     });
 
     it('opens mobile menu when trigger is clicked', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       fireEvent.click(menuButton);
@@ -138,7 +133,7 @@ describe('Navigation', () => {
     });
 
     it('displays navigation items in mobile menu', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       fireEvent.click(menuButton);
@@ -156,7 +151,7 @@ describe('Navigation', () => {
     });
 
     it('shows fullWidth auth button in mobile menu', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       fireEvent.click(menuButton);
@@ -169,7 +164,7 @@ describe('Navigation', () => {
 
   describe('Mobile Menu Collapse Behavior', () => {
     it('closes mobile menu when a navigation link is clicked', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Open the menu
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
@@ -200,7 +195,7 @@ describe('Navigation', () => {
     });
 
     it('closes mobile menu when About link is clicked', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Open the menu
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
@@ -224,7 +219,7 @@ describe('Navigation', () => {
     });
 
     it('closes mobile menu when logo is clicked', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       // Open the menu
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
@@ -250,14 +245,13 @@ describe('Navigation', () => {
     });
 
     it('closes mobile menu when authenticated user clicks Nodes link', async () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       // Open the menu
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
@@ -281,14 +275,13 @@ describe('Navigation', () => {
     });
 
     it('closes mobile menu when authenticated user clicks Tree link', async () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       // Open the menu
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
@@ -312,7 +305,7 @@ describe('Navigation', () => {
     });
 
     it('can reopen mobile menu after closing it', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
 
@@ -343,7 +336,7 @@ describe('Navigation', () => {
     });
 
     it('maintains mobile menu state correctly across multiple open/close cycles', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
 
@@ -383,7 +376,7 @@ describe('Navigation', () => {
 
   describe('Navigation Links', () => {
     it('renders correct href for Dashboard', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
       dashboardLinks.forEach(link => {
@@ -392,7 +385,7 @@ describe('Navigation', () => {
     });
 
     it('renders correct href for About', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const aboutLinks = screen.getAllByRole('link', { name: 'About' });
       aboutLinks.forEach(link => {
@@ -401,14 +394,13 @@ describe('Navigation', () => {
     });
 
     it('renders correct href for Nodes when authenticated', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       const nodesLinks = screen.getAllByRole('link', { name: 'Nodes' });
       nodesLinks.forEach(link => {
@@ -417,14 +409,13 @@ describe('Navigation', () => {
     });
 
     it('renders correct href for Tree when authenticated', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       const treeLinks = screen.getAllByRole('link', { name: 'Tree' });
       treeLinks.forEach(link => {
@@ -435,20 +426,19 @@ describe('Navigation', () => {
 
   describe('Session State Changes', () => {
     it('updates navigation items when user logs in', () => {
-      const { rerender } = render(<Navigation />);
+      const { rerender } = render(<ClientNavigation session={null} />);
 
       // Initially not authenticated
       expect(screen.queryByRole('link', { name: 'Nodes' })).not.toBeInTheDocument();
 
       // User logs in
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      rerender(<Navigation />);
+      rerender(<ClientNavigation session={session} />);
 
       // Demo links should now appear
       expect(screen.getAllByRole('link', { name: 'Nodes' }).length).toBeGreaterThan(0);
@@ -456,25 +446,21 @@ describe('Navigation', () => {
     });
 
     it('removes demo links when user logs out', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
 
-      const { rerender } = render(<Navigation />);
+      const { rerender } = render(<ClientNavigation session={session} />);
 
       // Demo links should be present
       expect(screen.getAllByRole('link', { name: 'Nodes' }).length).toBeGreaterThan(0);
 
       // User logs out
-      mockSession.mockReturnValue({
-        data: null,
-        status: 'unauthenticated',
-      });
+      mockSession.mockReturnValue(null);
 
-      rerender(<Navigation />);
+      rerender(<ClientNavigation session={null} />);
 
       // Demo links should no longer be present
       expect(screen.queryByRole('link', { name: 'Nodes' })).not.toBeInTheDocument();
@@ -485,7 +471,7 @@ describe('Navigation', () => {
     it('highlights Dashboard when on root path', () => {
       mockPathname.mockReturnValue('/');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
       const activeDashboardLink = dashboardLinks.find(link =>
@@ -498,7 +484,7 @@ describe('Navigation', () => {
     it('highlights About when on about page', () => {
       mockPathname.mockReturnValue('/marketing/about-us');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const aboutLinks = screen.getAllByRole('link', { name: 'About' });
       const activeAboutLink = aboutLinks.find(link =>
@@ -509,15 +495,14 @@ describe('Navigation', () => {
     });
 
     it('highlights Nodes when on demo-nodes page', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
       mockPathname.mockReturnValue('/demo-nodes');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       const nodesLinks = screen.getAllByRole('link', { name: 'Nodes' });
       const activeNodesLink = nodesLinks.find(link =>
@@ -528,15 +513,14 @@ describe('Navigation', () => {
     });
 
     it('highlights Tree when on demo-tree page', () => {
-      mockSession.mockReturnValue({
-        data: {
-          user: { name: 'Test User', email: 'test@example.com' },
-        },
-        status: 'authenticated',
-      });
+      const session: Session = {
+        user: { name: 'Test User', email: 'test@example.com' },
+        expires: '2099-12-31',
+      };
+      mockSession.mockReturnValue(session);
       mockPathname.mockReturnValue('/demo-tree');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={session} />);
 
       const treeLinks = screen.getAllByRole('link', { name: 'Tree' });
       const activeTreeLink = treeLinks.find(link =>
@@ -549,7 +533,7 @@ describe('Navigation', () => {
     it('does not highlight any link when on different page', () => {
       mockPathname.mockReturnValue('/some-other-page');
 
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
       dashboardLinks.forEach(link => {
@@ -560,7 +544,7 @@ describe('Navigation', () => {
 
   describe('Accessibility', () => {
     it('has accessible menu button with sr-only text', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       expect(menuButton).toBeInTheDocument();
@@ -568,7 +552,7 @@ describe('Navigation', () => {
     });
 
     it('has accessible sheet title with sr-only class', async () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       fireEvent.click(menuButton);
@@ -580,7 +564,7 @@ describe('Navigation', () => {
     });
 
     it('all navigation links are keyboard accessible', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const allLinks = screen.getAllByRole('link');
       allLinks.forEach(link => {
@@ -591,7 +575,7 @@ describe('Navigation', () => {
     });
 
     it('mobile menu button is keyboard accessible', () => {
-      render(<Navigation />);
+      render(<ClientNavigation session={null} />);
 
       const menuButton = screen.getByRole('button', { name: /toggle menu/i });
       
@@ -602,7 +586,7 @@ describe('Navigation', () => {
 
   describe('Layout and Styling', () => {
     it('renders sticky header', () => {
-      const { container } = render(<Navigation />);
+      const { container } = render(<ClientNavigation session={null} />);
 
       const header = container.querySelector('header');
       expect(header).toHaveClass('sticky');
@@ -610,14 +594,14 @@ describe('Navigation', () => {
     });
 
     it('has proper z-index for overlay', () => {
-      const { container } = render(<Navigation />);
+      const { container } = render(<ClientNavigation session={null} />);
 
       const header = container.querySelector('header');
       expect(header).toHaveClass('z-50');
     });
 
     it('applies backdrop blur effect', () => {
-      const { container } = render(<Navigation />);
+      const { container } = render(<ClientNavigation session={null} />);
 
       const header = container.querySelector('header');
       expect(header).toHaveClass('backdrop-blur');
