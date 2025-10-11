@@ -5,11 +5,11 @@
  * and handling object field encoding/decoding.
  */
 
-import { Types } from 'mongoose';
 import { 
   encodeNodeId, 
   decodeNodeId, 
   isValidEncodedNodeId,
+  isRawObjectId,
   encodeObjectIds,
   decodeObjectIds 
 } from './nodeId';
@@ -57,11 +57,11 @@ export function encodeObjectFields(obj: any, fields: string[]): any {
   
   for (const field of fields) {
     if (result[field] !== undefined) {
-      if (Types.ObjectId.isValid(result[field])) {
+      if (typeof result[field] === 'string' && isRawObjectId(result[field])) {
         result[field] = encodeNodeId(result[field]);
       } else if (Array.isArray(result[field])) {
         result[field] = result[field].map((item: any) => 
-          Types.ObjectId.isValid(item) ? encodeNodeId(item) : item
+          typeof item === 'string' && isRawObjectId(item) ? encodeNodeId(item) : item
         );
       }
     }

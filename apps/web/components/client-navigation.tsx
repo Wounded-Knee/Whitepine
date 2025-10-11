@@ -36,6 +36,10 @@ const baseNavigation = [
         name: "Thirteen Arrows",
         href: "/marketing/symbols/thirteen-arrows",
       },
+      {
+        name: "Spirit of 1776",
+        href: "/marketing/symbols/spirit-of-1776",
+      },
     ],
   },
   {

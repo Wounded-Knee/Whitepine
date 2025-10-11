@@ -311,7 +311,7 @@ export function DirectDemocracyCarousel({ timelineData }: DirectDemocracyCarouse
                           </>
                         ) : (
                           <>
-                            We've used this {timelineSummary.count} time{timelineSummary.count !== 1 ? 's' : ''}, in {timelineSummary.states} from {timelineSummary.yearRange}.
+                            We&apos;ve used this {timelineSummary.count} time{timelineSummary.count !== 1 ? 's' : ''}, in {timelineSummary.states} from {timelineSummary.yearRange}.
                           </>
                         )}
                       </h4>
@@ -335,7 +335,7 @@ export function DirectDemocracyCarousel({ timelineData }: DirectDemocracyCarouse
                           </>
                         ) : (
                           <>
-                            We've never used this.
+                            We&apos;ve never used this.
                           </>
                         )}
                       </h4>

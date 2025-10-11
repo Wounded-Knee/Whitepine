@@ -181,6 +181,7 @@ export {
   normalizeToObjectId,
   encodeObjectIds,
   decodeObjectIds,
+  type MongoObjectId,
 } from './nodeId';
 
 // ---------- Node ID Utilities ----------

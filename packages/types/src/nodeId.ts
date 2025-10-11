@@ -8,10 +8,32 @@
  * The encoding uses base64url encoding with a custom prefix to brand the IDs.
  */
 
-import { Types } from 'mongoose';
+// Simple ObjectId-like interface for type safety without mongoose dependency
+// This represents a MongoDB ObjectId object (not the string representation)
+export interface MongoObjectId {
+  toString(): string;
+  toHexString(): string;
+}
 
 // Brand prefix for node IDs - makes them easily identifiable
 const NODE_ID_PREFIX = 'wp_';
+
+/**
+ * Validate if a string is a valid MongoDB ObjectId (24 hex characters)
+ */
+function isValidObjectId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
+}
+
+/**
+ * Create an ObjectId-like object from a hex string
+ */
+function createObjectId(hexString: string): MongoObjectId {
+  return {
+    toString: () => hexString,
+    toHexString: () => hexString,
+  };
+}
 
 /**
  * Convert hex string to base64url
@@ -103,12 +125,12 @@ function base64ToBytes(base64: string): number[] {
  * @param objectId - The MongoDB ObjectID to encode
  * @returns A branded, URL-safe node ID string
  */
-export function encodeNodeId(objectId: Types.ObjectId | string): string {
+export function encodeNodeId(objectId: MongoObjectId | string): string {
   // Convert to string if it's an ObjectId
   const idString = typeof objectId === 'string' ? objectId : objectId.toString();
   
   // Validate that it's a valid ObjectID format
-  if (!Types.ObjectId.isValid(idString)) {
+  if (!isValidObjectId(idString)) {
     throw new Error(`Invalid ObjectID: ${idString}`);
   }
   
@@ -124,7 +146,7 @@ export function encodeNodeId(objectId: Types.ObjectId | string): string {
  * @param encodedId - The branded node ID string to decode
  * @returns A MongoDB ObjectID
  */
-export function decodeNodeId(encodedId: string): Types.ObjectId {
+export function decodeNodeId(encodedId: string): MongoObjectId {
   // Remove the brand prefix
   if (!encodedId.startsWith(NODE_ID_PREFIX)) {
     throw new Error(`Invalid node ID format: ${encodedId}. Expected prefix: ${NODE_ID_PREFIX}`);
@@ -137,11 +159,11 @@ export function decodeNodeId(encodedId: string): Types.ObjectId {
     const hexString = base64urlToHex(base64url);
     
     // Validate and create ObjectID
-    if (!Types.ObjectId.isValid(hexString)) {
+    if (!isValidObjectId(hexString)) {
       throw new Error(`Decoded string is not a valid ObjectID: ${hexString}`);
     }
     
-    return new Types.ObjectId(hexString);
+    return createObjectId(hexString);
   } catch (error) {
     throw new Error(`Failed to decode node ID: ${encodedId}. ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -168,7 +190,7 @@ export function isValidEncodedNodeId(id: string): boolean {
  * @returns True if the string is a raw ObjectID
  */
 export function isRawObjectId(id: string): boolean {
-  return Types.ObjectId.isValid(id) && id.length === 24;
+  return isValidObjectId(id) && id.length === 24;
 }
 
 /**
@@ -176,7 +198,7 @@ export function isRawObjectId(id: string): boolean {
  * @param id - The ID to normalize
  * @returns An encoded node ID string
  */
-export function normalizeToEncodedId(id: string | Types.ObjectId): string {
+export function normalizeToEncodedId(id: string | MongoObjectId): string {
   if (typeof id === 'string' && id.startsWith(NODE_ID_PREFIX)) {
     // Already encoded
     return id;
@@ -191,18 +213,18 @@ export function normalizeToEncodedId(id: string | Types.ObjectId): string {
  * @param id - The ID to normalize
  * @returns A MongoDB ObjectID
  */
-export function normalizeToObjectId(id: string): Types.ObjectId {
+export function normalizeToObjectId(id: string): MongoObjectId {
   if (id.startsWith(NODE_ID_PREFIX)) {
     // Encoded, decode it
     return decodeNodeId(id);
   }
   
   // Treat as raw ObjectID
-  if (!Types.ObjectId.isValid(id)) {
+  if (!isValidObjectId(id)) {
     throw new Error(`Invalid ID format: ${id}`);
   }
   
-  return new Types.ObjectId(id);
+  return createObjectId(id);
 }
 
 /**
@@ -219,18 +241,24 @@ export function encodeObjectIds<T extends Record<string, any>>(
   
   for (const field of objectIdFields) {
     if (result[field]) {
-      // Handle ObjectID objects (from MongoDB)
-      if (result[field] && typeof result[field] === 'object' && result[field].constructor === Types.ObjectId) {
-        result[field] = encodeNodeId(result[field]) as any;
+      // Handle ObjectID objects (from MongoDB) - check if it has toString method
+      if (result[field] && typeof result[field] === 'object' && typeof result[field].toString === 'function') {
+        const idString = result[field].toString();
+        if (isValidObjectId(idString)) {
+          result[field] = encodeNodeId(result[field]) as any;
+        }
       }
       // Handle ObjectID strings
-      else if (typeof result[field] === 'string' && Types.ObjectId.isValid(result[field])) {
+      else if (typeof result[field] === 'string' && isValidObjectId(result[field])) {
         result[field] = encodeNodeId(result[field]) as any;
       }
-      // Handle ObjectID-like objects with buffer property
+      // Handle ObjectID-like objects with buffer property (from MongoDB serialization)
       else if (result[field] && typeof result[field] === 'object' && result[field].buffer && result[field].buffer.type === 'Buffer') {
-        const objectId = new Types.ObjectId(Buffer.from(result[field].buffer.data));
-        result[field] = encodeNodeId(objectId) as any;
+        // Convert buffer data to hex string (only available in Node.js environment)
+        if (typeof Buffer !== 'undefined') {
+          const hexString = Buffer.from(result[field].buffer.data).toString('hex');
+          result[field] = encodeNodeId(hexString) as any;
+        }
       }
     }
   }
