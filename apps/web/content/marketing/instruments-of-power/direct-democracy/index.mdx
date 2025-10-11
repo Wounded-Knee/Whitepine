@@ -1,0 +1,219 @@
+---
+title: Direct Democracy
+description: Learn about Direct Democracy as an instrument of democratic power
+---
+
+import { CategorizedUSAMap } from '@/components/CategorizedUSAMap';
+import { DirectDemocracyTimeline } from '@/components/DirectDemocracyTimeline';
+import { DirectDemocracyCarousel } from '@/components/DirectDemocracyCarousel';
+
+export const timelineData = [
+  {
+    "state": "South Dakota",
+    "stateAbbr": "SD",
+    "event": "Adoption of Initiative and Referendum System",
+    "type": "Constitutional Amendment via Referendum",
+    "instrumentType": "legislative-referendum",
+    "date_range": "1897-1898",
+    "summary": "South Dakota became the first U.S. state to adopt a statewide initiative and referendum process, enabling citizens to propose and vote on laws directly.",
+    "challenges_overcome": "Legislative reluctance to surrender control of lawmaking; organized populist movement pressured lawmakers to place the amendment on the ballot."
+  },
+  {
+    "state": "Oregon",
+    "stateAbbr": "OR",
+    "event": "Oregon System of Direct Legislation",
+    "type": "Initiative and Recall Adoption",
+    "instrumentType": "legislative-referendum",
+    "date_range": "1902-1912",
+    "summary": "Through a series of constitutional amendments, Oregon pioneered direct legislation tools: initiative, referendum, and recall, later dubbed the 'Oregon System'.",
+    "challenges_overcome": "Entrenched political parties and state legislature resisted; reformers led by William S. U'Ren organized citizen leagues to collect signatures and mobilize support."
+  },
+  {
+    "state": "California",
+    "stateAbbr": "CA",
+    "event": "Proposition 7 — Creation of Initiative and Referendum Rights",
+    "type": "Initiative Constitutional Amendment",
+    "instrumentType": "legislative-referendum",
+    "date_range": "1911",
+    "summary": "Voters approved Proposition 7, granting Californians the right to propose laws and constitutional amendments via initiative and to veto laws through referendum.",
+    "challenges_overcome": "The state legislature and party machines opposed the measure; Governor Hiram Johnson championed it as part of the Progressive reforms against railroad influence."
+  },
+  {
+    "state": "Colorado",
+    "stateAbbr": "CO",
+    "event": "Taxpayer Bill of Rights (TABOR)",
+    "type": "Constitutional Initiative",
+    "instrumentType": "direct-initiative",
+    "date_range": "1990-1992",
+    "summary": "Colorado voters approved TABOR, requiring voter approval for any tax increases and limiting government revenue growth.",
+    "challenges_overcome": "Strong opposition from both major parties and public sector unions; legal challenges and fiscal impact concerns persisted for decades."
+  },
+  {
+    "state": "Oregon",
+    "stateAbbr": "OR",
+    "event": "Measure 16 — Death with Dignity Act",
+    "type": "Citizen Initiative",
+    "instrumentType": "direct-initiative",
+    "date_range": "1994-1997",
+    "summary": "Oregon voters approved physician-assisted dying legislation, making it the first state to legalize medical aid in dying for terminally ill adults.",
+    "challenges_overcome": "Opposition from state and federal officials; lawsuits delayed implementation until voters reaffirmed it in a second referendum in 1997."
+  },
+  {
+    "state": "California",
+    "stateAbbr": "CA",
+    "event": "Proposition 215 — Compassionate Use Act",
+    "type": "Ballot Initiative",
+    "instrumentType": "direct-initiative",
+    "date_range": "1996",
+    "summary": "Legalized medical marijuana for patients with physician recommendation, making California the first state to defy federal prohibition.",
+    "challenges_overcome": "Intense opposition from federal agencies and state law enforcement; required strong grassroots mobilization and legal defense in federal courts."
+  },
+  {
+    "state": "California",
+    "stateAbbr": "CA",
+    "event": "Proposition 218 — Local Initiative Power on Taxes",
+    "type": "Initiative Constitutional Amendment",
+    "instrumentType": "direct-initiative",
+    "date_range": "1996",
+    "summary": "Gave voters the power to reduce or repeal local taxes, assessments, and fees through initiative or referendum, extending direct democracy to municipal finance.",
+    "challenges_overcome": "Resistance from cities, counties, and public agencies; complex legal and fiscal arguments against the measure were overcome by taxpayer advocacy groups."
+  },
+  {
+    "state": "Maine",
+    "stateAbbr": "ME",
+    "event": "Question 1 — People's Veto of Same-Sex Marriage Law",
+    "type": "Popular Referendum (Veto)",
+    "instrumentType": "popular-referendum",
+    "date_range": "2009",
+    "summary": "Citizens overturned a legislative act legalizing same-sex marriage through a people's veto referendum.",
+    "challenges_overcome": "Legislature and governor had enacted the law; referendum organizers mobilized quickly to gather signatures and force the issue onto the ballot."
+  },
+  {
+    "state": "Washington",
+    "stateAbbr": "WA",
+    "event": "Initiative 502 — Legalization of Recreational Marijuana",
+    "type": "Statewide Initiative",
+    "instrumentType": "direct-initiative",
+    "date_range": "2011-2012",
+    "summary": "Washington voters approved Initiative 502, legalizing recreational cannabis use for adults, setting precedent alongside Colorado.",
+    "challenges_overcome": "Federal prohibition and resistance from law enforcement groups; state regulators later built new systems for licensing and taxation under federal scrutiny."
+  },
+  {
+    "state": "Florida",
+    "stateAbbr": "FL",
+    "event": "Amendment 4 — Restoration of Voting Rights to Ex-Felons",
+    "type": "Citizen Initiative (Constitutional Amendment)",
+    "instrumentType": "direct-initiative",
+    "date_range": "2017-2018",
+    "summary": "Florida voters approved Amendment 4, restoring voting rights to more than 1.4 million Floridians with past felony convictions who had completed their sentences.",
+    "challenges_overcome": "Legislature had repeatedly refused reform; strong bipartisan opposition; after passage, lawmakers attempted to narrow implementation through restrictive legislation, leading to ongoing legal battles."
+  },
+  {
+    "state": "South Dakota",
+    "stateAbbr": "SD",
+    "event": "Initiated Measure 26 — Medical Marijuana Legalization",
+    "type": "Initiative",
+    "instrumentType": "direct-initiative",
+    "date_range": "2020",
+    "summary": "South Dakota voters legalized medical marijuana through initiative, despite longstanding state prohibition.",
+    "challenges_overcome": "Governor and legislature opposed implementation; legal challenges delayed rollout until courts upheld parts of the measure."
+  },
+  {
+    "state": "Kansas",
+    "stateAbbr": "KS",
+    "event": "Rejection of Anti-Abortion Constitutional Amendment",
+    "type": "Legislative Referendum",
+    "instrumentType": "legislative-referendum",
+    "date_range": "2021-2022",
+    "summary": "Voters rejected a legislature-referred amendment that would have removed constitutional protections for abortion, preserving reproductive rights in the state.",
+    "challenges_overcome": "Legislative supermajorities supported the amendment; grassroots organizers mobilized unprecedented voter turnout to defend existing rights."
+  }
+];
+
+# Direct Democracy
+
+Citizens don’t just elect leaders, they write laws.
+
+Through **Initiatives,** people can propose new laws or constitutional changes and place them directly on the ballot. Through **Referenda**, they can approve or reject laws passed by the legislature.
+
+These tools let citizens act when representatives won’t, and overturn bad laws when they must. True self-government means the people themselves hold the pen.
+
+<DirectDemocracyCarousel timelineData={timelineData} />
+
+### What citizens have achieved
+
+Citizen initiatives have enacted major policy changes that legislatures refused to pass:
+
+### Minimum wage increases
+
+Multiple states have raised minimum wages through ballot initiatives when legislatures wouldn't act.
+
+### Cannabis legalization
+
+Most legal cannabis states achieved it through citizen initiatives, not legislative action.
+
+### Electoral reforms
+
+Ranked-choice voting, redistricting reform, and campaign finance limits have passed through initiatives.
+
+Tax and spending limits
+
+Citizens have used initiatives to limit government spending, require voter approval for taxes, and more.
+
+### Environmental protection
+
+Clean energy mandates, pollution controls, and conservation measures passed via direct democracy.
+
+### Civil rights
+
+Marriage equality, anti-discrimination laws, and other civil rights protections have been both 
+advanced and attacked through initiatives.
+
+Challenges and concerns
+
+### Money matters
+
+Signature gathering and campaigns cost millions. Well-funded special interests can dominate the process, 
+though grassroots campaigns do sometimes prevail.
+
+### Complexity
+
+Some issues are too complex for yes/no votes. Poorly drafted initiatives can have unintended consequences. 
+Careful drafting and voter education are essential.
+
+### Minority rights
+
+Direct democracy can be used to restrict minority rights. Courts provide some protection, but vigilance 
+is needed to prevent tyranny of the majority.
+
+### Voter confusion
+
+Ballots with many measures can overwhelm voters. Confusing language or deceptive campaigns can mislead. 
+Clear communication and honest advocacy are crucial.
+
+## Common questions
+
+### Does my state allow initiatives?
+
+24 states allow citizen-initiated measures. Many more allow them at the local level. Check your state's 
+constitution and local charter.
+
+### Can the legislature overturn our initiative?
+
+Depends on the state. Some prohibit legislative repeal for a period of time; others allow it. 
+Constitutional initiatives are harder to overturn than statutory ones.
+
+### How much does it cost?
+
+For statewide initiatives: $1-10 million or more for signature gathering and campaigns. Local measures 
+cost less. Costs depend on paid vs. volunteer signature gathering and opposition funding.
+
+### What if we don't have initiative rights?
+
+Advocate for adopting them. Several states have added initiative rights through constitutional amendments. 
+Meanwhile, focus on other tools: elections, petitions, and public pressure.
+
+### Make law directly
+
+When representatives won't act, take legislative power into your own hands.
+

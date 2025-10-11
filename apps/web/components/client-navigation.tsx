@@ -40,39 +40,39 @@ const baseNavigation = [
   },
   {
     name: "Instruments of Power",
-    href: "/instruments-of-power",
+    href: "/marketing/instruments-of-power",
     children: [
       {
         name: "Economic Veto",
-        href: "/instruments-of-power/economic-veto",
+        href: "/marketing/instruments-of-power/economic-veto",
       },
       {
         name: "Primaries",
-        href: "/instruments-of-power/primaries",
+        href: "/marketing/instruments-of-power/primaries",
       },
       {
         name: "General Elections",
-        href: "/instruments-of-power/general-elections",
+        href: "/marketing/instruments-of-power/general-elections",
       },
       {
         name: "Recall Elections",
-        href: "/instruments-of-power/recall-elections",
+        href: "/marketing/instruments-of-power/recall-elections",
       },
       {
-        name: "Referenda & Initiatives",
-        href: "/instruments-of-power/referenda-and-initiatives",
+        name: "Direct Democracy",
+        href: "/marketing/instruments-of-power/direct-democracy",
       },
       {
         name: "Petitions",
-        href: "/instruments-of-power/petitions",
+        href: "/marketing/instruments-of-power/petitions",
       },
       {
         name: "Demonstrations",
-        href: "/instruments-of-power/demonstrations",
+        href: "/marketing/instruments-of-power/demonstrations",
       },
       {
         name: "Strikes",
-        href: "/instruments-of-power/strikes",
+        href: "/marketing/instruments-of-power/strikes",
       },
     ],
   },

@@ -1,0 +1,100 @@
+/* Dark mode overrides for react-chrono timeline */
+
+/* Control panel / toolbar - the main backdrop */
+html.dark .timeline-wrapper [class*="TimelineControl"],
+html.dark .timeline-wrapper [class*="ControlButton"],
+html.dark .timeline-wrapper [class*="TimelineNav"],
+html.dark .timeline-wrapper nav,
+html.dark .timeline-wrapper [role="toolbar"],
+html.dark .timeline-wrapper div[class*="Control"] {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* Control panel buttons */
+html.dark .timeline-wrapper button {
+  background-color: #334155 !important;
+  color: #f1f5f9 !important;
+  border-color: #475569 !important;
+}
+
+html.dark .timeline-wrapper button:hover {
+  background-color: #475569 !important;
+}
+
+html.dark .timeline-wrapper button svg {
+  color: #f1f5f9 !important;
+  fill: #f1f5f9 !important;
+}
+
+/* Timeline cards and content wrapper - ADD ROUNDED CORNERS */
+html.dark .timeline-wrapper [class*="TimelineCard"],
+html.dark .timeline-wrapper [class*="TimelineItemContent"],
+html.dark .timeline-wrapper [class*="TimelineContent"],
+html.dark .timeline-wrapper article {
+  background-color: #1e293b !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Card details/description area - ADD ROUNDED CORNERS */
+html.dark .timeline-wrapper [class*="TimelineContentDetails"],
+html.dark .timeline-wrapper [class*="ContentDetailsWrapper"],
+html.dark .timeline-wrapper [class*="card-description"],
+html.dark .timeline-wrapper .card-description {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Also round corners in light mode */
+.timeline-wrapper [class*="TimelineCard"],
+.timeline-wrapper [class*="TimelineItemContent"],
+.timeline-wrapper [class*="TimelineContent"],
+.timeline-wrapper article {
+  border-radius: 0.75rem !important;
+}
+
+.timeline-wrapper [class*="TimelineContentDetails"],
+.timeline-wrapper [class*="ContentDetailsWrapper"] {
+  border-radius: 0.5rem !important;
+}
+
+/* Card titles and headers */
+html.dark .timeline-wrapper [class*="ContentTitle"],
+html.dark .timeline-wrapper [class*="ContentHeader"],
+html.dark .timeline-wrapper [class*="CardTitle"] {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+/* Card subtitles */
+html.dark .timeline-wrapper [class*="CardSubTitle"] {
+  color: #94a3b8 !important;
+}
+
+/* Outline panel */
+html.dark .timeline-wrapper [class*="Outline"],
+html.dark .timeline-wrapper [class*="OutlinePanel"] {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html.dark .timeline-wrapper [class*="OutlineItem"] {
+  color: #e2e8f0 !important;
+}
+
+html.dark .timeline-wrapper [class*="OutlineItem"]:hover {
+  background-color: #334155 !important;
+}
+
+/* Timeline circle markers */
+html.dark .timeline-wrapper [class*="TimelineCircle"] {
+  background-color: #334155 !important;
+  border-color: #60a5fa !important;
+}
+
+/* Vertical line */
+html.dark .timeline-wrapper [class*="TimelineVerticalLine"] {
+  background-color: #475569 !important;
+}
+
