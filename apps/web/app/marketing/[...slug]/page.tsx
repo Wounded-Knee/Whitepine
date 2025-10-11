@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getContentBySlug, getContentSlugs } from '@/lib/content/utils';
 import type { MarketingPage } from '@/lib/content/types';
+import { getMdxComponent } from '@/lib/content/mdx-components';
 
 interface MarketingPageProps {
   params: Promise<{
@@ -10,9 +11,13 @@ interface MarketingPageProps {
 
 export async function generateStaticParams() {
   const slugs = getContentSlugs('marketing');
-  return slugs.map((slug) => ({
-    slug: slug.split('/'),
-  }));
+  return slugs.map((slug) => {
+    // Remove /index suffix from URLs for cleaner paths
+    const cleanSlug = slug.endsWith('/index') ? slug.slice(0, -6) : slug;
+    return {
+      slug: cleanSlug.split('/'),
+    };
+  });
 }
 
 export async function generateMetadata({ params }: MarketingPageProps) {
@@ -66,13 +71,11 @@ export default async function MarketingPageComponent({ params }: MarketingPagePr
     notFound();
   }
 
-  // Import the MDX content dynamically using dynamic import
-  let MDXContent;
-  try {
-    const mdxModule = await import(`@/content/marketing/${actualPath}.mdx`);
-    MDXContent = mdxModule.default;
-  } catch (error) {
-    console.error(`Failed to load MDX content for ${actualPath}:`, error);
+  // Get the MDX component from the pre-imported map
+  const MDXContent = getMdxComponent(actualPath);
+  
+  if (!MDXContent) {
+    console.error(`No MDX component found for path: ${actualPath}`);
     notFound();
   }
 

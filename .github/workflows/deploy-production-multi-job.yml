@@ -61,10 +61,10 @@ jobs:
           cp -r apps/web/.next deployment-package/web-next
           cp -r apps/web/public deployment-package/web-public
         
-          # Copy web app source directories (these are needed for NextAuth.js API routes)
+          # Copy web app source directories (these are needed for NextAuth.js API routes and MDX content)
           echo "📁 Copying web app source directories..."
           echo "🔍 Checking what directories exist in apps/web/:"
-          ls -la apps/web/ | grep -E "^d.*app|^d.*lib|^d.*components|^d.*hooks|^d.*types|^d.*test" || echo "⚠️ No source directories found"
+          ls -la apps/web/ | grep -E "^d.*app|^d.*lib|^d.*components|^d.*hooks|^d.*types|^d.*test|^d.*content" || echo "⚠️ No source directories found"
           
           [ -d "apps/web/app" ] && cp -r apps/web/app deployment-package/web-app && echo "✅ Copied app directory"
           [ -d "apps/web/lib" ] && cp -r apps/web/lib deployment-package/web-lib && echo "✅ Copied lib directory"
@@ -72,6 +72,7 @@ jobs:
           [ -d "apps/web/hooks" ] && cp -r apps/web/hooks deployment-package/web-hooks && echo "✅ Copied hooks directory"
           [ -d "apps/web/types" ] && cp -r apps/web/types deployment-package/web-types && echo "✅ Copied types directory"
           [ -d "apps/web/test" ] && cp -r apps/web/test deployment-package/web-test && echo "✅ Copied test directory"
+          [ -d "apps/web/content" ] && cp -r apps/web/content deployment-package/web-content && echo "✅ Copied content directory"
           
           # Copy web app configuration files
           # Modify web package.json to remove workspace dependency
@@ -116,7 +117,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: deployment-package
-          path: ./
+          path: deployment-package/
 
       - name: Verify artifact download
         run: |
@@ -245,14 +246,17 @@ jobs:
           fi
           
           echo "📜 Uploading deployment script..."
-          if [ -f "deploy-script.sh" ]; then
+          if [ -f "deployment-package/deploy-script.sh" ]; then
+            scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i /tmp/ssh_key deployment-package/deploy-script.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/deploy.sh
+            echo "✅ Deployment script uploaded from deployment-package/"
+          elif [ -f "deploy-script.sh" ]; then
             scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i /tmp/ssh_key deploy-script.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/deploy.sh
             echo "✅ Deployment script uploaded"
           elif [ -f ".github/workflows/deploy-script.sh" ]; then
             scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i /tmp/ssh_key .github/workflows/deploy-script.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/deploy.sh
             echo "✅ Deployment script uploaded from .github/workflows/"
           else
-            echo "❌ deploy-script.sh not found in current directory or .github/workflows/"
+            echo "❌ deploy-script.sh not found in deployment-package/, current directory, or .github/workflows/"
             exit 1
           fi
           

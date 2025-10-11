@@ -64,6 +64,7 @@ jobs:
           # Copy web app build
           cp -r apps/web/.next deployment-package/web-next
           cp -r apps/web/public deployment-package/web-public
+          cp -r apps/web/content deployment-package/web-content
           # Note: package.json will be copied after modification
           
           # Copy API build
@@ -139,6 +140,7 @@ jobs:
           mkdir -p "$RELEASE_DIR/web"
           cp -r web-next "$RELEASE_DIR/web/.next"
           cp -r web-public "$RELEASE_DIR/web/public"
+          [ -d "web-content" ] && cp -r web-content "$RELEASE_DIR/web/content"
           cp web-package.json "$RELEASE_DIR/web/package.json"
           cp web-pnpm-lock.yaml "$RELEASE_DIR/web/pnpm-lock.yaml"
           
@@ -292,6 +294,7 @@ jobs:
             mkdir -p /tmp/deployment/web-next/diagnostics
             mkdir -p /tmp/deployment/web-next/types
             mkdir -p /tmp/deployment/web-public
+            mkdir -p /tmp/deployment/web-content
             mkdir -p /tmp/deployment/api-dist
             mkdir -p /tmp/deployment/api-migrations
             mkdir -p /tmp/deployment/ops
@@ -344,6 +347,10 @@ jobs:
           # Upload web-public files
           echo "📁 Uploading web-public files..."
           scp -o StrictHostKeyChecking=no -i /tmp/ssh_key -r deployment-package/web-public/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-public/
+          
+          # Upload web-content files (MDX content)
+          echo "📁 Uploading web-content files..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key -r deployment-package/web-content ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
           
           # Upload API files
           scp -o StrictHostKeyChecking=no -i /tmp/ssh_key -r deployment-package/api-dist/* ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/api-dist/

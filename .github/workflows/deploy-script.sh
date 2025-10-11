@@ -30,6 +30,7 @@ cp -r web-public "$RELEASE_DIR/web/public"
 [ -d "web-hooks" ] && cp -r web-hooks "$RELEASE_DIR/web/hooks"
 [ -d "web-types" ] && cp -r web-types "$RELEASE_DIR/web/types"
 [ -d "web-test" ] && cp -r web-test "$RELEASE_DIR/web/test"
+[ -d "web-content" ] && cp -r web-content "$RELEASE_DIR/web/content"
 
 # Copy web app configuration files
 cp web-package.json "$RELEASE_DIR/web/package.json"
