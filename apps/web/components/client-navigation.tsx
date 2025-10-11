@@ -46,6 +46,34 @@ const baseNavigation = [
         name: "Economic Veto",
         href: "/instruments-of-power/economic-veto",
       },
+      {
+        name: "Primaries",
+        href: "/instruments-of-power/primaries",
+      },
+      {
+        name: "General Elections",
+        href: "/instruments-of-power/general-elections",
+      },
+      {
+        name: "Recall Elections",
+        href: "/instruments-of-power/recall-elections",
+      },
+      {
+        name: "Referenda & Initiatives",
+        href: "/instruments-of-power/referenda-and-initiatives",
+      },
+      {
+        name: "Petitions",
+        href: "/instruments-of-power/petitions",
+      },
+      {
+        name: "Demonstrations",
+        href: "/instruments-of-power/demonstrations",
+      },
+      {
+        name: "Strikes",
+        href: "/instruments-of-power/strikes",
+      },
     ],
   },
 ]
@@ -58,6 +86,35 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const [isDark, setIsDark] = React.useState(false)
+  const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({})
+
+  // Load expanded groups from localStorage on mount
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('nav-expanded-groups')
+      if (stored) {
+        setExpandedGroups(JSON.parse(stored))
+      }
+    } catch (error) {
+      console.error('Failed to load navigation state:', error)
+    }
+  }, [])
+
+  // Save expanded groups to localStorage whenever it changes
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('nav-expanded-groups', JSON.stringify(expandedGroups))
+    } catch (error) {
+      console.error('Failed to save navigation state:', error)
+    }
+  }, [expandedGroups])
+
+  const toggleGroup = (href: string) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [href]: !prev[href]
+    }))
+  }
 
   // Track theme changes
   React.useEffect(() => {
@@ -123,7 +180,7 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
                     )}
                   </Link>
                   {item.children && item.children.length > 0 && (
-                    <div className="absolute left-0 top-full mt-2 hidden group-hover:block z-50">
+                    <div className="absolute left-0 top-full pt-2 hidden group-hover:block z-50">
                       <div className="bg-background border rounded-md shadow-lg py-2 min-w-[200px]">
                         {item.children.map((child: any) => (
                           <Link
@@ -198,36 +255,63 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
                 <nav className="flex flex-col space-y-2">
                   {navigation.map((item) => (
                     <div key={item.href}>
-                      <Link
-                        href={item.href as any}
-                        className={cn(
-                          "block px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
-                          pathname === item.href
-                            ? "text-foreground"
-                            : "text-foreground/60"
-                        )}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                      {item.children && item.children.length > 0 && (
-                        <div className="ml-4 mt-1 space-y-1">
-                          {item.children.map((child: any) => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
+                      {item.children && item.children.length > 0 ? (
+                        <>
+                          <button
+                            onClick={() => toggleGroup(item.href as string)}
+                            className={cn(
+                              "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80 text-left",
+                              pathname === item.href || (item.children && item.children.some((child: any) => pathname === child.href))
+                                ? "text-foreground"
+                                : "text-foreground/60"
+                            )}
+                          >
+                            <span>{item.name}</span>
+                            <svg
                               className={cn(
-                                "block px-3 py-2 text-sm transition-colors hover:text-foreground/80",
-                                pathname === child.href
-                                  ? "text-foreground"
-                                  : "text-foreground/60"
+                                "h-4 w-4 transition-transform",
+                                expandedGroups[item.href as string] ? "rotate-180" : ""
                               )}
-                              onClick={() => setMobileMenuOpen(false)}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              {child.name}
-                            </Link>
-                          ))}
-                        </div>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {expandedGroups[item.href as string] && (
+                            <div className="ml-4 mt-1 space-y-1">
+                              {item.children.map((child: any) => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className={cn(
+                                    "block px-3 py-2 text-sm transition-colors hover:text-foreground/80",
+                                    pathname === child.href
+                                      ? "text-foreground"
+                                      : "text-foreground/60"
+                                  )}
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  {child.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          href={item.href as any}
+                          className={cn(
+                            "block px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80",
+                            pathname === item.href
+                              ? "text-foreground"
+                              : "text-foreground/60"
+                          )}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
                       )}
                     </div>
                   ))}
