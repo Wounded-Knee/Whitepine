@@ -6,6 +6,7 @@
 import AboutUs from '@/content/marketing/about-us.mdx';
 import Declaration from '@/content/marketing/declaration-of-civic-constitutional-assembly.mdx';
 import InstrumentsOfPowerIndex from '@/content/marketing/instruments-of-power/index.mdx';
+import InstrumentsOfPowerConstitutionalConvention from '@/content/marketing/instruments-of-power/constitutional-convention/index.mdx';
 import InstrumentsOfPowerDemonstrations from '@/content/marketing/instruments-of-power/demonstrations/index.mdx';
 import InstrumentsOfPowerDirectDemocracy from '@/content/marketing/instruments-of-power/direct-democracy/index.mdx';
 import InstrumentsOfPowerEconomicVeto from '@/content/marketing/instruments-of-power/economic-veto/index.mdx';
@@ -24,6 +25,7 @@ export const mdxComponents: Record<string, React.ComponentType> = {
   'about-us': AboutUs,
   'declaration-of-civic-constitutional-assembly': Declaration,
   'instruments-of-power': InstrumentsOfPowerIndex,
+  'instruments-of-power/constitutional-convention': InstrumentsOfPowerConstitutionalConvention,
   'instruments-of-power/demonstrations': InstrumentsOfPowerDemonstrations,
   'instruments-of-power/direct-democracy': InstrumentsOfPowerDirectDemocracy,
   'instruments-of-power/economic-veto': InstrumentsOfPowerEconomicVeto,

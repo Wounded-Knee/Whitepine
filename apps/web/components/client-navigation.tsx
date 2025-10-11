@@ -47,6 +47,10 @@ const baseNavigation = [
     href: "/marketing/instruments-of-power",
     children: [
       {
+        name: "Constitutional Convention",
+        href: "/marketing/instruments-of-power/constitutional-convention",
+      },
+      {
         name: "Economic Veto",
         href: "/marketing/instruments-of-power/economic-veto",
       },

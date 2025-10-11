@@ -1,0 +1,671 @@
+---
+title: Constitutional Convention
+description: Article V permits conventions to propose constitutional amendments. Learn about historical attempts to invoke this powerful mechanism.
+---
+
+import { ConstitutionalConventionCarousel } from '@/components/ConstitutionalConventionCarousel';
+
+export const conventionAttempts = [
+  {
+    "id": "constitutional_convention_1787",
+    "title": "The Constitutional Convention of 1787",
+    "date_range": { "start": "1787-05-25", "end": "1787-09-17" },
+    "reason": "To address the weaknesses of the Articles of Confederation and establish a stronger, more effective national government",
+    "mechanism": "Delegates from twelve states met in Philadelphia to draft a new Constitution rather than amend the Articles",
+    "participating_states": [
+      "New Hampshire",
+      "Massachusetts",
+      "Connecticut",
+      "New York",
+      "New Jersey",
+      "Pennsylvania",
+      "Delaware",
+      "Maryland",
+      "Virginia",
+      "North Carolina",
+      "South Carolina",
+      "Georgia"
+    ],
+    "state_count": 12,
+    "key_figures": [
+      "George Washington (President of the Convention)",
+      "James Madison",
+      "Benjamin Franklin",
+      "Alexander Hamilton",
+      "Gouverneur Morris",
+      "Roger Sherman"
+    ],
+    "outcome": "Delegates produced the United States Constitution, establishing a federal system with separate legislative, executive, and judicial branches. The document was signed on September 17, 1787, and ratified by all thirteen states by 1790.",
+    "notes": "The convention met in secret to allow open debate. Major compromises included the Great Compromise (bicameral legislature), the Three-Fifths Compromise on representation, and the creation of an Electoral College. Rhode Island did not send delegates but later ratified the Constitution.",
+    "summary": "Following years of dysfunction under the Articles of Confederation, delegates convened in Philadelphia ostensibly to revise the Articles but instead drafted an entirely new Constitution. The convention addressed fundamental questions about representation, executive power, slavery, and checks and balances. The resulting document created the framework for American government that endures today.",
+    "sources": [
+      "National Archives, Records of the Federal Convention of 1787",
+      "Library of Congress: 'The Constitutional Convention of 1787'",
+      "U.S. National Constitution Center historical overview"
+    ],
+    "timeline_events": [
+      {
+        "date": "1787-05-25",
+        "event": "Convention Opens in Philadelphia",
+        "type": "Procedural",
+        "summary": "Delegates convene at the Pennsylvania State House (Independence Hall). George Washington is unanimously elected president of the convention. Rhode Island does not send delegates."
+      },
+      {
+        "date": "1787-05-29",
+        "event": "Virginia Plan Presented",
+        "type": "Proposal",
+        "summary": "Edmund Randolph presents the Virginia Plan, proposing a strong national government with three branches and proportional representation in both legislative chambers."
+      },
+      {
+        "date": "1787-06-15",
+        "event": "New Jersey Plan Presented",
+        "type": "Proposal",
+        "summary": "William Paterson presents the New Jersey Plan as an alternative, proposing equal representation for all states and preserving more state sovereignty."
+      },
+      {
+        "date": "1787-07-16",
+        "event": "Great Compromise Adopted",
+        "type": "Agreement",
+        "summary": "The Connecticut Compromise establishes a bicameral legislature with proportional representation in the House and equal representation in the Senate, breaking the convention's most serious deadlock."
+      },
+      {
+        "date": "1787-08-06",
+        "event": "Committee of Detail Reports",
+        "type": "Draft",
+        "summary": "A five-member committee presents a detailed draft of the Constitution incorporating decisions made through July. Debate shifts to specific provisions and language."
+      },
+      {
+        "date": "1787-09-08",
+        "event": "Committee of Style Appointed",
+        "type": "Procedural",
+        "summary": "A committee including Gouverneur Morris is tasked with producing the final polished language of the Constitution. Morris pens the famous Preamble beginning 'We the People.'"
+      },
+      {
+        "date": "1787-09-17",
+        "event": "Constitution Signed",
+        "type": "Completion",
+        "summary": "Thirty-nine delegates sign the finished Constitution. Three delegates present refuse to sign. The document is sent to Congress and the states for ratification."
+      },
+      {
+        "date": "1788-06-21",
+        "event": "Constitution Ratified",
+        "type": "Ratification",
+        "summary": "New Hampshire becomes the ninth state to ratify, meeting the threshold for the Constitution to take effect. Virginia and New York soon follow."
+      },
+      {
+        "date": "1790-05-29",
+        "event": "Rhode Island Ratifies (Last State)",
+        "type": "Ratification",
+        "summary": "Rhode Island finally ratifies the Constitution by a narrow 34-32 vote, completing ratification by all thirteen original states."
+      }
+    ]
+  },
+  {
+    "id": "direct_senators_1893_1912",
+    "title": "Direct Election of U.S. Senators",
+    "date_range": {"start": "1893-04-14", "end": "1913-04-08"},
+    "reason": "To make senators directly elected by the people rather than chosen by state legislatures",
+    "mechanism": "States applied or threatened to apply for an Article V convention to pressure Congress into proposing an amendment",
+    "participating_states": [
+      "Nebraska",
+      "Oregon",
+      "Minnesota",
+      "Pennsylvania",
+      "Idaho",
+      "Montana",
+      "Colorado",
+      "Tennessee",
+      "Michigan",
+      "Texas",
+      "Arkansas",
+      "Kentucky",
+      "Utah",
+      "Washington",
+      "Illinois",
+      "Nevada",
+      "Iowa",
+      "Missouri",
+      "South Dakota",
+      "Indiana",
+      "New Jersey",
+      "Louisiana",
+      "Oklahoma",
+      "Kansas",
+      "Wisconsin",
+      "Maine",
+      "California"
+    ],
+    "state_count": 27,
+    "outcome": "Congress proposed the Seventeenth Amendment in 1912, which was ratified in 1913, establishing direct popular election of U.S. Senators. No Article V convention was called.",
+    "notes": "Twenty-seven states filed Article V applications between 1893 and 1911. The threat of a convention was a key factor that moved Congress to act. By 1912, most states had already implemented some form of popular senatorial election, making the amendment nearly inevitable.",
+    "summary": "For decades, deadlocks, corruption, and perceived illegitimacy plagued the system of state legislatures choosing senators. Progressive reformers pushed for direct election, and many states began implementing advisory votes. As applications for an Article V convention mounted, Congress finally proposed the Seventeenth Amendment to preempt the convention and maintain control of the amendment process.",
+    "sources": [
+      "CRS R42592, Historical Perspectives on Article V Convention",
+      "U.S. Senate Historical Office",
+      "Wikipedia: List of state applications for an Article V Convention",
+      "U.S. Senate Featured Documents: Petitions From the State Legislatures"
+    ],
+    "timeline_events": [
+      {
+        "date": "1893-04-14",
+        "event": "Nebraska First to Apply",
+        "type": "State Application",
+        "summary": "Nebraska becomes the first state to file an Article V convention application calling for direct election of U.S. senators, launching a two-decade reform movement."
+      },
+      {
+        "date": "1901-02-23",
+        "event": "Oregon Applies for Convention",
+        "type": "State Application",
+        "summary": "Oregon submits Article V application and pioneers the 'Oregon System' allowing voters to express senatorial preferences, which legislators pledge to honor."
+      },
+      {
+        "date": "1901",
+        "event": "Surge of State Applications",
+        "type": "State Action",
+        "summary": "At least 13 states submit Article V applications in 1901 alone, including Colorado, Minnesota, Pennsylvania, Idaho, Montana, Tennessee, Michigan, Texas, and Arkansas. The movement gains momentum."
+      },
+      {
+        "date": "1906-03-01",
+        "event": "The Treason of the Senate Published",
+        "type": "Public Pressure",
+        "summary": "David Graham Phillips publishes a muckraking series exposing corruption in Senate elections, galvanizing public support for direct election nationwide."
+      },
+      {
+        "date": "1907",
+        "event": "More States Join Convention Push",
+        "type": "State Applications",
+        "summary": "Louisiana, South Dakota, and Indiana submit Article V applications. New Jersey and Oklahoma follow in 1907-1908. The convention threat becomes credible."
+      },
+      {
+        "date": "1909-1911",
+        "event": "Final Wave of Applications",
+        "type": "State Applications",
+        "summary": "Kansas (1909), Wisconsin (1910), Maine (1911), and California (1911) submit applications, bringing the total to 27 states—approaching the two-thirds threshold needed to force a convention."
+      },
+      {
+        "date": "1912-05-13",
+        "event": "Congress Proposes 17th Amendment",
+        "type": "Congressional Action",
+        "summary": "Facing the credible threat of an Article V convention with 27 state applications, Congress proposes the Seventeenth Amendment requiring direct election of senators."
+      },
+      {
+        "date": "1913-04-08",
+        "event": "17th Amendment Ratified",
+        "type": "Ratification",
+        "summary": "Connecticut becomes the 36th state to ratify, meeting the three-fourths requirement. Direct election of senators is now mandated by the Constitution."
+      }
+    ]
+  },
+  {
+    "id": "reapportionment_1963_1969",
+    "title": "State Legislative Reapportionment Convention Movement",
+    "date_range": {"start": "1963-01-01", "end": "1969-12-31"},
+    "reason": "After the Supreme Court's decision in Reynolds v. Sims (1964), which required state legislative districts to have equal populations, rural and conservative states sought a constitutional amendment to preserve geographic-based representation and limit federal judicial control over apportionment",
+    "mechanism": "Article V convention applications by state legislatures, coordinated largely through efforts associated with Senator Everett Dirksen (R-IL), calling for an amendment permitting at least one house of a state legislature to be apportioned on factors other than population",
+    "participating_states": [
+      "Alabama",
+      "Arkansas",
+      "Arizona",
+      "Colorado",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Idaho",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Michigan",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Mexico",
+      "North Carolina",
+      "North Dakota",
+      "Oklahoma",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Virginia",
+      "Wyoming"
+    ],
+    "state_count": 33,
+    "outcome": "The campaign fell one state short of the 34 required to compel Congress to call a convention. Momentum collapsed after Senator Everett Dirksen's death in 1969, and several states later rescinded their applications. No convention was called.",
+    "notes": "The movement was a direct backlash to Supreme Court reapportionment rulings in Baker v. Carr (1962) and Reynolds v. Sims (1964). It represented one of the closest approaches to an Article V convention in U.S. history prior to the 1970s balanced budget push. The proposal was often called the 'Dirksen Amendment.'",
+    "summary": "After the Supreme Court ruled in Reynolds v. Sims (1964) that state legislative districts must have equal population, rural and conservative interests pushed for a convention to propose an amendment preserving geographic-based representation. Senator Everett Dirksen led the charge. The effort peaked at 33 states but stalled after Senator Dirksen's death, falling just one state short of triggering the first Article V convention.",
+    "sources": [
+      "Congressional Research Service, R42592: The Article V Convention for Proposing Constitutional Amendments",
+      "U.S. Senate Historical Office: Everett McKinley Dirksen papers",
+      "CQ Almanac 1965, State Apportionment Plan Loses in Senate",
+      "National Archives legislative history: S.J. Res. 2 (1965)"
+    ],
+    "timeline_events": [
+      {
+        "date": "1962-03-26",
+        "event": "Baker v. Carr Decided",
+        "type": "Supreme Court",
+        "summary": "The Supreme Court rules 6-2 that federal courts have jurisdiction over state legislative apportionment, opening the door to 'one person, one vote' challenges and triggering the reapportionment revolution."
+      },
+      {
+        "date": "1964-06-15",
+        "event": "Reynolds v. Sims Decided",
+        "type": "Supreme Court",
+        "summary": "The Supreme Court rules 8-1 that state legislative districts must have roughly equal population, extending 'one person, one vote' to state legislatures. Rural interests immediately begin organizing opposition."
+      },
+      {
+        "date": "1965",
+        "event": "States Begin Applying for Convention",
+        "type": "State Applications",
+        "summary": "Rural-dominated state legislatures, facing forced redistricting, begin submitting Article V applications seeking an amendment to permit at least one house of a state legislature to be apportioned on factors other than population."
+      },
+      {
+        "date": "1965-08-04",
+        "event": "First Dirksen Amendment Vote Fails",
+        "type": "Congressional Vote",
+        "summary": "The Senate votes on Senator Dirksen's proposed constitutional amendment to allow states to apportion one legislative chamber by geography. The measure receives 57 votes, falling seven short of the two-thirds required."
+      },
+      {
+        "date": "1966-1967",
+        "event": "Convention Movement Gains Momentum",
+        "type": "State Applications",
+        "summary": "Applications accelerate as 33 states submit Article V resolutions. The campaign comes within one state of the 34 needed to compel Congress to call a convention—the closest any modern Article V effort had come."
+      },
+      {
+        "date": "1967-04-20",
+        "event": "Second Dirksen Amendment Vote Fails",
+        "type": "Congressional Vote",
+        "summary": "The Senate again votes on Dirksen's reapportionment amendment. It receives 55 votes, falling seven short. Attention shifts back to the Article V convention route."
+      },
+      {
+        "date": "1969-09-07",
+        "event": "Senator Dirksen Dies",
+        "type": "Political Change",
+        "summary": "Senator Everett Dirksen, the movement's leading advocate and chief organizer, dies suddenly. Without his leadership and persuasive power, the convention effort loses momentum and never reaches the 34th state."
+      },
+      {
+        "date": "1970-1971",
+        "event": "Movement Fades and Rescissions Begin",
+        "type": "Conclusion",
+        "summary": "As redistricting proceeds nationwide and public acceptance of 'one person, one vote' grows, the convention push fades. Several states begin rescinding their Article V applications."
+      }
+    ]
+  },
+  {
+    "id": "balanced_budget_1975_1983",
+    "title": "Balanced Budget Amendment Convention Drive",
+    "date_range": {"start": "1975-01-01", "end": "1983-12-31"},
+    "reason": "Rising inflation and federal deficits in the 1970s led a coordinated campaign to require a balanced federal budget through a constitutional amendment",
+    "mechanism": "Article V state applications calling for a convention to propose a balanced budget amendment, often framed as conditional applications if Congress failed to act",
+    "participating_states": [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "Colorado",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Idaho",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Louisiana",
+      "Maryland",
+      "Mississippi",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Mexico",
+      "North Carolina",
+      "North Dakota",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Virginia",
+      "Wyoming",
+      "Missouri"
+    ],
+    "state_count": 32,
+    "outcome": "The drive peaked at 32 of the 34 required states. Congress responded: the Senate passed S.J.Res. 58 on August 4, 1982, but the House fell short of the two-thirds threshold on October 1, 1982. Momentum faded. In 1985 Congress enacted the Gramm-Rudman-Hollings deficit control law. From 1988 through 2010, many states rescinded earlier applications. No convention was called.",
+    "notes": "Contemporaneous White House materials list 31 states as of March 1982 and identify expected votes in Kentucky and Washington. Alaska added in 1982 and Missouri in 1983 marked the high water. Most applications in this period used similar language promoted by taxpayer groups.",
+    "summary": "Rising federal deficits in the 1970s prompted fiscal conservatives to push for a constitutional balanced budget requirement. A coordinated campaign promoted by the National Taxpayers Union and other groups reached 32 state applications by 1983, just two short of the threshold. Congress responded with its own amendment proposal and later with statutory budget controls, reducing pressure for a convention.",
+    "sources": [
+      "CRS R42592: The Article V Convention for Proposing Constitutional Amendments, pp. 12–15, 21–23",
+      "Ronald Reagan Presidential Library memo packet, March–April 1982",
+      "CRS R41907: A Balanced Budget Constitutional Amendment"
+    ],
+    "timeline_events": [
+      {
+        "date": "1975",
+        "event": "First State Applications",
+        "type": "State Applications",
+        "summary": "As federal deficits grow following the 1973 oil crisis and economic recession, the first states submit Article V applications calling for a balanced budget amendment. The National Taxpayers Union begins coordinating the campaign."
+      },
+      {
+        "date": "1979",
+        "event": "30 States Have Applied",
+        "type": "State Applications",
+        "summary": "The coordinated campaign brings applications to 30 states, generating significant media attention and alarm in Congress. The movement gains momentum as inflation and deficits worsen."
+      },
+      {
+        "date": "1982-01-18",
+        "event": "31 States Confirmed",
+        "type": "State Applications",
+        "summary": "White House memo confirms 31 states have passed balanced budget convention resolutions. Kentucky and Washington are identified as next likely states. The campaign is within three states of forcing a convention."
+      },
+      {
+        "date": "1982",
+        "event": "Alaska Becomes 32nd State",
+        "type": "State Application",
+        "summary": "Alaska submits an Article V application, bringing the total to 32 states—just two short of the 34 required. Congress takes notice and begins seriously debating its own balanced budget amendment."
+      },
+      {
+        "date": "1982-08-04",
+        "event": "Senate Passes S.J.Res. 58",
+        "type": "Congressional Action",
+        "summary": "The Senate approves a balanced budget amendment (S.J.Res. 58) by a vote of 69-31, exceeding the two-thirds requirement. The vote represents Congress's attempt to preempt an Article V convention."
+      },
+      {
+        "date": "1982-10-01",
+        "event": "House Vote Falls Short",
+        "type": "Congressional Action",
+        "summary": "The House votes 236-187 in favor of a balanced budget amendment, falling 46 votes short of the required two-thirds supermajority. The amendment fails, but pressure for a convention continues."
+      },
+      {
+        "date": "1983",
+        "event": "Missouri Brings Total to 32, Then Stalls",
+        "type": "State Application",
+        "summary": "Missouri submits an application, marking the high-water mark at 32 states. Despite continued lobbying, no additional states apply. Concerns about a 'runaway convention' and economic recovery reduce urgency."
+      },
+      {
+        "date": "1985-12-12",
+        "event": "Gramm-Rudman-Hollings Enacted",
+        "type": "Legislative Action",
+        "summary": "Congress passes the Balanced Budget and Emergency Deficit Control Act, establishing automatic spending cuts. This statutory approach reduces pressure for a constitutional amendment."
+      },
+      {
+        "date": "1988-2010",
+        "event": "Wave of State Rescissions",
+        "type": "State Rescissions",
+        "summary": "Over two dozen states rescind their balanced budget convention applications, citing concerns about convention scope, changing fiscal priorities, and fear of a 'runaway convention.' The movement effectively ends."
+      }
+    ]
+  },
+  {
+    "id": "term_limits_1990s",
+    "title": "Congressional Term Limits Movement",
+    "date_range": {"start": "1995-05-22", "end": "2001-02-28"},
+    "reason": "Frustration with entrenched incumbents following U.S. Term Limits v. Thornton, which invalidated state-imposed congressional term limits",
+    "mechanism": "Rather than direct Article V convention applications, most states pursued 'scarlet letter' ballot label initiatives requiring candidates to pledge support for a federal term limits amendment or face negative ballot notations. Only Colorado pursued an explicit Article V convention application",
+    "participating_states": [
+      "Alaska",
+      "Arkansas",
+      "Maine",
+      "Missouri",
+      "South Dakota",
+      "Washington",
+      "Colorado"
+    ],
+    "state_count": 7,
+    "outcome": "Seven states enacted ballot-label initiatives or an Article V resolution in 1996. The Supreme Court struck down Missouri's 'scarlet letter' labels in Cook v. Gralike (2001), effectively ending such initiatives nationwide. No Article V convention was called. The direct convention route never approached the 34-state threshold.",
+    "notes": "These 'scarlet letter' laws required ballot labels like 'DISREGARDED VOTERS' INSTRUCTION ON TERM LIMITS' for incumbents who failed to support a federal amendment and 'DECLINED TO PLEDGE TO SUPPORT TERM LIMITS' for non-incumbents who refused to pledge. Cook v. Gralike declared such labels unconstitutional additions to candidate qualifications.",
+    "summary": "After the Supreme Court struck down state-imposed term limits in 1995, advocates tried a creative workaround: ballot initiatives requiring candidates to support a federal term limits amendment or face negative ballot labels. Seven states enacted such measures in 1996, but the Supreme Court struck them down in 2001. Only Colorado explicitly pursued an Article V convention application, and the convention route never gained momentum.",
+    "sources": [
+      "CRS R42592, historical survey",
+      "U.S. Term Limits, Inc. v. Thornton, 514 U.S. 779 (1995)",
+      "Cook v. Gralike, 531 U.S. 510 (2001)",
+      "Ballotpedia: State ballot measures on term limits",
+      "South Dakota LRC Issue Memorandum 97-23 on Scarlet Letter laws"
+    ],
+    "timeline_events": [
+      {
+        "date": "1995-05-22",
+        "event": "U.S. Term Limits v. Thornton Decided",
+        "type": "Supreme Court",
+        "summary": "The Supreme Court rules 5-4 that states cannot impose term limits on their federal congressional delegations, invalidating term limit laws in 23 states. Advocates pivot to seeking a federal constitutional amendment."
+      },
+      {
+        "date": "1996-11-05",
+        "event": "Seven States Enact 'Scarlet Letter' Measures",
+        "type": "State Ballot Initiatives",
+        "summary": "Alaska (Measure 4), Arkansas (Amendment 9), Maine (Question 1), Missouri (Amendment 9), South Dakota (Measure 1), Washington (I-670), and Colorado (Amendment 12 for Article V convention) all pass ballot initiatives requiring candidates to pledge support for congressional term limits or face negative ballot labels."
+      },
+      {
+        "date": "1997-02-12",
+        "event": "House Vote on Term Limits Falls Short",
+        "type": "Congressional Vote",
+        "summary": "The House votes 217-211 in favor of a constitutional amendment imposing term limits, falling 61 votes short of the required two-thirds supermajority. The failure reinforces state-level efforts."
+      },
+      {
+        "date": "1997-02-24",
+        "event": "Arkansas Labels Blocked",
+        "type": "Court Decision",
+        "summary": "U.S. Supreme Court lets stand a lower court ruling blocking Arkansas's ballot label law. Other states' 'scarlet letter' laws face similar litigation challenges."
+      },
+      {
+        "date": "1997-1999",
+        "event": "Article V Convention Route Stalls",
+        "type": "State Inaction",
+        "summary": "Despite Colorado's Article V resolution, other state legislatures show little enthusiasm for convention applications. The direct convention route never gains traction."
+      },
+      {
+        "date": "2001-02-28",
+        "event": "Cook v. Gralike Strikes Down 'Scarlet Letter' Laws",
+        "type": "Supreme Court",
+        "summary": "The Supreme Court unanimously strikes down Missouri's ballot label law, ruling that states cannot impose additional qualifications or instructions on federal candidates beyond those in the Constitution. The decision effectively ends all 'scarlet letter' initiatives nationwide."
+      },
+      {
+        "date": "2001-2002",
+        "event": "Movement Effectively Ends",
+        "type": "Conclusion",
+        "summary": "With 'scarlet letter' laws invalidated and Article V applications failing to approach the threshold, the 1990s term limits movement dissolves. Public support remains high, but legal avenues are exhausted."
+      }
+    ]
+  },
+  {
+    "id": "convention_of_states_2014_present",
+    "title": "Convention of States: Fiscal Restraints, Term Limits, Limits on Federal Power",
+    "date_range": {"start": "2014-01-01", "end": "2025-10-11"},
+    "reason": "Perceived federal overreach, debt growth, and desire for structural reforms",
+    "mechanism": "Uniform Article V applications with model language adopted state by state",
+    "participating_states": [
+      "Georgia",
+      "Alaska",
+      "Florida",
+      "Alabama",
+      "Tennessee",
+      "Indiana",
+      "Oklahoma",
+      "Louisiana",
+      "Arizona",
+      "North Dakota",
+      "Texas",
+      "Missouri",
+      "Arkansas",
+      "Utah",
+      "Mississippi",
+      "Wisconsin",
+      "Nebraska",
+      "West Virginia",
+      "South Carolina"
+    ],
+    "state_count": 19,
+    "outcome": "Ongoing. Nineteen of the required 34 states have passed matching resolutions as of October 2025. Additional states have considered or passed resolutions in a single chamber.",
+    "notes": "This is the most active and organized Article V convention effort in modern times. Critics worry about the scope of a convention, while supporters argue it's the only way to impose structural limits on federal power.",
+    "summary": "The Convention of States Project, launched in 2013, advocates for a limited-scope Article V convention to propose amendments in three areas: fiscal restraints on the federal government, term limits for officials, and limits on federal power. Using model legislation and grassroots organizing, the movement has secured applications from 19 states, with active campaigns in additional states.",
+    "sources": [
+      "Convention of States progress page listing 19 states",
+      "State and local reporting on convention applications"
+    ],
+    "timeline_events": [
+      {
+        "date": "2013-09-01",
+        "event": "Convention of States Project Founded",
+        "type": "Organization",
+        "summary": "Citizens for Self-Governance launches the Convention of States Project, promoting model Article V application language focused on fiscal restraints, term limits, and limiting federal power."
+      },
+      {
+        "date": "2014-03-06",
+        "event": "Georgia Becomes First State",
+        "type": "State Application",
+        "summary": "Georgia passes the Convention of States resolution, becoming the first state to formally apply using the project's model language."
+      },
+      {
+        "date": "2014-04-19",
+        "event": "Alaska Passes Resolution",
+        "type": "State Application",
+        "summary": "Alaska becomes the second state to pass the Convention of States application."
+      },
+      {
+        "date": "2014-04-21",
+        "event": "Florida Passes Resolution",
+        "type": "State Application",
+        "summary": "Florida, the nation's third-largest state, adopts the Convention of States resolution, bringing significant momentum to the movement."
+      },
+      {
+        "date": "2015-2016",
+        "event": "Five More States Join",
+        "type": "State Applications",
+        "summary": "Alabama, Tennessee, Indiana, Oklahoma, and Louisiana pass Convention of States resolutions, bringing the total to eight states."
+      },
+      {
+        "date": "2017-01-01",
+        "event": "Movement Gains Momentum",
+        "type": "State Applications",
+        "summary": "Arizona, North Dakota, Texas, and Missouri pass resolutions in 2017, bringing the total to 12 states—more than one-third of the way to the required 34."
+      },
+      {
+        "date": "2019-01-01",
+        "event": "Three States in 2019",
+        "type": "State Applications",
+        "summary": "Arkansas, Utah, and Mississippi pass Convention of States resolutions, bringing the total to 15 states."
+      },
+      {
+        "date": "2022-01-01",
+        "event": "Four States in 2022",
+        "type": "State Applications",
+        "summary": "Wisconsin, Nebraska, West Virginia, and South Carolina pass resolutions in 2022, bringing the total to 19 states—more than halfway to the required 34."
+      },
+      {
+        "date": "2023-2024",
+        "event": "Continued Campaigns in Additional States",
+        "type": "Advocacy",
+        "summary": "The Convention of States Project continues active campaigns in over a dozen additional states, with resolutions passing in one chamber in several states but not yet completing the full legislative process."
+      },
+      {
+        "date": "2025-10-11",
+        "event": "19 States, 15 Short of Threshold",
+        "type": "Current Status",
+        "summary": "As of this date, 19 states have passed matching Convention of States applications. The movement needs 15 more states to trigger the first Article V convention in American history."
+      }
+    ]
+  }
+];
+
+# Constitutional Convention
+
+The power to reshape government doesn't belong only to Congress.
+
+## The Original Convention
+
+The Constitutional Convention was the 1787 meeting in Philadelphia that replaced the Articles of Confederation with the U.S. Constitution. Delegates debated representation, executive power, slavery, and checks and balances. The final document was signed on September 17, 1787, then sent to the states for ratification.
+
+## We Can Do This Again
+
+Article V of the Constitution permits two paths for proposing amendments:
+
+1. **By Congress**: Two-thirds of both the House and Senate propose an amendment (used for all 27 existing amendments)
+2. **By Convention**: Congress must call a convention if two-thirds of state legislatures (34 states) submit applications
+
+No Article V convention has ever been held. The rules for organizing one are not specified in the Constitution, creating uncertainty about how it would function.
+
+<ConstitutionalConventionCarousel attempts={conventionAttempts} />
+
+## Why Convention Applications Matter
+
+Even when convention attempts fall short, they demonstrate popular will and pressure Congress to act. The threat of a convention helped produce the Seventeenth Amendment for direct election of senators.
+
+### Power Without Precedent
+
+An Article V convention would be only the second constitutional convention in American history. No one knows exactly how it would work:
+
+- Would delegates be bound to a specific topic, or could they propose any amendment?
+- How would delegates be selected?
+- What rules would govern debate and voting?
+- Could the convention propose multiple amendments?
+
+These unanswered questions make some cautious about calling a convention, while others see this uncertainty as evidence that the convention power remains a viable check on federal overreach.
+
+### The Double-Edged Sword
+
+Opponents worry about a "runaway convention" that might propose radical changes beyond its stated purpose. Supporters argue that any proposed amendments still require ratification by 38 states, providing ample safeguards.
+
+## Common Questions
+
+### Has a convention ever been close to happening?
+
+Yes. The 1960s reapportionment effort reached 33 states, one short of the threshold. The 1980s balanced budget push reached 32 states. The current Convention of States effort has 19 states, more than halfway to 34.
+
+### What happens if 34 states apply?
+
+Congress must call a convention. However, the Constitution provides no guidance on format, delegate selection, or rules. Legal scholars debate whether Congress has discretion over these details or whether states control the process.
+
+### Can states rescind their applications?
+
+This is unsettled law. Many states have rescinded past applications, but no definitive legal ruling addresses whether rescissions are valid or how long applications remain active.
+
+### Would a convention propose just one amendment?
+
+Unknown. Some argue that state applications can limit the convention's scope to specific topics. Others contend that once convened, a convention has plenary power to propose any amendments it chooses, subject to state ratification.
+
+### How would delegates be selected?
+
+The Constitution is silent. Presumably each state would determine its own method, perhaps through legislative appointment, popular election, or gubernatorial selection. Equal state representation seems likely but isn't specified.
+
+## The Path Forward
+
+The Article V convention remains the ultimate instrument of popular sovereignty—a way for states and citizens to propose constitutional changes when Congress won't act.
+
+It's never been used. But the threat of using it has mattered. And if 15 more states join the Convention of States effort, we'll discover whether this 235-year-old constitutional provision still works.
+
+---
+
+**Citations:**
+
+- Article V text and interpretation, plus overall amendment counts: [Constitution Center][1]
+- CRS history identifying direct election pressure, reapportionment peak at 33 states, balanced budget peak at 32, and later rescissions: [Congress.gov CRS R42592][2]
+- CRS overview of balanced budget proposals and context: [Congress.gov CRS R41907][4]
+- Convention of States current state list and dates: [conventionofstates.com][3]
+- Independent reporting that the current total is 19 states: [Ohio Capital Journal][5]
+- Direct election of senators Article V applications by state and date: [Wikipedia][6]
+- U.S. Senate document images confirming Article V applications: [U.S. Senate Featured Documents][7]
+- Balanced budget amendment state count and timeline: [Ronald Reagan Presidential Library][8]
+- Term limits 'scarlet letter' laws struck down: [Cook v. Gralike, 531 U.S. 510][9]
+- U.S. Term Limits v. Thornton invalidating state term limits: [514 U.S. 779][10]
+- South Dakota analysis of scarlet letter laws: [LRC Issue Memorandum 97-23][11]
+
+[1]: https://constitutioncenter.org/the-constitution/articles/article-v?utm_source=chatgpt.com "Article V - Amendment Process"
+[2]: https://www.congress.gov/crs_external_products/R/PDF/R42592/R42592.9.pdf "The Article V Convention for Proposing Constitutional Amendments: Historical Perspectives for Congress"
+[3]: https://conventionofstates.com/states-that-have-passed-the-convention-of-states-article-v-application "Progress Map: States that have passed the Convention of States Article V application"
+[4]: https://www.congress.gov/crs-product/R41907?utm_source=chatgpt.com "A Balanced Budget Constitutional Amendment"
+[5]: https://ohiocapitaljournal.com/2025/06/12/ohio-state-to-watch-for-u-s-constitutional-convention-measures-concerned-advocates-say/?utm_source=chatgpt.com "Ohio 'state to watch' for U.S. constitutional convention"
+[6]: https://en.wikipedia.org/wiki/List_of_state_applications_for_an_Article_V_Convention "List of state applications for an Article V Convention - Wikipedia"
+[7]: https://www.senate.gov/about/origins-foundations/electing-appointing-senators/direct-election-state-resolutions.htm "U.S. Senate: Featured Documents: Petitions From the State Legislatures"
+[8]: https://www.reaganlibrary.gov/ "Ronald Reagan Presidential Library: Balanced Budget Amendment memo packet, March–April 1982"
+[9]: https://supreme.justia.com/cases/federal/us/531/510/ "Cook v. Gralike, 531 U.S. 510 (2001)"
+[10]: https://supreme.justia.com/cases/federal/us/514/779/ "U.S. Term Limits, Inc. v. Thornton, 514 U.S. 779 (1995)"
+[11]: https://sdlegislature.gov/ "South Dakota Legislative Research Council Issue Memorandum 97-23"
+
