@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin } from 'lucide-react';
-import { USAMapWrapper, type USAStateAbbreviation } from '@/components/usa-map';
+import { USAMapWrapper, type USAStateAbbreviation } from '@/components/maps';
 
 export function GerrymanderingMap() {
   // Simplified state data - in reality would have all 50 states with actual severity scores

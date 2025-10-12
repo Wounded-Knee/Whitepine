@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useMemo } from "react"
-import { USAMapWrapper, type USAStateAbbreviation, StateAbbreviations } from "./usa-map"
+import { D3USAMap } from "./D3USAMap"
+import { StateAbbreviations, STATE_NAMES, type USAStateAbbreviation } from "@/lib/geo/state-mappings"
 
 export interface CategorizedUSAMapProps {
   /** Object mapping category names to arrays of state abbreviations */
@@ -67,22 +68,7 @@ const DEFAULT_COLORS = [
   "#6366f1", // indigo
 ]
 
-// State abbreviation to full name mapping
-const STATE_NAMES: Record<string, string> = {
-  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
-  CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
-  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
-  KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
-  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
-  MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
-  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
-  OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
-  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
-  VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
-  DC: "District of Columbia"
-}
-
-export function CategorizedUSAMap({
+export function D3CategorizedUSAMap({
   highlightedStates,
   legend,
   colors,
@@ -177,7 +163,6 @@ export function CategorizedUSAMap({
             ? darkenColor(color, 20) 
             : "#9ca3af",
         strokeWidth: isSelected ? 3 : 1.5,
-        cursor: isClickable ? "pointer" : "default",
         onClick: isClickable ? () => {
           // Toggle: if already selected, deselect; otherwise select
           onStateClick(isSelected ? null as any : state)
@@ -248,7 +233,7 @@ export function CategorizedUSAMap({
       )}
       
       <div className="flex-grow">
-        <USAMapWrapper
+        <D3USAMap
           customStates={customStates}
           showLabels={showLabels}
           showTooltips={showTooltips}

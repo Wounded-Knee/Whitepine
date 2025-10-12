@@ -3,9 +3,9 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
 import Autoplay from 'embla-carousel-autoplay'
-import { CategorizedUSAMap } from './CategorizedUSAMap'
+import { D3CategorizedUSAMap as CategorizedUSAMap } from './maps/D3CategorizedUSAMap'
 import { DirectDemocracyTimeline } from './DirectDemocracyTimeline'
-import type { USAStateAbbreviation } from './usa-map'
+import type { USAStateAbbreviation } from './maps'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface ConventionTimelineEvent {
