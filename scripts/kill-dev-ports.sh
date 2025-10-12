@@ -36,8 +36,8 @@ kill_port() {
     
     print_status "Checking for processes on port $port ($service_name)..."
     
-    # Find processes using the port
-    local pids=$(lsof -ti:$port 2>/dev/null || true)
+    # Find processes using the port (try multiple methods for WSL compatibility)
+    local pids=$(lsof -t -i:$port 2>/dev/null || ss -lptn "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' || fuser $port/tcp 2>/dev/null | awk '{print $1}' || true)
     
     if [ -z "$pids" ]; then
         print_success "No processes found on port $port"
@@ -60,7 +60,7 @@ kill_port() {
     sleep 1
     
     # Check if any processes are still running and force kill if necessary
-    local remaining_pids=$(lsof -ti:$port 2>/dev/null || true)
+    local remaining_pids=$(lsof -t -i:$port 2>/dev/null || ss -lptn "sport = :$port" 2>/dev/null | grep -oP 'pid=\K[0-9]+' || fuser $port/tcp 2>/dev/null | awk '{print $1}' || true)
     if [ -n "$remaining_pids" ]; then
         print_warning "Some processes still running on port $port, force killing..."
         for pid in $remaining_pids; do
