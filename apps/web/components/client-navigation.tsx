@@ -13,12 +13,18 @@ import { AuthButton } from "@/components/auth-button"
 
 const baseNavigation = [
   {
-    name: "Dashboard",
+    name: "Home",
     href: "/",
   },
   {
     name: "About",
-    href: "/marketing/about-us",
+    href: "/marketing/about",
+    children: [
+      {
+        name: "Funding",
+        href: "/marketing/about/funding",
+      },
+    ],
   },
   {
     name: "Declaration of Assembly",
@@ -145,8 +151,13 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
   const navigation = React.useMemo(() => {
     const nav = [...baseNavigation]
     
-    // Only add demo navigation items if user is logged in
+    // Only add authenticated navigation items if user is logged in
     if (session) {
+      // Insert Dashboard right after Home
+      nav.splice(1, 0, {
+        name: "Dashboard",
+        href: "/dashboard",
+      })
       nav.push({
         name: "Nodes",
         href: "/demo-nodes",
@@ -255,41 +266,58 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
               <div className="flex flex-col space-y-4">
                 <Link 
                   className="flex items-center space-x-2" 
+                  style={{ animation: 'var(--animate-slide-in-left)' }}
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="font-bold">Whitepine</span>
                 </Link>
                 <nav className="flex flex-col space-y-2">
-                  {navigation.map((item) => (
-                    <div key={item.href}>
+                  {navigation.map((item, index) => (
+                    <div 
+                      key={item.href}
+                      style={{ 
+                        animation: 'var(--animate-slide-in-left)',
+                        animationDelay: `${(index + 1) * 50}ms`,
+                        animationFillMode: 'backwards'
+                      }}
+                    >
                       {item.children && item.children.length > 0 ? (
                         <>
-                          <button
-                            onClick={() => toggleGroup(item.href as string)}
-                            className={cn(
-                              "flex items-center justify-between w-full px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80 text-left",
-                              pathname === item.href || (item.children && item.children.some((child: any) => pathname === child.href))
-                                ? "text-foreground"
-                                : "text-foreground/60"
-                            )}
-                          >
-                            <span>{item.name}</span>
-                            <svg
+                          <div className="flex items-center justify-between w-full">
+                            <Link
+                              href={item.href as any}
                               className={cn(
-                                "h-4 w-4 transition-transform",
-                                expandedGroups[item.href as string] ? "rotate-180" : ""
+                                "flex-1 px-3 py-2 text-sm font-medium transition-colors hover:text-foreground/80 text-left",
+                                pathname === item.href || (item.children && item.children.some((child: any) => pathname === child.href))
+                                  ? "text-foreground"
+                                  : "text-foreground/60"
                               )}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                              onClick={() => setMobileMenuOpen(false)}
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
+                              {item.name}
+                            </Link>
+                            <button
+                              onClick={() => toggleGroup(item.href as string)}
+                              className="px-3 py-2 text-foreground/60 hover:text-foreground transition-colors"
+                              aria-label={`Toggle ${item.name} submenu`}
+                            >
+                              <svg
+                                className={cn(
+                                  "h-4 w-4 transition-transform",
+                                  expandedGroups[item.href as string] ? "rotate-180" : ""
+                                )}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          </div>
                           {expandedGroups[item.href as string] && (
                             <div className="ml-4 mt-1 space-y-1">
-                              {item.children.map((child: any) => (
+                              {item.children.map((child: any, childIndex: number) => (
                                 <Link
                                   key={child.href}
                                   href={child.href}
@@ -299,6 +327,11 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
                                       ? "text-foreground"
                                       : "text-foreground/60"
                                   )}
+                                  style={{ 
+                                    animation: 'var(--animate-slide-in-left-sm)',
+                                    animationDelay: `${childIndex * 30}ms`,
+                                    animationFillMode: 'backwards'
+                                  }}
                                   onClick={() => setMobileMenuOpen(false)}
                                 >
                                   {child.name}
@@ -324,7 +357,14 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
                     </div>
                   ))}
                 </nav>
-                <div className="pt-4 space-y-4">
+                <div 
+                  className="pt-4 space-y-4" 
+                  style={{ 
+                    animation: 'var(--animate-fade-in)',
+                    animationDelay: `${(navigation.length + 1) * 50}ms`,
+                    animationFillMode: 'backwards'
+                  }}
+                >
                   <ThemeToggle />
                   <AuthButton fullWidth />
                 </div>

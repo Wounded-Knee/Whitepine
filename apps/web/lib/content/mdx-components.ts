@@ -3,7 +3,8 @@
  */
 
 // Import all MDX files at module level so webpack bundles them
-import AboutUs from '@/content/marketing/about-us.mdx';
+import AboutIndex from '@/content/marketing/about/index.mdx';
+import AboutFunding from '@/content/marketing/about/funding.mdx';
 import Declaration from '@/content/marketing/declaration-of-civic-constitutional-assembly.mdx';
 import InstrumentsOfPowerIndex from '@/content/marketing/instruments-of-power/index.mdx';
 import InstrumentsOfPowerConstitutionalConvention from '@/content/marketing/instruments-of-power/constitutional-convention/index.mdx';
@@ -22,7 +23,8 @@ import SymbolsThirteenArrows from '@/content/marketing/symbols/thirteen-arrows.m
 
 // Export a synchronous map of all components
 export const mdxComponents: Record<string, React.ComponentType> = {
-  'about-us': AboutUs,
+  'about': AboutIndex,
+  'about/funding': AboutFunding,
   'declaration-of-civic-constitutional-assembly': Declaration,
   'instruments-of-power': InstrumentsOfPowerIndex,
   'instruments-of-power/constitutional-convention': InstrumentsOfPowerConstitutionalConvention,
