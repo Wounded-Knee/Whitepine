@@ -5,7 +5,7 @@ import { ClientNavigation } from '@web/components/client-navigation';
 import type { Session } from 'next-auth';
 
 // Mock next-auth
-const mockSession = vi.fn<[], Session | null>();
+const mockSession = vi.fn();
 vi.mock('next-auth/react', () => ({
   SessionProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useSession: () => mockSession(),
@@ -40,7 +40,7 @@ describe('Navigation', () => {
   beforeEach(() => {
     // Default mocks
     mockPathname.mockReturnValue('/');
-    mockSession.mockReturnValue(null);
+    mockSession.mockReturnValue({ data: null, status: 'unauthenticated' });
   });
 
   afterEach(() => {
@@ -61,7 +61,7 @@ describe('Navigation', () => {
     });
 
     it('does not show demo links when user is not logged in', () => {
-      mockSession.mockReturnValue(null);
+      mockSession.mockReturnValue({ data: null, status: 'unauthenticated' });
 
       render(<ClientNavigation session={null} />);
 
@@ -72,10 +72,10 @@ describe('Navigation', () => {
 
     it('shows demo links when user is logged in', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       render(<ClientNavigation session={session} />);
 
@@ -247,10 +247,10 @@ describe('Navigation', () => {
 
     it('closes mobile menu when authenticated user clicks Nodes link', async () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       render(<ClientNavigation session={session} />);
 
@@ -277,10 +277,10 @@ describe('Navigation', () => {
 
     it('closes mobile menu when authenticated user clicks Tree link', async () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       render(<ClientNavigation session={session} />);
 
@@ -387,9 +387,10 @@ describe('Navigation', () => {
 
     it('renders correct href for Dashboard when logged in', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
       render(<ClientNavigation session={session} />);
 
       const dashboardLinks = screen.getAllByRole('link', { name: 'Dashboard' });
@@ -409,10 +410,10 @@ describe('Navigation', () => {
 
     it('renders correct href for Nodes when authenticated', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       render(<ClientNavigation session={session} />);
 
@@ -424,10 +425,10 @@ describe('Navigation', () => {
 
     it('renders correct href for Tree when authenticated', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       render(<ClientNavigation session={session} />);
 
@@ -447,10 +448,10 @@ describe('Navigation', () => {
 
       // User logs in
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       rerender(<ClientNavigation session={session} />);
 
@@ -461,10 +462,10 @@ describe('Navigation', () => {
 
     it('removes demo links when user logs out', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
 
       const { rerender } = render(<ClientNavigation session={session} />);
 
@@ -472,7 +473,7 @@ describe('Navigation', () => {
       expect(screen.getAllByRole('link', { name: 'Nodes' }).length).toBeGreaterThan(0);
 
       // User logs out
-      mockSession.mockReturnValue(null);
+      mockSession.mockReturnValue({ data: null, status: 'unauthenticated' });
 
       rerender(<ClientNavigation session={null} />);
 
@@ -497,9 +498,10 @@ describe('Navigation', () => {
 
     it('highlights Dashboard when on dashboard path', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
       mockPathname.mockReturnValue('/dashboard');
 
       render(<ClientNavigation session={session} />);
@@ -527,10 +529,10 @@ describe('Navigation', () => {
 
     it('highlights Nodes when on demo-nodes page', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
       mockPathname.mockReturnValue('/demo-nodes');
 
       render(<ClientNavigation session={session} />);
@@ -545,10 +547,10 @@ describe('Navigation', () => {
 
     it('highlights Tree when on demo-tree page', () => {
       const session: Session = {
-        user: { name: 'Test User', email: 'test@example.com' },
+        user: { id: 'test-user-id', name: 'Test User', email: 'test@example.com' },
         expires: '2099-12-31',
       };
-      mockSession.mockReturnValue(session);
+      mockSession.mockReturnValue({ data: session, status: 'authenticated' });
       mockPathname.mockReturnValue('/demo-tree');
 
       render(<ClientNavigation session={session} />);

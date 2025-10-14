@@ -5,6 +5,11 @@
 // Import all MDX files at module level so webpack bundles them
 import AboutIndex from '@/content/marketing/about/index.mdx';
 import AboutFunding from '@/content/marketing/about/funding.mdx';
+import AboutMissionVision from '@/content/marketing/about/mission-vision.mdx';
+import AboutFoundingStory from '@/content/marketing/about/founding-story.mdx';
+import AboutTeamAdvisors from '@/content/marketing/about/team-advisors.mdx';
+import AboutGovernanceTransparency from '@/content/marketing/about/governance-transparency.mdx';
+import AboutPartnersSupporters from '@/content/marketing/about/partners-supporters.mdx';
 import Declaration from '@/content/marketing/declaration-of-civic-constitutional-assembly.mdx';
 import InstrumentsOfPowerIndex from '@/content/marketing/instruments-of-power/index.mdx';
 import InstrumentsOfPowerConstitutionalConvention from '@/content/marketing/instruments-of-power/constitutional-convention/index.mdx';
@@ -16,6 +21,23 @@ import InstrumentsOfPowerPetitions from '@/content/marketing/instruments-of-powe
 import InstrumentsOfPowerPrimaries from '@/content/marketing/instruments-of-power/primaries/index.mdx';
 import InstrumentsOfPowerRecallElections from '@/content/marketing/instruments-of-power/recall-elections/index.mdx';
 import InstrumentsOfPowerStrikes from '@/content/marketing/instruments-of-power/strikes/index.mdx';
+import PlatformHowItWorks from '@/content/marketing/platform/how-it-works.mdx';
+import PlatformTechnologyEthics from '@/content/marketing/platform/technology-ethics.mdx';
+import PlatformDevelopmentRoadmap from '@/content/marketing/platform/development-roadmap.mdx';
+import PlatformLivePrototype from '@/content/marketing/platform/live-prototype.mdx';
+import PlatformDocumentation from '@/content/marketing/platform/documentation.mdx';
+import StoriesPeoplePlaces from '@/content/marketing/stories/people-places.mdx';
+import StoriesMultimediaGallery from '@/content/marketing/stories/multimedia-gallery.mdx';
+import StoriesCommunityVoices from '@/content/marketing/stories/community-voices.mdx';
+import TransparencyFinancialReports from '@/content/marketing/transparency/financial-reports.mdx';
+import TransparencyGrantsFunding from '@/content/marketing/transparency/grants-funding.mdx';
+import TransparencyImpactMetrics from '@/content/marketing/transparency/impact-metrics.mdx';
+import TransparencyPolicies from '@/content/marketing/transparency/policies.mdx';
+import ParticipateJoinPilot from '@/content/marketing/participate/join-pilot.mdx';
+import ParticipatePartnerWithUs from '@/content/marketing/participate/partner-with-us.mdx';
+import ParticipateDonate from '@/content/marketing/participate/donate.mdx';
+import ParticipateNewsletter from '@/content/marketing/participate/newsletter.mdx';
+import ContactIndex from '@/content/marketing/contact/index.mdx';
 import SymbolsIndex from '@/content/marketing/symbols/index.mdx';
 import SymbolsGreatTreeOfPeace from '@/content/marketing/symbols/great-tree-of-peace.mdx';
 import SymbolsSpiritOf1776 from '@/content/marketing/symbols/spirit-of-1776.mdx';
@@ -25,6 +47,11 @@ import SymbolsThirteenArrows from '@/content/marketing/symbols/thirteen-arrows.m
 export const mdxComponents: Record<string, React.ComponentType> = {
   'about': AboutIndex,
   'about/funding': AboutFunding,
+  'about/mission-vision': AboutMissionVision,
+  'about/founding-story': AboutFoundingStory,
+  'about/team-advisors': AboutTeamAdvisors,
+  'about/governance-transparency': AboutGovernanceTransparency,
+  'about/partners-supporters': AboutPartnersSupporters,
   'declaration-of-civic-constitutional-assembly': Declaration,
   'instruments-of-power': InstrumentsOfPowerIndex,
   'instruments-of-power/constitutional-convention': InstrumentsOfPowerConstitutionalConvention,
@@ -36,6 +63,23 @@ export const mdxComponents: Record<string, React.ComponentType> = {
   'instruments-of-power/primaries': InstrumentsOfPowerPrimaries,
   'instruments-of-power/recall-elections': InstrumentsOfPowerRecallElections,
   'instruments-of-power/strikes': InstrumentsOfPowerStrikes,
+  'platform/how-it-works': PlatformHowItWorks,
+  'platform/technology-ethics': PlatformTechnologyEthics,
+  'platform/development-roadmap': PlatformDevelopmentRoadmap,
+  'platform/live-prototype': PlatformLivePrototype,
+  'platform/documentation': PlatformDocumentation,
+  'stories/people-places': StoriesPeoplePlaces,
+  'stories/multimedia-gallery': StoriesMultimediaGallery,
+  'stories/community-voices': StoriesCommunityVoices,
+  'transparency/financial-reports': TransparencyFinancialReports,
+  'transparency/grants-funding': TransparencyGrantsFunding,
+  'transparency/impact-metrics': TransparencyImpactMetrics,
+  'transparency/policies': TransparencyPolicies,
+  'participate/join-pilot': ParticipateJoinPilot,
+  'participate/partner-with-us': ParticipatePartnerWithUs,
+  'participate/donate': ParticipateDonate,
+  'participate/newsletter': ParticipateNewsletter,
+  'contact': ContactIndex,
   'symbols': SymbolsIndex,
   'symbols/great-tree-of-peace': SymbolsGreatTreeOfPeace,
   'symbols/spirit-of-1776': SymbolsSpiritOf1776,

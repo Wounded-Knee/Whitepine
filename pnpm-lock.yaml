@@ -200,9 +200,6 @@ importers:
       '@rjsf/validator-ajv8':
         specifier: ^5.24.13
         version: 5.24.13(@rjsf/utils@5.24.13(react@19.1.1))
-      '@stepperize/react':
-        specifier: ^5.1.9
-        version: 5.1.9(react@19.1.1)(typescript@5.9.2)
       '@types/d3':
         specifier: ^7.4.3
         version: 7.4.3
@@ -1970,16 +1967,6 @@ packages:
 
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
-
-  '@stepperize/core@1.2.7':
-    resolution: {integrity: sha512-XiUwLZ0XRAfaDK6AzWVgqvI/BcrylyplhUXKO8vzgRw0FTmyMKHAAbQLDvU//ZJAqnmG2cSLZDSkcwLxU5zSYA==}
-    peerDependencies:
-      typescript: '>=5.0.2'
-
-  '@stepperize/react@5.1.9':
-    resolution: {integrity: sha512-yBgw1I5Tx6/qZB4xTdVBaPGfTqH5aYS1WFB5vtR8+fwPeqd3YNuOnQ1pJM6w/xV/gvryuy31hbFw080lZc+/hw==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -8061,17 +8048,6 @@ snapshots:
   '@standard-schema/spec@1.0.0': {}
 
   '@standard-schema/utils@0.3.0': {}
-
-  '@stepperize/core@1.2.7(typescript@5.9.2)':
-    dependencies:
-      typescript: 5.9.2
-
-  '@stepperize/react@5.1.9(react@19.1.1)(typescript@5.9.2)':
-    dependencies:
-      '@stepperize/core': 1.2.7(typescript@5.9.2)
-      react: 19.1.1
-    transitivePeerDependencies:
-      - typescript
 
   '@swc/helpers@0.5.15':
     dependencies:

@@ -1,0 +1,492 @@
+name: Deploy (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: 'Deployment environment (production or development)'
+      domain:
+        required: true
+        type: string
+        description: 'Domain name for the deployment'
+      web_port:
+        required: true
+        type: string
+        description: 'Port for web application'
+      api_port:
+        required: true
+        type: string
+        description: 'Port for API application'
+      mongodb_uri_env:
+        required: true
+        type: string
+        description: 'Environment variable name for MongoDB URI (MONGODB_URI_PROD or MONGODB_URI_DEV)'
+      pm2_processes:
+        required: true
+        type: string
+        description: 'PM2 process names to start (e.g., web-prod,api-prod)'
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.15.0'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test SSH Connection
+        run: |
+          echo "🔧 Creating SSH key file..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          
+          echo "🔍 Creating test script to verify execution location and environment variables..."
+          cat > /tmp/test_location.sh << 'EOF'
+          #!/bin/bash
+          echo "🔍 TEST SCRIPT EXECUTION LOCATION:"
+          echo "=================================="
+          echo "Current working directory: $(pwd)"
+          echo "Hostname: $(hostname)"
+          echo "User: $(whoami)"
+          echo "Date: $(date)"
+          echo "Environment: $ENVIRONMENT"
+          echo "Available files in current directory:"
+          ls -la
+          echo "=================================="
+          echo "🔍 TESTING ENVIRONMENT VARIABLES:"
+          echo "=================================="
+          echo "MONGODB_URI_PROD: $MONGODB_URI_PROD"
+          echo "MONGODB_URI_DEV: $MONGODB_URI_DEV"
+          echo "SESSION_SECRET: $SESSION_SECRET"
+          echo "JWT_SECRET: $JWT_SECRET"
+          echo "GOOGLE_CLIENT_ID: $GOOGLE_CLIENT_ID"
+          echo "GOOGLE_CLIENT_SECRET: $GOOGLE_CLIENT_SECRET"
+          echo "S3_BUCKET: $S3_BUCKET"
+          echo "AWS_REGION: $AWS_REGION"
+          echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+          echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+          echo "=================================="
+          EOF
+          
+          chmod +x /tmp/test_location.sh
+          
+          echo "🔍 Uploading test script to server..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key /tmp/test_location.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/
+          
+          echo "🔍 Executing test script on server with environment variables..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "export MONGODB_URI_PROD='${{ secrets.MONGODB_URI_PROD }}'; export MONGODB_URI_DEV='${{ secrets.MONGODB_URI_DEV }}'; export SESSION_SECRET='${{ secrets.SESSION_SECRET }}'; export JWT_SECRET='${{ secrets.JWT_SECRET }}'; export GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'; export GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}'; export S3_BUCKET='${{ secrets.S3_BUCKET }}'; export AWS_REGION='${{ secrets.AWS_REGION }}'; export AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}'; export AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_SECRET_ACCESS_KEY }}'; /tmp/test_location.sh"
+          
+          echo "🔍 Test completed - check output above to verify script ran on server"
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build applications
+        run: pnpm build
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment-package
+          
+          # Copy web app build
+          cp -r apps/web/.next deployment-package/web-next
+          cp -r apps/web/public deployment-package/web-public
+          [ -d "apps/web/content" ] && cp -r apps/web/content deployment-package/web-content || echo "No content directory"
+          
+          # Copy API build
+          cp -r apps/api/dist deployment-package/api-dist
+          cp -r apps/api/migrations deployment-package/api-migrations
+          cp apps/api/config/migrate-mongo-config.cjs deployment-package/migrate-mongo-config.cjs
+          
+          # Generate pnpm lockfiles for deployment
+          echo "📦 Generating npm lockfiles for deployment..."
+          
+          # First, resolve workspace dependencies by reading the actual version from packages/types
+          echo "🔧 Resolving workspace dependencies..."
+          TYPES_VERSION=$(node -e "const pkg = JSON.parse(require('fs').readFileSync('packages/types/package.json', 'utf8')); console.log(pkg.version);")
+          echo "📝 Types package version: $TYPES_VERSION"
+          
+          # Create npm-compatible package.json files with resolved versions
+          echo "🔧 Creating npm-compatible package.json files..."
+          
+          # For web app
+          cd apps/web
+          cp package.json package.json.backup
+          node -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+            // Remove @whitepine/types dependency since it's a local workspace package
+            delete pkg.dependencies['@whitepine/types'];
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          cd ../..
+          pnpm install --prod --lockfile-only
+          cp pnpm-lock.yaml deployment-package/web-pnpm-lock.yaml
+          cp apps/web/package.json deployment-package/web-package.json
+          mv apps/web/package.json.backup apps/web/package.json
+          
+          # For API
+          cd apps/api
+          cp package.json package.json.backup
+          node -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+            // Remove @whitepine/types dependency since it's a local workspace package
+            delete pkg.dependencies['@whitepine/types'];
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+          cd ../..
+          pnpm install --prod --lockfile-only
+          cp pnpm-lock.yaml deployment-package/api-pnpm-lock.yaml
+          cp apps/api/package.json deployment-package/api-package.json
+          mv apps/api/package.json.backup apps/api/package.json
+          
+          # Copy ops configuration
+          cp -r apps/ops deployment-package/ops
+          
+          # Copy packages directory for monorepo workspace dependencies
+          echo "🔍 Debug: Checking packages directory structure..."
+          ls -la packages/ || echo "packages directory not found"
+          ls -la packages/types/ || echo "packages/types directory not found"
+          
+          mkdir -p deployment-package/packages/types
+          
+          # Copy files only if they exist
+          if [ -d "packages/types/src" ]; then
+            echo "🔍 Debug: Copying packages/types/src..."
+            cp -r packages/types/src deployment-package/packages/types/src
+          else
+            echo "⚠️ packages/types/src not found, skipping..."
+          fi
+          
+          if [ -d "packages/types/dist" ]; then
+            echo "🔍 Debug: Copying packages/types/dist..."
+            cp -r packages/types/dist deployment-package/packages/types/dist
+          else
+            echo "⚠️ packages/types/dist not found, skipping..."
+          fi
+          
+          if [ -f "packages/types/package.json" ]; then
+            echo "🔍 Debug: Copying packages/types/package.json..."
+            cp packages/types/package.json deployment-package/packages/types/package.json
+          else
+            echo "⚠️ packages/types/package.json not found, skipping..."
+          fi
+          
+          if [ -f "packages/types/tsconfig.json" ]; then
+            echo "🔍 Debug: Copying packages/types/tsconfig.json..."
+            cp packages/types/tsconfig.json deployment-package/packages/types/tsconfig.json
+          else
+            echo "⚠️ packages/types/tsconfig.json not found, skipping..."
+          fi
+          
+          # Web app is already built from the previous step
+          echo "✅ Web app already built, skipping rebuild step"
+          
+          # Fix any absolute paths in the built files
+          echo "🔧 Fixing absolute paths in built files..."
+          find deployment-package/web-next -name "*.js" -type f -exec sed -i 's|/var/www/whitepine/releases/[^/]*/web|/var/www/whitepine/current/web|g' {} \;
+          find deployment-package/web-next -name "*.json" -type f -exec sed -i 's|/var/www/whitepine/releases/[^/]*/web|/var/www/whitepine/current/web|g' {} \;
+          find deployment-package/web-next -name "*.js" -type f -exec sed -i 's|/home/runner/[^/]*/deployment-package/web-src|/var/www/whitepine/current/web|g' {} \;
+          find deployment-package/web-next -name "*.js" -type f -exec sed -i 's|/github/workspace/[^/]*/deployment-package/web-src|/var/www/whitepine/current/web|g' {} \;
+          
+          # Create deployment script
+          cat > deployment-package/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          ENVIRONMENT=${{ inputs.environment }}
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          RELEASE_DIR="/var/www/whitepine/releases/$TIMESTAMP"
+          CURRENT_DIR="/var/www/whitepine/current"
+          SHARED_DIR="/var/www/whitepine/shared"
+          
+          echo "🚀 Starting deployment for environment: $ENVIRONMENT"
+          echo "📦 Release directory: $RELEASE_DIR"
+          
+          # Create release directory
+          mkdir -p "$RELEASE_DIR"
+          
+          # Copy web app files
+          mkdir -p "$RELEASE_DIR/web"
+          cp -r web-next "$RELEASE_DIR/web/.next"
+          cp -r web-public "$RELEASE_DIR/web/public"
+          [ -d "web-content" ] && cp -r web-content "$RELEASE_DIR/web/content" || echo "No content directory"
+          cp web-package.json "$RELEASE_DIR/web/package.json"
+          cp web-pnpm-lock.yaml "$RELEASE_DIR/web/pnpm-lock.yaml"
+          
+          # Copy API files
+          mkdir -p "$RELEASE_DIR/api"
+          cp -r api-dist "$RELEASE_DIR/api/dist"
+          cp -r api-migrations "$RELEASE_DIR/api/migrations"
+          cp api-package.json "$RELEASE_DIR/api/package.json"
+          cp api-pnpm-lock.yaml "$RELEASE_DIR/api/pnpm-lock.yaml"
+          cp migrate-mongo-config.cjs "$RELEASE_DIR/api/migrate-mongo-config.cjs"
+          
+          # Copy packages
+          mkdir -p "$RELEASE_DIR/packages/types"
+          if [ -d "packages/types/src" ]; then
+            cp -r packages/types/src "$RELEASE_DIR/packages/types/src"
+          fi
+          if [ -d "packages/types/dist" ]; then
+            cp -r packages/types/dist "$RELEASE_DIR/packages/types/dist"
+          fi
+          if [ -f "packages/types/package.json" ]; then
+            cp packages/types/package.json "$RELEASE_DIR/packages/types/package.json"
+          fi
+          
+          # Copy ops
+          cp -r ops "$RELEASE_DIR/ops"
+          
+          # Install web app dependencies
+          cd "$RELEASE_DIR/web"
+          pnpm install --prod --frozen-lockfile=false
+          
+          # Create @whitepine/types symlink
+          if [ -d "$RELEASE_DIR/packages/types" ]; then
+            mkdir -p node_modules/@whitepine
+            cd node_modules/@whitepine
+            ln -sf ../../../packages/types types
+            cd ../..
+          fi
+          
+          # Install API dependencies
+          cd "$RELEASE_DIR/api"
+          pnpm install --prod --frozen-lockfile=false
+          
+          # Create environment file in shared directory
+          cat > "$SHARED_DIR/env/$ENVIRONMENT.env" << ENVEOF
+          NODE_ENV=production
+          BASE_URL=https://${{ inputs.domain }}
+          PORT_WEB=${{ inputs.web_port }}
+          PORT_API=${{ inputs.api_port }}
+          MONGODB_URI=\$MONGODB_URI
+          SESSION_SECRET=\$SESSION_SECRET
+          JWT_SECRET=\$JWT_SECRET
+          GOOGLE_CLIENT_ID=\$GOOGLE_CLIENT_ID
+          GOOGLE_CLIENT_SECRET=\$GOOGLE_CLIENT_SECRET
+          NEXTAUTH_URL=https://${{ inputs.domain }}
+          NEXTAUTH_SECRET=\$SESSION_SECRET
+          NEXT_PUBLIC_API_URL=/api
+          S3_BUCKET=\$S3_BUCKET
+          AWS_REGION=\$AWS_REGION
+          AWS_ACCESS_KEY_ID=\$AWS_ACCESS_KEY_ID
+          AWS_SECRET_ACCESS_KEY=\$AWS_SECRET_ACCESS_KEY
+          ENVEOF
+          
+          # Update current symlink
+          ln -sfn "$RELEASE_DIR" "$CURRENT_DIR"
+          
+          # Load environment variables
+          set -a
+          source "$SHARED_DIR/env/$ENVIRONMENT.env"
+          set +a
+          
+          # Stop existing services
+          pm2 stop ${{ inputs.pm2_processes }} 2>/dev/null || true
+          pm2 delete ${{ inputs.pm2_processes }} 2>/dev/null || true
+          
+          # Start services with environment variables loaded
+          pm2 start "$RELEASE_DIR/ops/config/ecosystem.config.cjs" --only ${{ inputs.pm2_processes }} --update-env
+          
+          # Clean up old releases (keep last 5)
+          echo "🧹 Cleaning up old releases..."
+          cd /var/www/whitepine/releases
+          ls -t | tail -n +6 | xargs -r rm -rf
+          
+          echo "🎉 ${{ inputs.environment }} deployment finished!"
+          EOF
+          
+          chmod +x deployment-package/deploy.sh
+
+      - name: Upload deployment package
+        run: |
+          echo "🔧 Creating SSH key file..."
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          
+          echo "🔧 Creating target directory structure on server..."
+          ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }} "
+            mkdir -p /tmp/deployment
+            mkdir -p /tmp/deployment/web-next
+            mkdir -p /tmp/deployment/web-next/static
+            mkdir -p /tmp/deployment/web-next/server
+            mkdir -p /tmp/deployment/web-next/cache
+            mkdir -p /tmp/deployment/web-next/diagnostics
+            mkdir -p /tmp/deployment/web-next/types
+            mkdir -p /tmp/deployment/web-public
+            mkdir -p /tmp/deployment/web-content
+            mkdir -p /tmp/deployment/api-dist
+            mkdir -p /tmp/deployment/api-migrations
+            mkdir -p /tmp/deployment/ops
+            echo '✅ Target directory structure created'
+            echo '🔍 Verifying directory structure:'
+            ls -la /tmp/deployment/
+            ls -la /tmp/deployment/web-next/
+          "
+          
+          echo "📦 Uploading deployment package files..."
+          echo "🔍 Checking web-next directory contents:"
+          ls -la deployment-package/web-next/
+          
+          # Upload web app files using rsync
+          if [ -d "deployment-package/web-next/static" ]; then
+            echo "📁 Uploading static directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/static/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/static/
+          fi
+          
+          if [ -d "deployment-package/web-next/standalone" ]; then
+            echo "📁 Uploading standalone directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/standalone/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/standalone/
+          fi
+          
+          if [ -d "deployment-package/web-next/server" ]; then
+            echo "📁 Uploading server directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/server/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/server/
+          fi
+          
+          if [ -d "deployment-package/web-next/cache" ]; then
+            echo "📁 Uploading cache directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/cache/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/cache/
+          fi
+          
+          if [ -d "deployment-package/web-next/diagnostics" ]; then
+            echo "📁 Uploading diagnostics directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/diagnostics/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/diagnostics/
+          fi
+          
+          if [ -d "deployment-package/web-next/types" ]; then
+            echo "📁 Uploading types directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-next/types/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/types/
+          fi
+          
+          # Upload any other files in web-next
+          echo "📁 Uploading other web-next files..."
+          find deployment-package/web-next -maxdepth 1 -type f -exec scp -o StrictHostKeyChecking=no -i /tmp/ssh_key {} ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-next/ \;
+          
+          # Upload web-public files
+          echo "📁 Uploading web-public files..."
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-public/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-public/
+          
+          # Upload web-content files (MDX content) if exists
+          if [ -d "deployment-package/web-content" ]; then
+            echo "📁 Uploading web-content files..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/web-content/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/web-content/
+          fi
+          
+          # Upload API files
+          echo "📁 Uploading API files..."
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/api-dist/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/api-dist/
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/api-migrations/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/api-migrations/
+          
+          # Upload ops files
+          echo "📁 Uploading ops files..."
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/ops/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/ops/
+          
+          # Upload package files
+          echo "📁 Uploading package files..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/web-package.json ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/web-pnpm-lock.yaml ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/api-package.json ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/api-pnpm-lock.yaml ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/migrate-mongo-config.cjs ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          
+          # Upload packages directory if it exists
+          if [ -d "deployment-package/packages" ]; then
+            echo "📁 Uploading packages directory..."
+            rsync -avz -e "ssh -o StrictHostKeyChecking=no -i /tmp/ssh_key" deployment-package/packages/ ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/packages/
+          fi
+          
+          # Upload deployment script
+          echo "📁 Uploading deployment script..."
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key deployment-package/deploy.sh ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/tmp/deployment/
+          
+          echo "✅ Upload completed successfully"
+
+      - name: Execute deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Set environment variables from GitHub secrets
+            export MONGODB_URI_PROD="${{ secrets.MONGODB_URI_PROD }}"
+            export MONGODB_URI_DEV="${{ secrets.MONGODB_URI_DEV }}"
+            export MONGODB_URI="${{ secrets[inputs.mongodb_uri_env] }}"
+            export SESSION_SECRET="${{ secrets.SESSION_SECRET }}"
+            export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+            export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+            export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+            export S3_BUCKET="${{ secrets.S3_BUCKET }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            
+            echo "🔍 Checking deployment directory contents:"
+            ls -la /tmp/deployment/
+            echo "📁 Current directory: $(pwd)"
+            
+            # Execute the deployment script
+            echo "🚀 Executing deployment script..."
+            cd /tmp/deployment
+            chmod +x deploy.sh
+            echo "🔍 Debug: Executing deploy.sh..."
+            ./deploy.sh
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 30s
+          script: |
+            echo "📊 PM2 Status:"
+            pm2 status
+            
+            echo "🌐 Testing endpoints:"
+            timeout 10 curl -f -s "https://${{ inputs.domain }}/" > /dev/null && echo "✅ Web app is responding" || echo "⚠️ Web app health check failed"
+            timeout 10 curl -f -s "https://${{ inputs.domain }}/api/healthz" > /dev/null && echo "✅ API is responding" || echo "⚠️ API health check failed"
+            
+            echo "🔍 Recent logs:"
+            timeout 5 pm2 logs --lines 10 --nostream || echo "✅ Deployment complete (logs unavailable)"
+

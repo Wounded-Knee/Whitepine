@@ -16,7 +16,8 @@
     "env:sync": "npx envsyncer",
     "typecheck": "pnpm --recursive typecheck",
     "lint": "pnpm --recursive lint",
-    "test": "pnpm --recursive test",
+    "test": "pnpm typecheck && pnpm lint && pnpm --recursive test",
+    "test:only": "pnpm --recursive test",
     "db": "cd apps/api && node scripts/db-connect.js",
     "install-hooks": "./scripts/install-hooks.sh",
     "postinstall": "pnpm install-hooks"

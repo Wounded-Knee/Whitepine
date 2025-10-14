@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
       description: post.description,
       type: 'article',
       publishedTime: post.date,
-      authors: post.author ? [post.author] : undefined,
+      authors: post.author ? [{ id: post.author, name: post.author }] : undefined,
       tags: post.tags,
     },
   };
@@ -62,9 +62,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <article className="max-w-4xl mx-auto">
         <header className="mb-12 border-b border-border pb-8">
           <h1 
-            className="font-semibold text-foreground mb-6 text-balance"
+            className="font-medium text-foreground mb-6 text-balance"
             style={{ 
-              fontFamily: 'var(--font-manrope)',
+              fontFamily: 'var(--font-ubuntu)',
               fontSize: 'var(--font-size-5xl)', 
               lineHeight: 'var(--line-height-tight)', 
               letterSpacing: 'var(--letter-spacing-tight)' 

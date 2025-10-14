@@ -8,9 +8,9 @@ export default function BlogPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <h1 
-        className="font-semibold text-foreground mb-12 text-balance"
+        className="font-medium text-foreground mb-12 text-balance"
         style={{ 
-          fontFamily: 'var(--font-manrope)',
+          fontFamily: 'var(--font-ubuntu)',
           fontSize: 'var(--font-size-5xl)', 
           lineHeight: 'var(--line-height-tight)', 
           letterSpacing: 'var(--letter-spacing-tight)' 
@@ -26,9 +26,9 @@ export default function BlogPage() {
             className="bg-card rounded-lg border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all"
           >
             <h2 
-              className="font-medium text-card-foreground mb-3"
+              className="font-normal text-card-foreground mb-3"
               style={{ 
-                fontFamily: 'var(--font-manrope)',
+                fontFamily: 'var(--font-ubuntu)',
                 fontSize: 'var(--font-size-2xl)', 
                 lineHeight: 'var(--line-height-snug)' 
               }}

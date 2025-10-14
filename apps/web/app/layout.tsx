@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ClientNavigation } from '@/components/client-navigation';
-import { inter, manrope, jetbrainsMono } from './fonts';
+import { ConditionalFooter } from '@/components/ConditionalFooter';
+import { inter, ubuntu, jetbrainsMono } from './fonts';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -26,12 +27,13 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <div className="min-h-screen bg-background">
+      <body className={`${inter.variable} ${ubuntu.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+        <div className="min-h-screen bg-background flex flex-col">
           <ClientNavigation session={session} />
-          <main className="container max-w-screen-2xl px-6 py-6 mx-auto">
+          <main className="container max-w-screen-2xl px-6 py-6 mx-auto flex-grow">
             {children}
           </main>
+          <ConditionalFooter />
         </div>
       </body>
     </html>

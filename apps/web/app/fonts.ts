@@ -1,4 +1,4 @@
-import { Inter, Manrope, JetBrains_Mono } from 'next/font/google';
+import { Inter, Ubuntu, JetBrains_Mono } from 'next/font/google';
 
 // Body font - Inter with variable font support
 export const inter = Inter({ 
@@ -7,12 +7,12 @@ export const inter = Inter({
   display: 'swap',
 });
 
-// Display font for headings - Manrope for modern, clean aesthetics
-export const manrope = Manrope({ 
+// Display font for headings - Ubuntu for modern, humanist aesthetics
+export const ubuntu = Ubuntu({ 
   subsets: ['latin'],
-  variable: '--font-manrope',
+  variable: '--font-ubuntu',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['300', '400', '500'],
 });
 
 // Monospace font for code

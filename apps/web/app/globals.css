@@ -174,7 +174,7 @@
   
   :root {
     /* Map Next.js font variables to semantic names */
-    --font-family-heading: var(--font-manrope);
+    --font-family-heading: var(--font-ubuntu);
   }
   
   body {
@@ -190,8 +190,8 @@
   
   /* Typography hierarchy */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-manrope);
-    font-weight: 500;
+    font-family: var(--font-ubuntu);
+    font-weight: 400;
     line-height: var(--line-height-tight);
     letter-spacing: var(--letter-spacing-tight);
     color: hsl(var(--foreground));
@@ -211,25 +211,25 @@
   h3 {
     font-size: var(--font-size-3xl);
     margin-top: 1.5em;
-    font-weight: 600;
+    font-weight: 500;
   }
   
   h4 {
     font-size: var(--font-size-2xl);
     margin-top: 1.5em;
-    font-weight: 600;
+    font-weight: 500;
   }
   
   h5 {
     font-size: var(--font-size-xl);
     margin-top: 1.5em;
-    font-weight: 600;
+    font-weight: 500;
   }
   
   h6 {
     font-size: var(--font-size-lg);
     margin-top: 1.5em;
-    font-weight: 600;
+    font-weight: 500;
   }
   
   p {
@@ -238,7 +238,7 @@
   }
   
   strong, b {
-    font-weight: 600;
+    font-weight: 500;
   }
   
   em, i {
@@ -262,8 +262,8 @@
   
   .prose h1 {
     font-size: var(--font-size-4xl);
-    font-family: var(--font-manrope);
-    font-weight: 600;
+    font-family: var(--font-ubuntu);
+    font-weight: 500;
     line-height: var(--line-height-tight);
     letter-spacing: var(--letter-spacing-tight);
     margin-top: 0;
@@ -272,8 +272,8 @@
   
   .prose h2 {
     font-size: var(--font-size-3xl);
-    font-family: var(--font-manrope);
-    font-weight: 600;
+    font-family: var(--font-ubuntu);
+    font-weight: 500;
     line-height: var(--line-height-snug);
     letter-spacing: var(--letter-spacing-tight);
     margin-top: 2em;
@@ -282,8 +282,8 @@
   
   .prose h3 {
     font-size: var(--font-size-2xl);
-    font-family: var(--font-manrope);
-    font-weight: 500;
+    font-family: var(--font-ubuntu);
+    font-weight: 400;
     line-height: var(--line-height-snug);
     margin-top: 1.75em;
     margin-bottom: 0.5em;
@@ -291,7 +291,7 @@
   
   .prose h4 {
     font-size: var(--font-size-xl);
-    font-weight: 600;
+    font-weight: 500;
     margin-top: 1.5em;
     margin-bottom: 0.5em;
   }
@@ -314,7 +314,7 @@
   }
   
   .prose strong {
-    font-weight: 600;
+    font-weight: 500;
     color: hsl(var(--foreground));
   }
   
@@ -368,7 +368,7 @@
   
   .prose ol > li::marker {
     color: hsl(var(--primary));
-    font-weight: 600;
+    font-weight: 500;
   }
   
   .prose blockquote {
