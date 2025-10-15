@@ -41,6 +41,20 @@ export function setupRoutes(app: express.Application): void {
     res.json({ message: 'This is a public route' });
   });
 
+  // User count endpoint (public)
+  apiRouter.get('/users/count', async (req, res) => {
+    try {
+      const { model: BaseNodeModel } = await import('../models/BaseNode.js');
+      const count = await BaseNodeModel.countDocuments({ 
+        kind: 'user', 
+        deletedAt: null 
+      });
+      res.json({ count });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Development test route for node creation (bypasses auth)
   if (process.env.NODE_ENV === 'development') {
     apiRouter.post('/test/create-node', async (req, res) => {

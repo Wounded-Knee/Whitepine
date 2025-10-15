@@ -34,6 +34,7 @@ import TransparencyGrantsFunding from '@/content/marketing/transparency/grants-f
 import TransparencyImpactMetrics from '@/content/marketing/transparency/impact-metrics.mdx';
 import TransparencyPolicies from '@/content/marketing/transparency/policies.mdx';
 import ParticipateJoinPilot from '@/content/marketing/participate/join-pilot.mdx';
+import ParticipateHokaHey from '@/content/marketing/participate/hoka-hey/index.mdx';
 import ParticipatePartnerWithUs from '@/content/marketing/participate/partner-with-us.mdx';
 import ParticipateDonate from '@/content/marketing/participate/donate.mdx';
 import ParticipateNewsletter from '@/content/marketing/participate/newsletter.mdx';
@@ -76,6 +77,7 @@ export const mdxComponents: Record<string, React.ComponentType> = {
   'transparency/impact-metrics': TransparencyImpactMetrics,
   'transparency/policies': TransparencyPolicies,
   'participate/join-pilot': ParticipateJoinPilot,
+  'participate/hoka-hey': ParticipateHokaHey,
   'participate/partner-with-us': ParticipatePartnerWithUs,
   'participate/donate': ParticipateDonate,
   'participate/newsletter': ParticipateNewsletter,

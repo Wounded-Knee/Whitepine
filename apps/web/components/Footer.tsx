@@ -119,7 +119,7 @@ export function Footer() {
             <h3 className="font-semibold text-lg mb-4">Participate</h3>
             <ul className="space-y-2 mb-6">
               <li>
-                <Link href="/marketing/participate/join-pilot" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link href="/marketing/participate/hoka-hey" className="text-muted-foreground hover:text-foreground transition-colors">
                   Join the Pilot
                 </Link>
               </li>

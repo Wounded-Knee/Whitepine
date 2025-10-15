@@ -1,0 +1,142 @@
+---
+title: "You're invited to stand at the edge of history"
+subject: "⚡ You're invited to stand at the edge of history"
+type: "invitation"
+campaign: "hoka-hey"
+---
+
+import ConditionalOutput from './ConditionalOutput';
+import PyramidCounter from '@/components/PyramidCounter';
+
+# ⚡ You're invited to stand at the edge of history
+
+Hey crew —
+
+Something real is happening.
+
+In **six months**, we're hosting the first **collective interview with the President of the United States** — a live event where **millions of citizens help guide the questions in real time** through our new civic platform, **Whitepine**.
+
+We've built **clever, cutting-edge software** to make it possible — and before the world sees it, we're inviting a handful of early voices to preview it and stand at the front of the movement.
+
+All we're asking right now is simple:
+
+✅ **Sign the support pledge** — say *"Let's do it."*  
+✅ **Share that you did.**
+
+No newsletters.  
+No donations.  
+No spam.  
+Just your name and your stand.
+
+If you consent, we'll **honor you by name** as one of the first 100 — the **Tier Alpha Founders** — when this goes live before the nation.
+
+This is history in motion.
+
+You were invited because your voice carries truth and fire.
+
+<PyramidCounter 
+  commentaryRanges={[
+    { 
+      min: 0, 
+      max: 100, 
+      content: (
+        <div>
+          <p className="text-lg font-semibold">The first 100 voices.</p>
+          <p>You're among the founding few. This is where legends begin.</p>
+        </div>
+      )
+    },
+    { 
+      min: 101, 
+      max: 1000, 
+      content: (
+        <div>
+          <p className="text-lg font-semibold">Breaking into the first thousand.</p>
+          <p>The movement is taking shape. The nation is starting to listen.</p>
+        </div>
+      )
+    },
+    { 
+      min: 1001, 
+      max: 10000, 
+      content: (
+        <div>
+          <p className="text-lg font-semibold">Ten thousand voices strong!</p>
+          <p>This isn't a whisper anymore. This is a chorus.</p>
+        </div>
+      )
+    },
+    { 
+      min: 10001, 
+      max: 100000, 
+      content: (
+        <div>
+          <p className="text-lg font-semibold">A hundred thousand citizens standing together.</p>
+          <p>The establishment is watching. They know something has changed.</p>
+        </div>
+      )
+    },
+    { 
+      min: 100001, 
+      max: 1000000, 
+      content: (
+        <div>
+          <p className="text-lg font-semibold">We are the million.</p>
+          <p>History will remember this moment. You were here.</p>
+        </div>
+      )
+    }
+  ]}
+/>
+
+If you want to read more, by all means...
+
+<ConditionalOutput 
+  buttons={[
+    {
+      id: 'read-more',
+      button: 'Read more!',
+      content: (
+        <>
+          <h2>The Full Story</h2>
+
+          <p>Here's what we're <strong>really</strong> building:</p>
+
+          <p>In six months, we're hosting a <strong>live, televised interview</strong> with the President of the United States — but not like anything you've seen before.</p>
+
+          <p>This isn't a journalist asking questions.<br />
+          This isn't a town hall with pre-screened participants.</p>
+
+          <p><strong>This is the entire nation, speaking as one.</strong></p>
+
+          <p>Through Whitepine's platform:</p>
+          <ul>
+            <li><strong>Millions of citizens</strong> can submit questions in real time</li>
+            <li>Our <strong>AI-powered consensus engine</strong> surfaces the most important voices</li>
+            <li>The <strong>questions that matter most</strong> rise to the top</li>
+            <li>The President answers <strong>directly to the people</strong></li>
+          </ul>
+
+          <p>We're building the future of democratic dialogue.</p>
+
+          <p>And we need <strong>100 founding voices</strong> to stand with us before we announce to the world.</p>
+
+          <p>Will you be one of them?</p>
+        </>
+      )
+    },
+    {
+      id: 'pass',
+      button: "I'm done.",
+      content: (
+        <div className="text-center py-8">
+          <p className="text-lg">No worries. The door stays open.</p>
+          <p className="text-muted-foreground mt-2">
+            If you change your mind, you know where to find us.
+          </p>
+        </div>
+      )
+    }
+  ]}
+/>
+
