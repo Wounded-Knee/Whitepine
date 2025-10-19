@@ -1,153 +1,122 @@
 import Link from 'next/link';
 
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+interface FooterColumn {
+  sections: FooterSection[];
+}
+
+const footerMenu: FooterColumn[] = [
+  {
+    sections: [
+      {
+        title: 'About',
+        links: [
+          { label: 'Mission & Vision', href: '/marketing/about/mission-vision' },
+          { label: 'Founding Story', href: '/marketing/about/founding-story' },
+          { label: 'Team & Advisors', href: '/marketing/about/team-advisors' },
+          { label: 'Governance & Transparency', href: '/marketing/about/governance-transparency' },
+          { label: 'Partners & Supporters', href: '/marketing/about/partners-supporters' },
+        ],
+      },
+    ],
+  },
+  {
+    sections: [
+      {
+        title: 'Platform',
+        links: [
+          { label: 'How It Works', href: '/marketing/platform/how-it-works' },
+          { label: 'Technology & Ethics', href: '/marketing/platform/technology-ethics' },
+          { label: 'Development Roadmap', href: '/marketing/platform/development-roadmap' },
+          // { label: 'Live Prototype', href: '/marketing/platform/live-prototype' },
+          // { label: 'Documentation', href: '/marketing/platform/documentation' },
+        ],
+      },
+    ],
+  },
+  {
+    sections: [
+      // {
+      //   title: 'Stories',
+      //   links: [
+      //     { label: 'People & Places', href: '/marketing/stories/people-places' },
+      //     { label: 'Multimedia Gallery', href: '/marketing/stories/multimedia-gallery' },
+      //     { label: 'Community Voices', href: '/marketing/stories/community-voices' },
+      //   ],
+      // },
+      {
+        title: 'Transparency',
+        links: [
+          // { label: 'Financial Reports', href: '/marketing/transparency/financial-reports' },
+          // { label: 'Grants & Funding', href: '/marketing/transparency/grants-funding' },
+          // { label: 'Impact Metrics', href: '/marketing/transparency/impact-metrics' },
+          { label: 'Policies', href: '/marketing/transparency/policies' },
+        ],
+      },
+    ],
+  },
+  {
+    sections: [
+      {
+        title: 'Participate',
+        links: [
+          { label: 'Join the Pilot', href: '/marketing/participate/hoka-hey' },
+          // { label: 'Partner with Us', href: '/marketing/participate/partner-with-us' },
+          // { label: 'Donate', href: '/marketing/participate/donate' },
+          // { label: 'Newsletter', href: '/marketing/participate/newsletter' },
+        ],
+      },
+      {
+        title: 'Contact',
+        links: [
+          { label: 'Get in Touch', href: '/marketing/contact' },
+        ],
+      },
+    ],
+  },
+];
+
+const bottomLinks: FooterLink[] = [
+  { label: 'About', href: '/marketing/about' },
+  { label: 'Privacy', href: '/marketing/transparency/policies' },
+  { label: 'Contact', href: '/marketing/contact' },
+];
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-muted/30 mt-20">
       <div className="container max-w-screen-2xl px-6 py-12 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Column 1: About */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">About</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/marketing/about/mission-vision" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Mission & Vision
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/about/founding-story" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Founding Story
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/about/team-advisors" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Team & Advisors
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/about/governance-transparency" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Governance & Transparency
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/about/partners-supporters" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Partners & Supporters
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 2: Platform */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Platform</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/marketing/platform/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-                  How It Works
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/platform/technology-ethics" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Technology & Ethics
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/platform/development-roadmap" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Development Roadmap
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/platform/live-prototype" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Live Prototype
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/platform/documentation" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Documentation
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Stories + Transparency */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Stories</h3>
-            <ul className="space-y-2 mb-6">
-              <li>
-                <Link href="/marketing/stories/people-places" className="text-muted-foreground hover:text-foreground transition-colors">
-                  People & Places
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/stories/multimedia-gallery" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Multimedia Gallery
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/stories/community-voices" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Community Voices
-                </Link>
-              </li>
-            </ul>
-            <h3 className="font-semibold text-lg mb-4">Transparency</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/marketing/transparency/financial-reports" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Financial Reports
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/transparency/grants-funding" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Grants & Funding
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/transparency/impact-metrics" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Impact Metrics
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/transparency/policies" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Policies
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Participate + Contact */}
-          <div>
-            <h3 className="font-semibold text-lg mb-4">Participate</h3>
-            <ul className="space-y-2 mb-6">
-              <li>
-                <Link href="/marketing/participate/hoka-hey" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Join the Pilot
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/participate/partner-with-us" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Partner with Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/participate/donate" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Donate
-                </Link>
-              </li>
-              <li>
-                <Link href="/marketing/participate/newsletter" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Newsletter
-                </Link>
-              </li>
-            </ul>
-            <h3 className="font-semibold text-lg mb-4">Contact</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/marketing/contact" className="text-muted-foreground hover:text-foreground transition-colors">
-                  Get in Touch
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {footerMenu.map((column, columnIndex) => (
+            <div key={columnIndex}>
+              {column.sections.map((section, sectionIndex) => (
+                <div key={section.title} className={sectionIndex > 0 ? 'mt-6' : ''}>
+                  <h3 className="font-semibold text-lg mb-4">{section.title}</h3>
+                  <ul className="space-y-2">
+                    {section.links.map((link) => (
+                      <li key={link.href}>
+                        <Link 
+                          href={link.href as any}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
 
         {/* Bottom row */}
@@ -156,15 +125,15 @@ export function Footer() {
             © {new Date().getFullYear()} Whitepine. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="/marketing/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </Link>
-            <Link href="/marketing/transparency/policies" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Privacy
-            </Link>
-            <Link href="/marketing/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Contact
-            </Link>
+            {bottomLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href as any}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>
