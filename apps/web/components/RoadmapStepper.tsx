@@ -73,7 +73,7 @@ export function RoadmapStepper() {
             return (
               <li 
                 key={stage.name} 
-                className={`ms-8 ${!isLast ? 'mb-10' : ''}`}
+                className={`ms-8 ${!isLast ? 'mb-12' : ''}`}
                 aria-current={isActive ? 'step' : undefined}
               >
                 {/* Circle with number or checkmark */}
@@ -108,6 +108,18 @@ export function RoadmapStepper() {
                   {stage.name}
                 </h3>
 
+                {/* Metadata badges */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    {stage.timeline}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                    {stage.trl}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    {stage.funding}
+                  </span>
+                </div>
                 {/* Step description */}
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {stage.description}
@@ -120,7 +132,7 @@ export function RoadmapStepper() {
 
       {/* Stage Details */}
       <div className="mt-8 text-sm text-muted-foreground text-center">
-        Step {currentIndex + 1} of {ROADMAP_STAGES.length}
+        Quarter {currentIndex + 1} of {ROADMAP_STAGES.length} • Total Budget: $120,000
       </div>
     </div>
   );

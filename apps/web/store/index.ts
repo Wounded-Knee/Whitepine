@@ -111,8 +111,10 @@ export const store = configureStore({
 // Create persistor
 export const persistor = persistStore(store);
 
-// Log DevTools status in development
-logDevToolsStatus();
+// Log DevTools status in development (only on client side)
+if (typeof window !== 'undefined') {
+  logDevToolsStatus();
+}
 
 // Export typed hooks
 export type RootState = ReturnType<typeof store.getState>;
