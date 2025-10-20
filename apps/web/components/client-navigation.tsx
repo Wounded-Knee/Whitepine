@@ -261,9 +261,9 @@ export function ClientNavigation({ session }: ClientNavigationProps) {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="pr-0">
+            <SheetContent side="left" className="pr-0 flex flex-col">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <div className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-4 overflow-y-auto flex-1 pr-6">
                 <Link 
                   className="flex items-center space-x-2" 
                   style={{ animation: 'var(--animate-slide-in-left)' }}
