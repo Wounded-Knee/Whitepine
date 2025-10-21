@@ -18,7 +18,7 @@ export interface NodeIdEncodingConfig {
  * Key: Node type (discriminator value from your node types)
  * Value: Array of field names that contain ObjectIDs and should be encoded
  */
-export const CUSTOM_NODE_ID_CONFIG: NodeIdEncodingConfig = {
+const CUSTOM_NODE_ID_CONFIG: NodeIdEncodingConfig = {
   // Wildcard configuration - applies to all nodes that don't have specific config
   '*': ['_id'],
   
@@ -47,57 +47,3 @@ export const CUSTOM_NODE_ID_CONFIG: NodeIdEncodingConfig = {
   // 'category': ['_id', 'parentId'],
   // 'tag': ['_id'],
 };
-
-/**
- * Helper function to create a custom configuration
- * @param baseConfig - Base configuration to extend
- * @param customConfig - Custom overrides
- * @returns Merged configuration
- */
-export function createNodeIdConfig(
-  baseConfig: NodeIdEncodingConfig = {},
-  customConfig: NodeIdEncodingConfig = {}
-): NodeIdEncodingConfig {
-  return {
-    ...baseConfig,
-    ...customConfig,
-  };
-}
-
-/**
- * Helper function to add fields to a specific node type
- * @param config - Existing configuration
- * @param nodeType - Node type to modify
- * @param fields - Fields to add
- * @returns New configuration with added fields
- */
-export function addFieldsToNodeType(
-  config: NodeIdEncodingConfig,
-  nodeType: string,
-  fields: string[]
-): NodeIdEncodingConfig {
-  const existingFields = config[nodeType] || [];
-  return {
-    ...config,
-    [nodeType]: [...new Set([...existingFields, ...fields])], // Remove duplicates
-  };
-}
-
-/**
- * Helper function to remove fields from a specific node type
- * @param config - Existing configuration
- * @param nodeType - Node type to modify
- * @param fields - Fields to remove
- * @returns New configuration with removed fields
- */
-export function removeFieldsFromNodeType(
-  config: NodeIdEncodingConfig,
-  nodeType: string,
-  fields: string[]
-): NodeIdEncodingConfig {
-  const existingFields = config[nodeType] || [];
-  return {
-    ...config,
-    [nodeType]: existingFields.filter(field => !fields.includes(field)),
-  };
-}

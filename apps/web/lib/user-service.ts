@@ -102,15 +102,3 @@ export async function findUserById(id: string): Promise<UserNode | null> {
     deletedAt: null
   }) as UserNode | null
 }
-
-export async function findUserByEmail(email: string): Promise<UserNode | null> {
-  const client = await getMongoClient()
-  const db = client.db('whitepine')
-  const collection = db.collection<UserNode>('users')
-  
-  return await collection.findOne({
-    email: email.toLowerCase(),
-    kind: NODE_TYPES.USER,
-    deletedAt: null
-  }) as UserNode | null
-}

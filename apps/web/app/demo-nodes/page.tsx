@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAppDispatch } from '@web/store/hooks';
-import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
+import { fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
-import { NODE_TYPES } from '@whitepine/types';
 import { ExternalLink, Database, Plus, Users, FileText, Package } from 'lucide-react';
-import { CreateSampleNodeDialog, type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
+import CreateSampleNodeDialog, { type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
 import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeView';
 
 export default function NodeViewDemo() {
@@ -22,53 +21,30 @@ export default function NodeViewDemo() {
   // Dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  
-  // State for isolated PostNodes
-  const [isolatedPostNodes, setIsolatedPostNodes] = useState<any[]>([]);
-  const [isLoadingIsolatedPosts, setIsLoadingIsolatedPosts] = useState(false);
-  const [isolatedPostsError, setIsolatedPostsError] = useState<string | null>(null);
-  
-  // State for creating new PostNodes
-  const [newPostContent, setNewPostContent] = useState('');
-  const [isCreatingPost, setIsCreatingPost] = useState(false);
-  const [createPostError, setCreatePostError] = useState<string | null>(null);
 
   // Function to fetch isolated PostNodes
   const fetchIsolatedPostNodes = async () => {
     try {
-      setIsLoadingIsolatedPosts(true);
-      setIsolatedPostsError(null);
       const posts = await apiClient.getIsolatedPostNodes();
-      setIsolatedPostNodes(posts);
+      console.log('Fetched isolated posts:', posts);
     } catch (error: any) {
-      setIsolatedPostsError(error.message || 'Failed to fetch isolated posts');
       console.error('Error fetching isolated posts:', error);
-    } finally {
-      setIsLoadingIsolatedPosts(false);
     }
   };
 
-  // Function to create a new PostNode
+  // Function to create a new PostNode  
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPostContent.trim()) return;
 
     try {
-      setIsCreatingPost(true);
-      setCreatePostError(null);
-      
-      const newPost = await apiClient.createPostNode(newPostContent.trim());
-      setNewPostContent('');
+      const newPost = await apiClient.createPostNode('Sample post content');
       
       // Refresh the list of isolated posts
       await fetchIsolatedPostNodes();
       
       console.log('Created new post:', newPost);
     } catch (error: any) {
-      setCreatePostError(error.message || 'Failed to create post');
       console.error('Error creating post:', error);
-    } finally {
-      setIsCreatingPost(false);
     }
   };
 

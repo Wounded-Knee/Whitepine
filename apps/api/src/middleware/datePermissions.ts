@@ -43,20 +43,3 @@ function getOrdinalSuffix(day: number): string {
 export const isWritePermitted = (): boolean => {
   return true;
 };
-
-/**
- * Get the next date when write operations will be permitted
- */
-export const getNextWritePermissionDate = (): Date => {
-  const today = new Date();
-  const currentDay = today.getDate();
-  
-  if (currentDay < 15) {
-    // Next 15th is this month
-    return new Date(today.getFullYear(), today.getMonth(), 15);
-  } else {
-    // Next 15th is next month
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 15);
-    return nextMonth;
-  }
-};

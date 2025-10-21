@@ -146,7 +146,7 @@ const UserNodeCreateForm: React.FC<UserNodeCreateFormProps> = ({ onSuccess, clas
  * @param className - Optional CSS class name for styling
  * @param children - Render prop function that receives (node, isLoading, error)
  */
-export const UserNodeView: React.FC<UserNodeViewProps> = ({
+const UserNodeView: React.FC<UserNodeViewProps> = ({
   nodeId,
   className,
   children,

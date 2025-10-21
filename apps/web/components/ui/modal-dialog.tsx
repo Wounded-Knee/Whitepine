@@ -26,7 +26,7 @@ const sizeClasses = {
   full: "max-w-[95vw] max-h-[95vh]"
 };
 
-export const ModalDialog: React.FC<ModalDialogProps> = ({
+const ModalDialog: React.FC<ModalDialogProps> = ({
   isOpen,
   onClose,
   title,

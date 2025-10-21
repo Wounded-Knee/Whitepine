@@ -160,30 +160,8 @@ const cacheSlice = createSlice({
 });
 
 export const {
-  setLastFetched,
-  setLastFetchedMultiple,
-  clearLastFetched,
-  clearAllLastFetched,
-  setCacheKey,
-  setCacheKeys,
-  clearCacheKey,
-  clearAllCacheKeys,
-  setTimeBasedRule,
-  setTimeBasedRules,
-  clearTimeBasedRule,
-  clearAllTimeBasedRules,
-  setActionBasedRule,
-  addActionBasedRule,
-  removeActionBasedRule,
-  clearActionBasedRule,
-  clearAllActionBasedRules,
-  setMetadata,
-  setMetadataMultiple,
-  clearMetadata,
-  clearAllMetadata,
   invalidateCache,
   invalidateAllCache,
-  resetCache,
 } = cacheSlice.actions;
 
 export default cacheSlice.reducer;

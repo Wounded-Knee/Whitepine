@@ -30,7 +30,7 @@ export interface RelationshipSuggestionsProps {
  * Component that suggests potential relationships for a node
  * and allows users to create related nodes with synapses
  */
-export const RelationshipSuggestions: React.FC<RelationshipSuggestionsProps> = ({
+const RelationshipSuggestions: React.FC<RelationshipSuggestionsProps> = ({
   node,
   relationshipConfigs,
   onCreateRelationship,

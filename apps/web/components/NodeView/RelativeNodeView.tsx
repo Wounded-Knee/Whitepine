@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { UserNodeView } from './UserNodeView';
-import { PostNodeView } from './PostNodeView';
-import { BaseNodeView } from './BaseNode';
+import UserNodeView from './UserNodeView';
+import PostNodeView from './PostNodeView';
+import BaseNodeView from './BaseNode';
 import { Button } from '@web/components/ui/button';
 import { NODE_TYPES } from '@whitepine/types';
 import type { BaseNode } from '@whitepine/types';
@@ -19,7 +19,7 @@ export interface RelativeNodeViewProps {
  * Component that renders a relative node using the appropriate NodeView
  * based on its discriminator type (UserNode, PostNode, etc.)
  */
-export const RelativeNodeView: React.FC<RelativeNodeViewProps> = ({
+const RelativeNodeView: React.FC<RelativeNodeViewProps> = ({
   relative,
   className,
   compact = false,

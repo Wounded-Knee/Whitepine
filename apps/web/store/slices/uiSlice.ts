@@ -138,22 +138,12 @@ const uiSlice = createSlice({
 export const {
   selectNode,
   deselectNode,
-  selectNodes,
-  deselectNodes,
   clearSelection,
-  toggleNodeSelection,
   setFilter,
-  setFilters,
-  clearFilters,
   setSortOptions,
-  toggleSortDirection,
-  setLoading,
-  setOperationLoading,
-  clearLoading,
   setError,
   clearError,
   setViewMode,
-  resetUI,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

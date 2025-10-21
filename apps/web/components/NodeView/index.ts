@@ -1,11 +1,11 @@
-export { BaseNodeView, default as BaseNodeViewDefault } from './BaseNode';
+export { default as BaseNodeView } from './BaseNode';
 export type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
 
-export { UserNodeView, default as UserNodeViewDefault } from './UserNodeView';
+export { default as UserNodeView } from './UserNodeView';
 export type { UserNodeViewProps } from './UserNodeView';
 
-export { PostNodeView, default as PostNodeViewDefault } from './PostNodeView';
+export { default as PostNodeView } from './PostNodeView';
 export type { PostNodeViewProps } from './PostNodeView';
 
-export { RelativeNodeView, default as RelativeNodeViewDefault } from './RelativeNodeView';
+export { default as RelativeNodeView } from './RelativeNodeView';
 export type { RelativeNodeViewProps } from './RelativeNodeView';

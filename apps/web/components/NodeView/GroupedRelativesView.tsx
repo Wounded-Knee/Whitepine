@@ -4,7 +4,7 @@ import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@web/components/ui/collapsible';
 import { Button } from '@web/components/ui/button';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { RelativeNodeView } from './RelativeNodeView';
+import RelativeNodeView from './RelativeNodeView';
 
 interface GroupedRelativesViewProps {
   relatives: any[];
@@ -16,7 +16,7 @@ interface GroupedRelativesViewProps {
  * Component that groups relatives by their synaptic role using collapsible containers
  * Each group shows a summary of its contents and is collapsible
  */
-export const GroupedRelativesView: React.FC<GroupedRelativesViewProps> = ({
+const GroupedRelativesView: React.FC<GroupedRelativesViewProps> = ({
   relatives,
   relativesByRole,
   renderNodeId

@@ -58,13 +58,3 @@ export async function connectDatabase(): Promise<void> {
     throw error;
   }
 }
-
-export async function disconnectDatabase(): Promise<void> {
-  try {
-    await mongoose.connection.close();
-    logger.info('Disconnected from MongoDB');
-  } catch (error) {
-    logger.error('Error disconnecting from MongoDB:', error);
-    throw error;
-  }
-}

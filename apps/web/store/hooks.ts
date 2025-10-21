@@ -6,7 +6,6 @@ export { useAppDispatch, useAppSelector };
 // Selector hooks for common use cases
 export const useNodes = () => useAppSelector((state: RootState) => state.nodes);
 export const useUI = () => useAppSelector((state: RootState) => state.ui);
-export const useCache = () => useAppSelector((state: RootState) => state.cache);
 
 // Node selectors
 export const useNodeById = (id: string) => 
@@ -17,37 +16,15 @@ export const useAllNodes = () =>
     state.nodes.allIds.map(id => state.nodes.byId[id])
   );
 
-export const useNodeIds = () => 
-  useAppSelector((state: RootState) => state.nodes.allIds);
-
 // UI selectors
 export const useSelectedNodes = () => 
   useAppSelector((state: RootState) => state.ui.selectedNodeIds);
-
-export const useFilters = () => 
-  useAppSelector((state: RootState) => state.ui.filters);
-
-export const useSortOptions = () => 
-  useAppSelector((state: RootState) => state.ui.sortOptions);
 
 export const useLoading = () => 
   useAppSelector((state: RootState) => state.ui.loading);
 
 export const useError = () => 
   useAppSelector((state: RootState) => state.ui.error);
-
-export const useViewMode = () => 
-  useAppSelector((state: RootState) => state.ui.viewMode);
-
-// Cache selectors
-export const useLastFetched = (key: string) => 
-  useAppSelector((state: RootState) => state.cache.lastFetched[key]);
-
-export const useCacheKey = (key: string) => 
-  useAppSelector((state: RootState) => state.cache.cacheKeys[key]);
-
-export const useCacheMetadata = (key: string) => 
-  useAppSelector((state: RootState) => state.cache.metadata[key]);
 
 // Computed selectors
 export const useFilteredNodes = () => 
@@ -85,8 +62,3 @@ export const useFilteredNodes = () =>
 
     return filteredNodes;
   });
-
-export const useSelectedNodesData = () => 
-  useAppSelector((state: RootState) => 
-    state.ui.selectedNodeIds.map(id => state.nodes.byId[id]).filter(Boolean)
-  );

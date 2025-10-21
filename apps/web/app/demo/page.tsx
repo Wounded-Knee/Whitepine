@@ -7,7 +7,6 @@ import {
   useUI, 
   useSelectedNodes,
   useFilteredNodes,
-  useAllNodes,
   useLoading,
   useError
 } from '@/store/hooks';
@@ -15,8 +14,7 @@ import {
   addNode, 
   updateNodeLocal, 
   removeNode, 
-  clearNodes,
-  fetchNodes 
+  clearNodes
 } from '@/store/slices/nodesSlice';
 import { 
   selectNode, 
@@ -65,7 +63,6 @@ export default function ReduxDemo() {
   const ui = useUI();
   const selectedNodes = useSelectedNodes();
   const filteredNodes = useFilteredNodes();
-  const allNodes = useAllNodes();
   const loading = useLoading();
   const error = useError();
 

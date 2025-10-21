@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ModalDialog } from '@web/components/ui/modal-dialog';
-import { UserNodeView } from './UserNodeView';
-import { PostNodeView } from './PostNodeView';
-import { BaseNodeView } from './BaseNode';
+import ModalDialog from '@web/components/ui/modal-dialog';
+import UserNodeView from './UserNodeView';
+import PostNodeView from './PostNodeView';
+import BaseNodeView from './BaseNode';
 
 export type NodeType = 'BaseNode' | 'UserNode' | 'PostNode';
 
@@ -16,7 +16,7 @@ export interface CreateSampleNodeDialogProps {
   onError?: (error: string) => void;
 }
 
-export const CreateSampleNodeDialog: React.FC<CreateSampleNodeDialogProps> = ({
+const CreateSampleNodeDialog: React.FC<CreateSampleNodeDialogProps> = ({
   isOpen,
   onClose,
   nodeType,

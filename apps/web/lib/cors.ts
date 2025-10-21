@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 /**
  * Get allowed origins based on environment configuration
  */
-export function getAllowedOrigins(): string[] {
+function getAllowedOrigins(): string[] {
   const webPort = process.env.DEV_WEB_PORT || '3000'
   const apiPort = process.env.DEV_API_PORT || '5000'
   const hmrPort = process.env.DEV_HMR_PORT || webPort
@@ -48,7 +48,7 @@ export function getAllowedOrigins(): string[] {
 /**
  * Check if an origin is allowed
  */
-export function isAllowedOrigin(origin: string | null): boolean {
+function isAllowedOrigin(origin: string | null): boolean {
   if (!origin) return false
   const allowedOrigins = getAllowedOrigins()
   return allowedOrigins.includes(origin)
@@ -57,7 +57,7 @@ export function isAllowedOrigin(origin: string | null): boolean {
 /**
  * Get CORS headers for a request
  */
-export function getCorsHeaders(request: NextRequest) {
+function getCorsHeaders(request: NextRequest) {
   const origin = request.headers.get('origin')
   const allowedOrigins = getAllowedOrigins()
   
@@ -73,7 +73,7 @@ export function getCorsHeaders(request: NextRequest) {
 /**
  * Handle CORS preflight requests
  */
-export function handleCorsPreflight(request: NextRequest): NextResponse | null {
+function handleCorsPreflight(request: NextRequest): NextResponse | null {
   if (request.method === 'OPTIONS') {
     const corsHeaders = getCorsHeaders(request)
     return new NextResponse(null, {
@@ -87,7 +87,7 @@ export function handleCorsPreflight(request: NextRequest): NextResponse | null {
 /**
  * Add CORS headers to a response
  */
-export function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
+function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
   const corsHeaders = getCorsHeaders(request)
   
   Object.entries(corsHeaders).forEach(([key, value]) => {

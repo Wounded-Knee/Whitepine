@@ -333,10 +333,7 @@ export const {
   addNode,
   updateNodeLocal,
   removeNode,
-  setNodes,
   clearNodes,
-  addNodes,
-  removeNodes,
 } = nodesSlice.actions;
 
 export default nodesSlice.reducer;

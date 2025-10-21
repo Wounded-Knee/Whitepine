@@ -87,13 +87,6 @@ export const createNodeSchema = z.discriminatedUnion('kind', [
   synapseNodeWithSynapsesSchema,
 ]);
 
-// Update schemas for each node type
-export const updateUserNodeSchema = userNodeSchema.partial();
-
-export const updatePostNodeSchema = postNodeSchema.partial();
-
-export const updateSynapseNodeSchema = synapseNodeSchema.partial();
-
 // Synapse operations for node updates
 const synapseUpdateSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid synapse ID'),
@@ -106,29 +99,16 @@ const synapseOperationsSchema = z.object({
   delete: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid synapse ID')).optional(),
 });
 
-// Enhanced update schemas with synapse operations
-export const updateUserNodeWithSynapsesSchema = updateUserNodeSchema.extend({
-  synapses: synapseOperationsSchema.optional(),
-});
-
-export const updatePostNodeWithSynapsesSchema = updatePostNodeSchema.extend({
-  synapses: synapseOperationsSchema.optional(),
-});
-
-export const updateSynapseNodeWithSynapsesSchema = updateSynapseNodeSchema.extend({
-  synapses: synapseOperationsSchema.optional(),
-});
-
 // General update schema (union of all update types)
 // Update schemas that don't require kind field (since it shouldn't be changed)
 export const updateNodeSchema = z.union([
-  updateUserNodeSchema.extend({
+  userNodeSchema.partial().extend({
     synapses: synapseOperationsSchema.optional(),
   }),
-  updatePostNodeSchema.extend({
+  postNodeSchema.partial().extend({
     synapses: synapseOperationsSchema.optional(),
   }),
-  updateSynapseNodeSchema.extend({
+  synapseNodeSchema.partial().extend({
     synapses: synapseOperationsSchema.optional(),
   }),
 ]);
@@ -158,10 +138,6 @@ export const nodeIdSchema = z.object({
 });
 
 // Synapse-specific validation schemas
-export const createSynapseSchema = synapseCreateSchema;
-
-export const updateSynapseSchema = synapseCreateSchema.partial();
-
 export const synapseQuerySchema = z.object({
   from: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid from node ID').optional(),
   to: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid to node ID').optional(),
@@ -172,15 +148,6 @@ export const synapseQuerySchema = z.object({
   skip: z.string().regex(/^\d+$/, 'Skip must be a number').optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-});
-
-export const synapseIdSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid synapse ID'),
-});
-
-export const bulkSynapseOperationsSchema = z.object({
-  operation: z.enum(['delete', 'restore']),
-  synapseIds: z.array(z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid synapse ID')).min(1, 'At least one synapse ID is required'),
 });
 
 // Node creation validation function

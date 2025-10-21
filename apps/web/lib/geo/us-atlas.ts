@@ -39,7 +39,7 @@ let statesCache: StatesFeatureCollection | null = null;
 /**
  * Load US Atlas TopoJSON data
  */
-export async function loadUSAtlas(): Promise<USTopology> {
+async function loadUSAtlas(): Promise<USTopology> {
   if (atlasCache) {
     return atlasCache;
   }
@@ -98,15 +98,6 @@ export async function getStateByAbbreviation(abbr: USAStateAbbreviation): Promis
 }
 
 /**
- * Get multiple states by abbreviations
- */
-export async function getStatesByAbbreviations(abbrs: USAStateAbbreviation[]): Promise<StateFeature[]> {
-  const states = await getStatesFeatureCollection();
-  const abbrSet = new Set(abbrs);
-  return states.features.filter(f => abbrSet.has(f.properties.abbreviation));
-}
-
-/**
  * Calculate centroid of a state for label positioning
  */
 export function getStateCentroid(feature: StateFeature): [number, number] | null {
@@ -117,33 +108,5 @@ export function getStateCentroid(feature: StateFeature): [number, number] | null
     console.error('Error calculating centroid:', error);
     return null;
   }
-}
-
-/**
- * Calculate centroids for all states
- */
-export async function getStateCentroids(): Promise<Record<USAStateAbbreviation, [number, number]>> {
-  const states = await getStatesFeatureCollection();
-  const centroids: Partial<Record<USAStateAbbreviation, [number, number]>> = {};
-  
-  states.features.forEach(feature => {
-    const centroid = getStateCentroid(feature);
-    if (centroid && feature.properties.abbreviation) {
-      centroids[feature.properties.abbreviation] = centroid;
-    }
-  });
-  
-  return centroids as Record<USAStateAbbreviation, [number, number]>;
-}
-
-/**
- * Create a feature collection from a subset of states
- */
-export async function createStateSubset(abbrs: USAStateAbbreviation[]): Promise<StatesFeatureCollection> {
-  const features = await getStatesByAbbreviations(abbrs);
-  return {
-    type: 'FeatureCollection',
-    features
-  };
 }
 

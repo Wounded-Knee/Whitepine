@@ -7,9 +7,7 @@ import { useNodeRequest } from '@web/hooks/useNodeRequest';
 import { useAppSelector } from '@web/store/hooks';
 import { Button } from '@web/components/ui/button';
 import { Edit, Save, X, Trash2 } from 'lucide-react';
-import { RelativeNodeView } from './RelativeNodeView';
-import { GroupedRelativesView } from './GroupedRelativesView';
-import type { BaseNode, RelationshipConfig } from '@whitepine/types';
+import GroupedRelativesView from './GroupedRelativesView';
 
 // Import extracted components
 import { generateNodeSchema } from './schema/generateNodeSchema';
@@ -32,7 +30,7 @@ import {
 import { renderNodeId } from './utils/renderNodeId';
 import { useNodeEditing } from './hooks/useNodeEditing';
 import { useNodeRelationships } from './hooks/useNodeRelationships';
-import type { BaseNodeViewProps, EditProps } from './types/BaseNodeView.types';
+import type { BaseNodeViewProps } from './types/BaseNodeView.types';
 
 const SimpleMessage = ({ title, message, theme = 'default' }: { title: string, message: string, theme?: 'default' | 'error' | 'warning' | 'success' }) => {
   const themeClass = {
@@ -73,9 +71,6 @@ const BaseNodeView: React.FC<BaseNodeViewProps> = ({
 }) => {
   // Use the custom hook for request management with deduplication
   const { node, isLoading, error, fetchNode, relatives, relativesByRole, getRelatives } = useNodeRequest(nodeId, mode);
-  
-  // Get all nodes for debug information
-  const allNodes = useAppSelector((state) => state.nodes.byId);
 
   // Use extracted hooks
   const editProps = useNodeEditing(node, fetchNode, mode, onSuccess);

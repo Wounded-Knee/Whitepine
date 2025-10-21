@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { findUserById } from '@/lib/user-service'
-import { withCors, handleCorsPreflight } from '@/lib/cors'
+import { withCors } from '@/lib/cors'
 
-async function getUserHandler(request: NextRequest) {
+async function getUserHandler(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     

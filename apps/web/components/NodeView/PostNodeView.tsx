@@ -11,7 +11,7 @@ import { NODE_TYPES } from '@whitepine/types';
 import { useNodeById, useAppDispatch } from '@web/store/hooks';
 import { useNodeRequest } from '@web/hooks/useNodeRequest';
 import { fetchNodeById, createNode } from '@web/store/slices/nodesSlice';
-import { RelationshipSuggestions, type RelationshipSuggestion } from './RelationshipSuggestions';
+import RelationshipSuggestions, { type RelationshipSuggestion } from './RelationshipSuggestions';
 import CreateRelatedNode from './CreateRelatedNode';
 
 export interface PostNodeViewProps extends Omit<BaseNodeViewProps, 'children'> {
@@ -191,7 +191,7 @@ const AuthorName: React.FC<{
  * @param compact - Whether to use compact layout (default: false)
  * @param children - Render prop function that receives (node, isLoading, error)
  */
-export const PostNodeView: React.FC<PostNodeViewProps> = ({
+const PostNodeView: React.FC<PostNodeViewProps> = ({
   nodeId,
   className,
   showAuthor = true,

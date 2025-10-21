@@ -19,7 +19,7 @@ export interface CreateRelatedNodeProps {
 /**
  * Component for creating a new node with a relationship to an existing node
  */
-export const CreateRelatedNode: React.FC<CreateRelatedNodeProps> = ({
+const CreateRelatedNode: React.FC<CreateRelatedNodeProps> = ({
   parentNode,
   suggestion,
   onCancel,

@@ -4,16 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { BaseNodeView, UserNodeView, PostNodeView } from '@web/components/NodeView';
-import { useAppDispatch } from '@web/store/hooks';
-import { createNode, fetchNodes } from '@web/store/slices/nodesSlice';
 import { apiClient } from '@web/lib/api-client';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { CreateSampleNodeDialog, type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
+import { ArrowLeft } from 'lucide-react';
+import CreateSampleNodeDialog, { type NodeType } from '@web/components/NodeView/CreateSampleNodeDialog';
 
 export default function NodeViewDemo() {
   const params = useParams();
   const router = useRouter();
-  const dispatch = useAppDispatch();
   
   const nodeId = params.nodeId as string;
   const [selectedNodeType, setSelectedNodeType] = useState<NodeType>('BaseNode');

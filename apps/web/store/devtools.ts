@@ -15,7 +15,7 @@ export const isDevToolsAvailable = (): boolean => {
  * Get the default DevTools configuration for the application
  * Using Redux Toolkit's DevToolsEnhancerOptions type
  */
-export const getDefaultDevToolsConfig = () => ({
+const getDefaultDevToolsConfig = () => ({
   name: 'Whitepine Redux Store',
   trace: true,
   traceLimit: 25,
